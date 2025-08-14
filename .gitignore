@@ -1,0 +1,11 @@
+.vscode/
+lib/
+build/
+bin/
+headers/
+src/*/auto_generated_api/*
+external
+code_templates
+headers/masala/headers
+html_docs/*
+test_scratch/*

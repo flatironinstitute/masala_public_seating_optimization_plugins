@@ -44,7 +44,7 @@ ENDIF()
 #ADD_DEFINITIONS( -DMASALA_DISABLE_DEPRECATION_WARNINGS )
 
 # Ensure that version is set in only one place, in the PROJECT line at the top of this file:
-ADD_DEFINITIONS( -DMASALA_QUANTUM_COMPUTING_PLUGINS_MAJOR_VERSION=${CMAKE_PROJECT_VERSION_MAJOR} -DMASALA_QUANTUM_COMPUTING_PLUGINS_MINOR_VERSION=${CMAKE_PROJECT_VERSION_MINOR} )
+ADD_DEFINITIONS( -DMASALA_SEATING_OPTIMIZATION_PLUGINS_MAJOR_VERSION=${CMAKE_PROJECT_VERSION_MAJOR} -DMASALA_SEATING_OPTIMIZATION_PLUGINS_MINOR_VERSION=${CMAKE_PROJECT_VERSION_MINOR} )
 
 SET( LINK_TYPE SHARED )
 SET( LINK_EXTERNAL_LIBS stdc++ )
@@ -66,17 +66,17 @@ INCLUDE( compiler.cmake )
 
 # Generate the build lists for the seating_optimization library and its API library:
 execute_process(
-    COMMAND python3 ../code_templates/generate_cmake_build.py quantum_computing_masala_plugins ${CMAKE_PROJECT_VERSION_MAJOR} ${CMAKE_PROJECT_VERSION_MINOR} seating_optimization ../src/seating_optimization cmake_generated/seating_optimization.cmake cmake_generated/seating_optimization_api.cmake cmake_generated/seating_optimization_tests.cmake
+    COMMAND python3 ../code_templates/generate_cmake_build.py seating_optimization_masala_plugins ${CMAKE_PROJECT_VERSION_MAJOR} ${CMAKE_PROJECT_VERSION_MINOR} seating_optimization ../src/seating_optimization cmake_generated/seating_optimization.cmake cmake_generated/seating_optimization_api.cmake cmake_generated/seating_optimization_tests.cmake
 )
 
 # Generate the build lists for the registration library and its API library:
 execute_process(
-    COMMAND python3 ../code_templates/generate_cmake_build.py quantum_computing_masala_plugins ${CMAKE_PROJECT_VERSION_MAJOR} ${CMAKE_PROJECT_VERSION_MINOR} registration ../src/registration cmake_generated/registration.cmake cmake_generated/registration_api.cmake cmake_generated/registration_tests.cmake
+    COMMAND python3 ../code_templates/generate_cmake_build.py seating_optimization_masala_plugins ${CMAKE_PROJECT_VERSION_MAJOR} ${CMAKE_PROJECT_VERSION_MINOR} registration ../src/registration cmake_generated/registration.cmake cmake_generated/registration_api.cmake cmake_generated/registration_tests.cmake
 )
 
 # Generate the build lists for the applications library and its API library:
 execute_process(
-    COMMAND python3 ../code_templates/generate_cmake_build.py quantum_computing_masala_plugins ${CMAKE_PROJECT_VERSION_MAJOR} ${CMAKE_PROJECT_VERSION_MINOR} applications ../src/applications cmake_generated/applications.cmake NONE NONE
+    COMMAND python3 ../code_templates/generate_cmake_build.py seating_optimization_masala_plugins ${CMAKE_PROJECT_VERSION_MAJOR} ${CMAKE_PROJECT_VERSION_MINOR} applications ../src/applications cmake_generated/applications.cmake NONE NONE
 )
 
 # Build the seating_optimization library:

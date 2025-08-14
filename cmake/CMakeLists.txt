@@ -64,9 +64,9 @@ INCLUDE_DIRECTORIES( SYSTEM ../ ../src/ ../headers/masala/headers/ )
 # Compiler settings and compilation flags:
 INCLUDE( compiler.cmake )
 
-# Generate the build lists for the quantum_optimizers library and its API library:
+# Generate the build lists for the seating_optimization library and its API library:
 execute_process(
-    COMMAND python3 ../code_templates/generate_cmake_build.py quantum_computing_masala_plugins ${CMAKE_PROJECT_VERSION_MAJOR} ${CMAKE_PROJECT_VERSION_MINOR} quantum_optimizers ../src/quantum_optimizers cmake_generated/quantum_optimizers.cmake cmake_generated/quantum_optimizers_api.cmake cmake_generated/quantum_optimizers_tests.cmake
+    COMMAND python3 ../code_templates/generate_cmake_build.py quantum_computing_masala_plugins ${CMAKE_PROJECT_VERSION_MAJOR} ${CMAKE_PROJECT_VERSION_MINOR} seating_optimization ../src/seating_optimization cmake_generated/seating_optimization.cmake cmake_generated/seating_optimization_api.cmake cmake_generated/seating_optimization_tests.cmake
 )
 
 # Generate the build lists for the registration library and its API library:
@@ -79,11 +79,11 @@ execute_process(
     COMMAND python3 ../code_templates/generate_cmake_build.py quantum_computing_masala_plugins ${CMAKE_PROJECT_VERSION_MAJOR} ${CMAKE_PROJECT_VERSION_MINOR} applications ../src/applications cmake_generated/applications.cmake NONE NONE
 )
 
-# Build the quantum_optimizers library:
-INCLUDE( ../build/cmake_generated/quantum_optimizers.cmake )
+# Build the seating_optimization library:
+INCLUDE( ../build/cmake_generated/seating_optimization.cmake )
 
-# Build the quantum_optimizers API library:
-INCLUDE( ../build/cmake_generated/quantum_optimizers_api.cmake )
+# Build the seating_optimization API library:
+INCLUDE( ../build/cmake_generated/seating_optimization_api.cmake )
 
 # Build the registration library:
 INCLUDE( ../build/cmake_generated/registration.cmake )
@@ -97,8 +97,8 @@ INCLUDE( ../build/cmake_generated/applications.cmake )
 
 # Build tests:
 
-# Build tests for the quantum_optimizers library.
-INCLUDE( ../build/cmake_generated/quantum_optimizers_tests.cmake )
+# Build tests for the seating_optimization library.
+INCLUDE( ../build/cmake_generated/seating_optimization_tests.cmake )
 
 # Build tests for the registration library.
 INCLUDE( ../build/cmake_generated/registration_tests.cmake )

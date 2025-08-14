@@ -40,8 +40,8 @@ namespace api {
         std::vector< masala::base::MasalaObjectSP > outvec;
 
         // Add to this vector whenever a class is added with a defined API:
-outvec.push_back( masala::make_shared< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBase >() );		
-outvec.push_back( masala::make_shared< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::Seat >() );		
+        outvec.push_back( masala::make_shared< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBase >() );		
+        outvec.push_back( masala::make_shared< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::Seat >() );		
         // ADD MORE ENTRIES HERE
 
         return outvec;

@@ -16,37 +16,36 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/// @file src/seating_optimization/seating_problem_elements/Seat.hh
-/// @brief Headers for a Seat.
-/// @details A Seat is a place where a person can sit.  It's defined by a coordinate in R^2 and
-/// a direction (an angle, measured clockwise from north).
+/// @file src/seating_optimization/seating_problem_elements/SeatingElementBase.hh
+/// @brief Headers for a SeatingElementBase.
+/// @details The SeatingElementBase base class is a common base class for all seating elements.  It is
+/// not meant to be instantiated outside of the API definition system.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
 
-#ifndef Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_Seat_hh
-#define Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_Seat_hh
+#ifndef Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_SeatingElementBase_hh
+#define Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_SeatingElementBase_hh
 
 // Forward declarations:
-#include <seating_optimization/seating_problem_elements/Seat.fwd.hh>
+#include <seating_optimization/seating_problem_elements/SeatingElementBase.fwd.hh>
 
 // Parent header:
-#include <seating_optimization/seating_problem_elements/SeatingElementBase.hh>
+#include <base/managers/plugin_module/MasalaPlugin.hh>
 
 // Base headers:
 #include <base/types.hh>
+
+// STL headers:
+#include <mutex>
 
 namespace seating_optimization_masala_plugins {
 namespace seating_optimization {
 namespace seating_problem_elements {
 
-/// @brief A Seat.
-/// @details A Seat is a place where a person can sit.  It's defined by a coordinate in R^2 and
-/// a direction (an angle, measured clockwise from north).
+/// @brief A SeatingElementBase.
+/// @details The SeatingElementBase base class is a common base class for all seating elements.  It is
+/// not meant to be instantiated outside of the API definition system.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
-class Seat : public seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBase {
-
-	typedef seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBase Parent;
-	typedef seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBaseSP ParentSP;
-	typedef seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBaseCSP ParentCSP;
+class SeatingElementBase : public masala::base::managers::plugin_module::MasalaPlugin {
 
 public:
 
@@ -55,21 +54,28 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 
 	/// @brief Default constructor.
-	Seat() = default;
+	SeatingElementBase() = default;
 
 	/// @brief Copy constructor.  Explicit due to mutex.
-	Seat( Seat const & src );
+	SeatingElementBase( SeatingElementBase const & src );
+
+	/// @brief Assignment operator.  Explicit due to mutex.
+	SeatingElementBase & operator=( SeatingElementBase const & src );
 
 	/// @brief Destructor.
-	~Seat() override = default;
+	~SeatingElementBase() override = default;
 
 	/// @brief Make a copy of this object.
+	virtual
 	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBaseSP
-	clone() const override;
+	clone() const;
 
 	/// @brief Make a fully independent copy of this object.
-	SeatSP
+	SeatingElementBaseSP
 	deep_clone() const;
+
+	/// @brief Make this object fully independent by deep-cloning all of its sub-objects.
+	void make_independent();
 
 public:
 
@@ -79,7 +85,7 @@ public:
 
 	/// @brief Get the category or categories for this plugin class.  Default for all
 	/// optimization problems; may be overridden by derived classes.
-	/// @returns { { "OptimizationSolution", "CostFunctionNetworkOptimizationSolution", "Seat" } }
+	/// @returns { { "OptimizationSolution", "CostFunctionNetworkOptimizationSolution", "SeatingElementBase" } }
 	/// @note Categories are hierarchical (e.g. Selector->AtomSelector->AnnotatedRegionSelector,
 	/// stored as { {"Selector", "AtomSelector", "AnnotatedRegionSelector"} }). A plugin can be
 	/// in more than one hierarchical category (in which case there would be more than one
@@ -95,7 +101,7 @@ public:
 	get_keywords() const override;
 
 	/// @brief Get the name of this class.
-	/// @returns "Seat".
+	/// @returns "SeatingElementBase".
 	std::string
 	class_name() const override;
 
@@ -139,13 +145,22 @@ protected:
 // PROTECTED FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
 
+	/// @brief Deried classes can lock the mutex.
+	std::mutex & mutex() const { return mutex_; }
+
+	/// @brief Derived classes can access the API definition.
+	masala::base::api::MasalaObjectAPIDefinitionCSP &
+	api_definition() {
+		return api_definition_;
+	}
+
 	/// @brief Make this object fully indepdendent.  Derived classes must override this, and the override must call
 	/// the parent class implementation.
-	void protected_make_independent() override;
+	virtual void protected_make_independent();
 
 	/// @brief Assign src to this object.  Derived classes must override this, and the override must call
 	/// the parent class implementation.
-	void protected_assign( SeatingElementBase const & src ) override;
+	virtual void protected_assign( SeatingElementBase const & src );
 
 private:
 
@@ -153,11 +168,16 @@ private:
 // PRIVATE DATA
 ////////////////////////////////////////////////////////////////////////////////
 
+	/// @brief A mutex for this object and its children.
+	mutable std::mutex mutex_;
 
-}; // class Seat
+	/// @brief The API definition for this object.s
+	masala::base::api::MasalaObjectAPIDefinitionCSP api_definition_;
+
+}; // class SeatingElementBase
 
 } // namespace seating_problem_elements
 } // namespace seating_optimization
 } // namespace seating_optimization_masala_plugins
 
-#endif // Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_Seat_hh
+#endif // Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_SeatingElementBase_hh

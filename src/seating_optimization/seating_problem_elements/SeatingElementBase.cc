@@ -16,14 +16,14 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/// @file src/seating_optimization/seating_problem_elements/Seat.cc
-/// @brief Implementations for a Seat.
-/// @details A Seat is a place where a person can sit.  It's defined by a coordinate in R^2 and
-/// a direction (an angle, measured clockwise from north).
+/// @file src/seating_optimization/seating_problem_elements/SeatingElementBase.cc
+/// @brief Implementations for SeatingElementBase.
+/// @details The SeatingElementBase base class is a common base class for all seating elements.  It is
+/// not meant to be instantiated outside of the API definition system.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
 
 // Unit header:
-#include <seating_optimization/seating_problem_elements/Seat.hh>
+#include <seating_optimization/seating_problem_elements/SeatingElementBase.hh>
 
 // Numeric headers:
 
@@ -43,28 +43,47 @@ namespace seating_problem_elements {
 ////////////////////////////////////////////////////////////////////////////////
 
 /// @brief Copy constructor.  Explicit due to mutex.
-Seat::Seat( Seat const & src ) :
-	Parent( src )
+SeatingElementBase::SeatingElementBase( SeatingElementBase const & src ) :
+    seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBase( src )
 {
-	std::lock< std::mutex, std::mutex >( mutex(), src.mutex() );
-	std::lock_guard< std::mutex > lockthis( mutex(), std::adopt_lock );
-	std::lock_guard< std::mutex > lockthat( src.mutex(), std::adopt_lock );
-	Seat::protected_assign( src );
+    std::lock< std::mutex, std::mutex >( mutex_, src.mutex_ );
+    std::lock_guard< std::mutex > lockthis( mutex_, std::adopt_lock );
+    std::lock_guard< std::mutex > lockthat( src.mutex_, std::adopt_lock );
+    SeatingElementBase::assign( src );
+}
+
+/// @brief Assignment operator.  Explicit due to mutex.
+SeatingElementBase &
+SeatingElementBase::operator=(
+    SeatingElementBase const & src
+) {
+    std::lock< std::mutex, std::mutex >( mutex_, src.mutex_ );
+    std::lock_guard< std::mutex > lockthis( mutex_, std::adopt_lock );
+    std::lock_guard< std::mutex > lockthat( src.mutex_, std::adopt_lock );
+    protected_assign( src );
+    return *this;
 }
 
 
 /// @brief Make a copy of this object.
 seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBaseSP
-Seat::clone() const {
-	return masala::make_shared< Seat >( *this );
+SeatingElementBase::clone() const {
+    return masala::make_shared< SeatingElementBase >( *this );
 }
 
 /// @brief Make a fully independent copy of this object.
-SeatSP
-Seat::deep_clone() const {
-	SeatSP new_seat( std::static_pointer_cast< Seat >( this->clone() ) );
-	new_seat->make_independent();
-	return new_seat;
+SeatingElementBaseSP
+SeatingElementBase::deep_clone() const {
+    SeatingElementBaseSP new_seat( std::static_pointer_cast< SeatingElementBase >( this->clone() ) );
+    new_seat->make_independent();
+    return new_seat;
+}
+
+/// @brief Make this object fully independent by deep-cloning all of its sub-objects.
+void
+SeatingElementBase::make_independent() {
+    std::lock_guard< std::mutex > lockthis( mutex_ );
+    protected_make_indpendent();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -73,16 +92,16 @@ Seat::deep_clone() const {
 
 /// @brief Get the category or categories for this plugin class.  Default for all
 /// optimization problems; may be overridden by derived classes.
-/// @returns { { "OptimizationSolution", "CostFunctionNetworkOptimizationSolution", "Seat" } }
+/// @returns { { "OptimizationSolution", "CostFunctionNetworkOptimizationSolution", "SeatingElementBase" } }
 /// @note Categories are hierarchical (e.g. Selector->AtomSelector->AnnotatedRegionSelector,
 /// stored as { {"Selector", "AtomSelector", "AnnotatedRegionSelector"} }). A plugin can be
 /// in more than one hierarchical category (in which case there would be more than one
 /// entry in the outer vector), but must be in at least one.  The first one is used as
 /// the primary key.
 std::vector< std::vector< std::string > >
-Seat::get_categories() const {
+SeatingElementBase::get_categories() const {
 	return std::vector< std::vector< std::string > > {
-		{ "SeatingProblem", "SeatingProblemElement", "Seat" }
+		{ "SeatingProblem", "SeatingProblemElement", "SeatingElementBase" }
 	};
 }
 
@@ -90,62 +109,63 @@ Seat::get_categories() const {
 /// optimization solutions; may be overridden by derived classes.
 /// @returns { "optimization_solution", "qubo_solution", "numeric" }
 std::vector< std::string >
-Seat::get_keywords() const {
+SeatingElementBase::get_keywords() const {
 	return std::vector< std::string > {
-		"seating_problem",
+        "seating_problem",
 		"seating_problem_element",
-		"seat",
+        "seat",
 	};
 }
 
 /// @brief Get the name of this class.
-/// @returns "Seat".
+/// @returns "SeatingElementBase".
 std::string
-Seat::class_name() const {
-	return "Seat";
+SeatingElementBase::class_name() const {
+    return "SeatingElementBase";
 }
 
 /// @brief Get the namespace for this class.
 /// @returns "masala::numeric::optimization::cost_function_network".
 std::string
-Seat::class_namespace() const {
-	return "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements";
+SeatingElementBase::class_namespace() const {
+    return "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements";
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC INTERFACE DEFINITION
 ////////////////////////////////////////////////////////////////////////////////
 
-/// @brief Get a description of the API for the Seat class.
+/// @brief Get a description of the API for the SeatingElementBase class.
 masala::base::api::MasalaObjectAPIDefinitionCWP
-Seat::get_api_definition() {
-	using namespace masala::base::api;
-	using masala::base::Real;
-	using masala::base::Size;
+SeatingElementBase::get_api_definition() {
+    using namespace masala::base::api;
+    using masala::base::Real;
+    using masala::base::Size;
 
-	std::lock_guard< std::mutex > lock( mutex() );
+    std::lock_guard< std::mutex > lock( mutex_ );
 
-	if( api_definition() == nullptr ) {
+    if( api_definition() == nullptr ) {
 
-		MasalaObjectAPIDefinitionSP api_def(
-			masala::make_shared< MasalaObjectAPIDefinition >(
-				*this,
-				"The Seat class stores all information associated with a seat at which a guest could be seated.",
-				false, false
-			)
-		);
-		ADD_PUBLIC_CONSTRUCTOR_DEFINITIONS( Seat, api_def );
+        MasalaObjectAPIDefinitionSP api_def(
+            masala::make_shared< MasalaObjectAPIDefinition >(
+                *this,
+                "The SeatingElementBase class is a common base class for all seating elements.  It is not intended to be "
+                "instantiated outside of the build system.",
+                false, true
+            )
+        );
+        ADD_PROTECTED_CONSTRUCTOR_DEFINITIONS( SeatingElementBase, api_def );
 
-		// Work functions:
+        // Work functions:
 
-		// Getters:
+        // Getters:
 
-		// Setters:
+        // Setters:
 
-		api_definition() = api_def; //Make const.
-	}
+        api_definition() = api_def; //Make const.
+    }
 
-	return api_definition();
+    return api_definition();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -166,24 +186,12 @@ Seat::get_api_definition() {
 
 /// @brief Make this object fully indepdendent.  Derived classes must override this, and the override must call
 /// the parent class implementation.
-void
-Seat::protected_make_independent() {
-	// TODO DEEP CLONING
-	Parent::protected_make_independent();
-}
+void protected_make_independent() { /* GNDN */ }
 
 /// @brief Assign src to this object.  Derived classes must override this, and the override must call
 /// the parent class implementation.
-void
-Seat::protected_assign( SeatingElementBase const & src ) {
-	Seat const * const src_ptr_cast( dynamic_cast< Seat const * >( &src ) );
-	CHECK_OR_THROW_FOR_CLASS( src_ptr_cast != nullptr, "protected_assign", "Cannot assign an object of type " + src.class_name()
-		+ " to a Seat object."
-	);
-	// TODO ASSIGNMENT.
+void protected_assign( SeatingElementBase const & /*src*/ ) { /* GNDN */ }
 
-	Parent::protected_assign( src );
-}
 } // namespace seating_problem_elements
 } // namespace seating_optimization
 } // namespace seating_optimization_masala_plugins

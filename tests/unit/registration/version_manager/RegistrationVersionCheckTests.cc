@@ -1,6 +1,6 @@
 /*
-    Quantum Computing Masala Plugins
-    Copyright (C) 2022 Vikram K. Mulligan
+    Seating Optimization Masala Plugins
+    Copyright (C) 2025 Vikram K. Mulligan
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -17,7 +17,7 @@
 */
 
 /// @file tests/unit/registration/version_manager/RegistrationVersionCheckTests.cc
-/// @brief Unit tests for registering the quantum computing Masala plugins library, and for ensuring that
+/// @brief Unit tests for registering the seating optimization Masala plugins library, and for ensuring that
 /// its version requirements are satisfied.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
 
@@ -71,7 +71,7 @@ TEST_CASE( "Register and check version compatibility using MasalaLibraryManager"
             "seating_optimization_masala_plugins::tests::unit::registration::version_manager::RegistrationVersionCheckTests",
             "Register_and_check_version_compatibility_using_MasalaLibraryManager",
             "The MASALA_SEATING_OPTIMIZATION_PLUGINS environment variable must point to the directory "
-            "of the quantum computing Masala plugins repository for this test."
+            "of the seating optimization Masala plugins repository for this test."
         );
         MasalaPluginLibraryManagerHandle libman( MasalaPluginLibraryManager::get_instance() );
     
@@ -120,7 +120,7 @@ TEST_CASE( "Register and check that plugins were registered using MasalaLibraryM
             "seating_optimization_masala_plugins::tests::unit::registration::version_manager::RegistrationVersionCheckTests",
             "Register_and_check_version_compatibility_using_MasalaLibraryManager",
             "The MASALA_SEATING_OPTIMIZATION_PLUGINS environment variable must point to the directory "
-            "of the quantum computing Masala plugins repository for this test."
+            "of the seating optimization Masala plugins repository for this test."
         );
         MasalaPluginLibraryManagerHandle libman( MasalaPluginLibraryManager::get_instance() );
 

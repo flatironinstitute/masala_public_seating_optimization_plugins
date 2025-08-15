@@ -16,7 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/// @file tests/unit/quantum_optimizers/quantum_optimizers_tests.cc
+/// @file tests/unit/seating_optimization/seating_optimization_tests.cc
 /// @brief Define main() function for testing.
 /// @details The CATCH_CONFIG_MAIN macro must be invoked once in the unit
 /// testing application generated with the Catch2 library.

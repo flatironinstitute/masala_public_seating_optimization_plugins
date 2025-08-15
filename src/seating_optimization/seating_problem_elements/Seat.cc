@@ -32,6 +32,8 @@
 #include <base/error/ErrorHandling.hh>
 #include <base/api/MasalaObjectAPIDefinition.hh>
 #include <base/api/constructor/MasalaObjectAPIConstructorMacros.hh>
+#include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
+#include <base/api/setter/MasalaObjectAPISetterDefinition_TwoInput.tmpl.hh>
 
 // STL headers:
 
@@ -121,6 +123,7 @@ Seat::class_namespace() const {
 masala::base::api::MasalaObjectAPIDefinitionCWP
 Seat::get_api_definition() {
 	using namespace masala::base::api;
+	using namespace masala::base::api::setter;
 	using masala::base::Real;
 	using masala::base::Size;
 
@@ -142,6 +145,26 @@ Seat::get_api_definition() {
 		// Getters:
 
 		// Setters:
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_TwoInput< Real const, Real const > >(
+				"set_coordinates",
+				"Set the seat's coordinates.  A seat has coordinates in R^2 (x and y).",
+				"x_in", "The x coordinate, in meters.",
+				"y_in", "The y coordinate, in meters.",
+				false, false,
+				std::bind( &Seat::set_coordinates, this, std::placeholders::_1, std::placeholders::_1 )
+			)
+		);
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< Real const > >(
+				"set_angle",
+				"Set the seat's angle.  A seat has an orientation, defined as the clockwise angle, "
+				"in degrees, from facing north (the (0,1) direction in x-y space).",
+				"angle_in", "The input angle, in degrees.",
+				false, false,
+				std::bind( &Seat::set_angle, this, std::placeholders::_1 )
+			)
+		);
 
 		api_definition() = api_def; //Make const.
 	}

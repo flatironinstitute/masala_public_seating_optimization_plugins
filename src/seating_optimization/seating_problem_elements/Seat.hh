@@ -130,7 +130,7 @@ public:
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
-	/// @brief Set the seat's coordinates.
+	/// @brief Set the seat's coordinates.  A seat has coordinates in R^2 (x and y).
 	void set_coordinates( Real const x_in, Real const y_in );
 
 	/// @brief Set the seat's angle.

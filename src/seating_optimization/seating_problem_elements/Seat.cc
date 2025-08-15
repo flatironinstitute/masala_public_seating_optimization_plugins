@@ -26,7 +26,7 @@
 #include <seating_optimization/seating_problem_elements/Seat.hh>
 
 // Numeric headers:
-#include <numeric/utility/angle_utilities.hh>
+#include <numeric_api/utility/angles/angle_util.hh>
 
 // Base headers:
 #include <base/error/ErrorHandling.hh>
@@ -176,7 +176,7 @@ Seat::set_angle(
 	Real const angle_degrees_in
 ) {
 	std::lock_guard< std::mutex > lock( mutex() );
-	angle_degrees_ = masala::numeric::utility::positive_angle_degrees( angle_degrees_in );
+	angle_degrees_ = masala::numeric_api::utility::angles::positive_angle_degrees( angle_degrees_in );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

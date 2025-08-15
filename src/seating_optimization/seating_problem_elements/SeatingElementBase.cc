@@ -44,12 +44,12 @@ namespace seating_problem_elements {
 
 /// @brief Copy constructor.  Explicit due to mutex.
 SeatingElementBase::SeatingElementBase( SeatingElementBase const & src ) :
-    seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBase( src )
+    Parent( src )
 {
     std::lock< std::mutex, std::mutex >( mutex_, src.mutex_ );
     std::lock_guard< std::mutex > lockthis( mutex_, std::adopt_lock );
     std::lock_guard< std::mutex > lockthat( src.mutex_, std::adopt_lock );
-    SeatingElementBase::assign( src );
+    SeatingElementBase::protected_assign( src );
 }
 
 /// @brief Assignment operator.  Explicit due to mutex.
@@ -83,7 +83,7 @@ SeatingElementBase::deep_clone() const {
 void
 SeatingElementBase::make_independent() {
     std::lock_guard< std::mutex > lockthis( mutex_ );
-    protected_make_indpendent();
+    protected_make_independent();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

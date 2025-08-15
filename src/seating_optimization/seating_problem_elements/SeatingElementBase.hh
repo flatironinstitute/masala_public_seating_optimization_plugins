@@ -47,6 +47,10 @@ namespace seating_problem_elements {
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
 class SeatingElementBase : public masala::base::managers::plugin_module::MasalaPlugin {
 
+	typedef masala::base::managers::plugin_module::MasalaPlugin Parent;
+	typedef masala::base::managers::plugin_module::MasalaPluginSP ParentSP;
+	typedef masala::base::managers::plugin_module::MasalaPluginCSP ParentCSP;
+
 public:
 
 ////////////////////////////////////////////////////////////////////////////////

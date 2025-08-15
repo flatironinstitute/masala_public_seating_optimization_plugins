@@ -45,6 +45,19 @@ namespace seating_problem_elements {
 // CONSTRUCTION AND DESTRUCTION
 ////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Options constructor.
+Seat::Seat(
+	Real const x_in,
+	Real const y_in,
+	Real const angle_in
+) :
+	Parent()
+{
+	x_ = x_in;
+	y_ = y_in;
+	angle_degrees_ = masala::numeric_api::utility::angles::positive_angle_degrees( angle_in );
+}
+
 /// @brief Copy constructor.  Explicit due to mutex.
 Seat::Seat( Seat const & src ) :
 	Parent( src )
@@ -54,7 +67,6 @@ Seat::Seat( Seat const & src ) :
 	std::lock_guard< std::mutex > lockthat( src.mutex(), std::adopt_lock );
 	Seat::protected_assign( src );
 }
-
 
 /// @brief Make a copy of this object.
 seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBaseSP
@@ -226,7 +238,10 @@ Seat::protected_assign( SeatingElementBase const & src ) {
 	CHECK_OR_THROW_FOR_CLASS( src_ptr_cast != nullptr, "protected_assign", "Cannot assign an object of type " + src.class_name()
 		+ " to a Seat object."
 	);
-	// TODO ASSIGNMENT.
+	
+	x_ = src_ptr_cast->x_;
+	y_ = src_ptr_cast->y_;
+	angle_degrees_ = src_ptr_cast->angle_degrees_;
 
 	Parent::protected_assign( src );
 }

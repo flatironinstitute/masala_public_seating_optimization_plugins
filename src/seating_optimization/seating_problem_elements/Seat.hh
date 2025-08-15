@@ -60,6 +60,13 @@ public:
 	/// @brief Default constructor.
 	Seat() = default;
 
+	/// @brief Options constructor.
+	Seat(
+		Real const x_in,
+		Real const y_in,
+		Real const angle_in
+	);
+
 	/// @brief Copy constructor.  Explicit due to mutex.
 	Seat( Seat const & src );
 

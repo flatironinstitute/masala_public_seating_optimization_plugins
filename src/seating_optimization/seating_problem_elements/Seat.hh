@@ -48,6 +48,9 @@ class Seat : public seating_optimization_masala_plugins::seating_optimization::s
 	typedef seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBaseSP ParentSP;
 	typedef seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBaseCSP ParentCSP;
 
+	typedef masala::base::Real Real;
+	typedef masala::base::Size Size;
+
 public:
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -127,6 +130,14 @@ public:
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
+	/// @brief Set the seat's coordinates.
+	void set_coordinates( Real const x_in, Real const y_in );
+
+	/// @brief Set the seat's angle.
+	/// @details A seat has an orientation, defined as the clockwise angle, in degrees, from facing
+	/// north (the (0,1) direction in x-y space).	
+	void set_angle( Real const angle_degrees_in );
+
 public:
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -152,6 +163,16 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 // PRIVATE DATA
 ////////////////////////////////////////////////////////////////////////////////
+
+	/// @brief A seat has an x-coordinate.
+	Real x_ = 0.0;
+
+	/// @brief A seat has a y-coordinate.
+	Real y_ = 0.0;
+
+	/// @brief A seat has an orientation, defined as the clockwise angle, in degrees, from facing
+	/// north (the (0,1) direction in x-y space).
+	Real angle_degrees_ = 0.0;
 
 
 }; // class Seat

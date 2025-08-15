@@ -26,6 +26,7 @@
 #include <seating_optimization/seating_problem_elements/Seat.hh>
 
 // Numeric headers:
+#include <numeric/utility/angle_utilities.hh>
 
 // Base headers:
 #include <base/error/ErrorHandling.hh>
@@ -155,6 +156,28 @@ Seat::get_api_definition() {
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Set the seat's coordinates.
+void
+Seat::set_coordinates(
+	Real const x_in,
+	Real const y_in
+) {
+	std::lock_guard< std::mutex > lock( mutex() );
+	x_ = x_in;
+	y_ = y_in;
+}
+
+/// @brief Set the seat's angle.
+/// @details A seat has an orientation, defined as the clockwise angle, in degrees, from facing
+/// north (the (0,1) direction in x-y space).	
+void
+Seat::set_angle(
+	Real const angle_degrees_in
+) {
+	std::lock_guard< std::mutex > lock( mutex() );
+	angle_degrees_ = masala::numeric::utility::positive_angle_degrees( angle_degrees_in );
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC WORK FUNCTIONS

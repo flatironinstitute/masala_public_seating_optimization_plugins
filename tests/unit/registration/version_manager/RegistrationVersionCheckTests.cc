@@ -67,10 +67,10 @@ TEST_CASE( "Register and check version compatibility using MasalaLibraryManager"
         MasalaEnvironmentManagerHandle envman( MasalaEnvironmentManager::get_instance() );
         std::string libpath;
         CHECK_OR_THROW(
-            envman->get_environment_variable( "MASALA_QUANTUM_COMPUTING_PLUGINS", libpath ),
+            envman->get_environment_variable( "MASALA_SEATING_OPTIMIZATION_PLUGINS", libpath ),
             "seating_optimization_masala_plugins::tests::unit::registration::version_manager::RegistrationVersionCheckTests",
             "Register_and_check_version_compatibility_using_MasalaLibraryManager",
-            "The MASALA_QUANTUM_COMPUTING_PLUGINS environment variable must point to the directory "
+            "The MASALA_SEATING_OPTIMIZATION_PLUGINS environment variable must point to the directory "
             "of the quantum computing Masala plugins repository for this test."
         );
         MasalaPluginLibraryManagerHandle libman( MasalaPluginLibraryManager::get_instance() );
@@ -116,10 +116,10 @@ TEST_CASE( "Register and check that plugins were registered using MasalaLibraryM
         MasalaEnvironmentManagerHandle envman( MasalaEnvironmentManager::get_instance() );
         std::string libpath;
         CHECK_OR_THROW(
-            envman->get_environment_variable( "MASALA_QUANTUM_COMPUTING_PLUGINS", libpath ),
+            envman->get_environment_variable( "MASALA_SEATING_OPTIMIZATION_PLUGINS", libpath ),
             "seating_optimization_masala_plugins::tests::unit::registration::version_manager::RegistrationVersionCheckTests",
             "Register_and_check_version_compatibility_using_MasalaLibraryManager",
-            "The MASALA_QUANTUM_COMPUTING_PLUGINS environment variable must point to the directory "
+            "The MASALA_SEATING_OPTIMIZATION_PLUGINS environment variable must point to the directory "
             "of the quantum computing Masala plugins repository for this test."
         );
         MasalaPluginLibraryManagerHandle libman( MasalaPluginLibraryManager::get_instance() );

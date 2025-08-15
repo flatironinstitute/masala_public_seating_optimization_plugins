@@ -1,0 +1,7 @@
+masala_base
+masala_numeric
+masala_numeric_api
+masala_core
+masala_core_api
+seating_optimization_masala_plugins_seating_optimization
+seating_optimization_masala_plugins_seating_optimization_api

@@ -19,7 +19,7 @@ Plugins for the Masala software suite that allow Masala to optimize seating arra
 3.  Set up simlinks to the dylib files or so files in your masala build directory.  For instance `cd ~/myprojects/seating_optimization_masala_plugins/lib && ln -s ~/my_projects/masala/build/lib* .`
 4.  Set up a simlink to the external/ directory.  For instance: `ln -s ~/my_projects/masala/external ~/my_projects/seating_optimization_masala_plugins/`
 5.  Set up a simlink to the code\_templates/ directory.  For instance: `ln -s ~/my_projects/masala/code_templates ~/my_projects/seating_optimization_masala_plugins/`
-6.  Run the buildme.sh script (`./buildme.sh`) to compile and link the Masala quantum computing plugin library.
+6.  Run the buildme.sh script (`./buildme.sh`) to compile and link the Masala seating optimization plugin library.
 
 ## Unit Testing
 
@@ -41,7 +41,7 @@ Note that some tests require the following environment variables to be set:
 
 ## Building Doxygen code documentation
 
-All source code (both manually-written sub-libraries and auto-generated API sub-libraries) is documented with Doxygen tags.  To generate Doxygen HTML documentation, first, follow the instructions above to build Masala's Core library and the Quantum Computing Masala Plugins library.  Second, build Doxygen documentation with:
+All source code (both manually-written sub-libraries and auto-generated API sub-libraries) is documented with Doxygen tags.  To generate Doxygen HTML documentation, first, follow the instructions above to build Masala's Core library and the Seating Optimization Masala Plugins library.  Second, build Doxygen documentation with:
 
 ```
 doxygen Doxyfile.src

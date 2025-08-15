@@ -48,7 +48,7 @@ print_help() {
 int 
 main(
 	int ,//argc,
-	char * //argv[]
+	char ** //argv[]
 ) {
 	// TODO
 

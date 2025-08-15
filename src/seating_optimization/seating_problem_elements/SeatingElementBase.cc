@@ -186,11 +186,19 @@ SeatingElementBase::get_api_definition() {
 
 /// @brief Make this object fully indepdendent.  Derived classes must override this, and the override must call
 /// the parent class implementation.
-void protected_make_independent() { /* GNDN */ }
+void
+SeatingElementBase::protected_make_independent() {
+    /* GNDN */
+}
 
 /// @brief Assign src to this object.  Derived classes must override this, and the override must call
 /// the parent class implementation.
-void protected_assign( SeatingElementBase const & /*src*/ ) { /* GNDN */ }
+void
+SeatingElementBase::protected_assign(
+    SeatingElementBase const & /*src*/
+) {
+    /* GNDN */
+}
 
 } // namespace seating_problem_elements
 } // namespace seating_optimization

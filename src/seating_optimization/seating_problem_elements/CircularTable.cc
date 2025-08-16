@@ -281,7 +281,7 @@ CircularTable::protected_assign( SeatingElementBase const & src ) {
 
 /// @brief Update the coordinates of seats on a change of table coordinates or dimensions.
 void
-CircularTable::protected_update_seat_coordinates() override {
+CircularTable::protected_update_seat_coordinates() {
 	// TODO TODO TODO
 }
 

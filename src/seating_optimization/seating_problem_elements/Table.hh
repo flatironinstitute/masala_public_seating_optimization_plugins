@@ -167,6 +167,10 @@ protected:
 	/// this function does no mutex-locking.
 	std::vector< SeatSP > & protected_seats();
 
+	/// @brief Update the coordinates of seats on a change of table coordinates or dimensions.
+	/// @details Base class throws.  Derived classes should override this.
+	virtual void protected_update_seat_coordinates();
+
 private:
 
 ////////////////////////////////////////////////////////////////////////////////

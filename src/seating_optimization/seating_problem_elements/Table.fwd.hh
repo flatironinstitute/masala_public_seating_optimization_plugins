@@ -22,8 +22,8 @@
 /// This is intended to be a non-instantiable base class for concrete derived classes defining various table shapes.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
 
-#ifndef Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_table_fwd_hh
-#define Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_table_fwd_hh
+#ifndef Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_Table_fwd_hh
+#define Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_Table_fwd_hh
 
 #include <base/managers/memory/util.hh> // For MASALA_SHARED_POINTER
 
@@ -53,4 +53,4 @@ namespace seating_problem_elements {
 } // namespace seating_optimization
 } // namespace seating_optimization_masala_plugins
 
-#endif //Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_table_fwd_hh
+#endif //Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_Table_fwd_hh

@@ -133,7 +133,8 @@ Table::get_api_definition() {
 		MasalaObjectAPIDefinitionSP api_def(
 			masala::make_shared< MasalaObjectAPIDefinition >(
 				*this,
-				"The Table class stores all information associated with a seat at which a guest could be seated.",
+				"The Table class stores all information associated with a table around which several guest seats could be arranged.  This "
+				"is a base class not intended to be instantiated directly.  Derived classes are defined for particular shapes of table.",
 				false, true
 			)
 		);
@@ -238,6 +239,15 @@ Table::protected_assign( SeatingElementBase const & src ) {
 std::vector< SeatSP > &
 Table::protected_seats() {
 	return seats_;
+}
+
+/// @brief Update the coordinates of seats on a change of table coordinates or dimensions.
+/// @details Base class throws.  Derived classes should override this.
+void
+Table::protected_update_seat_coordinates() {
+	MASALA_THROW( class_namespace() + "::" + class_name(), "protected_update_seat_coordinates", "This class has not implemented this function.  This is a "
+		"program error which ought not to occur.  Please consult a developer."
+	);
 }
 
 } // namespace seating_problem_elements

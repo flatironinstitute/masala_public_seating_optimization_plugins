@@ -27,6 +27,7 @@
 // Quantum optimizers headers
 #include <seating_optimization/seating_problem_elements/SeatingElementBase.hh>
 #include <seating_optimization/seating_problem_elements/Seat.hh>
+#include <seating_optimization/seating_problem_elements/Table.hh>
 
 namespace seating_optimization_masala_plugins {
 namespace seating_optimization {
@@ -42,6 +43,7 @@ namespace api {
         // Add to this vector whenever a class is added with a defined API:
         outvec.push_back( masala::make_shared< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBase >() );		
         outvec.push_back( masala::make_shared< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::Seat >() );		
+        outvec.push_back( masala::make_shared< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::Table >() );		
         // ADD MORE ENTRIES HERE
 
         return outvec;

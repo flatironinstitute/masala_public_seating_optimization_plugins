@@ -64,9 +64,9 @@ Table::clone() const {
 /// @brief Make a fully independent copy of this object.
 TableSP
 Table::deep_clone() const {
-	TableSP new_seat( std::static_pointer_cast< Table >( this->clone() ) );
-	new_seat->make_independent();
-	return new_seat;
+	TableSP new_table( std::static_pointer_cast< Table >( this->clone() ) );
+	new_table->make_independent();
+	return new_table;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -147,7 +147,7 @@ Table::get_api_definition() {
 		api_def->add_setter(
 			masala::make_shared< MasalaObjectAPISetterDefinition_TwoInput< Real const, Real const > >(
 				"set_coordinates",
-				"Set the seat's coordinates.  A seat has coordinates in R^2 (x and y).",
+				"Set the coordinates of the centre of the table.  A table has coordinates in R^2 (x and y).",
 				"x_in", "The x coordinate, in meters.",
 				"y_in", "The y coordinate, in meters.",
 				false, false,
@@ -157,7 +157,7 @@ Table::get_api_definition() {
 		api_def->add_setter(
 			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< Real const > >(
 				"set_angle",
-				"Set the seat's angle.  A seat has an orientation, defined as the clockwise angle, "
+				"Set the table's angle.  A table has an orientation, defined as the clockwise angle, "
 				"in degrees, from facing north (the (0,1) direction in x-y space).",
 				"angle_in", "The input angle, in degrees.",
 				false, false,
@@ -232,6 +232,14 @@ Table::protected_assign( SeatingElementBase const & src ) {
 
 	Parent::protected_assign( src );
 }
+
+/// @brief Allow derived classes to access the seats vector.  This is expected to occur under mutex lock, but
+/// this function does no mutex-locking.
+std::vector< SeatSP > &
+Table::protected_seats() {
+	return seats_;
+}
+
 } // namespace seating_problem_elements
 } // namespace seating_optimization
 } // namespace seating_optimization_masala_plugins

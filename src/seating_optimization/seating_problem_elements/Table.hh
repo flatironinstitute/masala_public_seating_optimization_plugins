@@ -31,8 +31,12 @@
 // Parent header:
 #include <seating_optimization/seating_problem_elements/SeatingElementBase.hh>
 
+// Seating optimization headers:
+#include <seating_optimization/seating_problem_elements/Seat.fwd.hh>
+
 // Base headers:
 #include <base/types.hh>
+#include <vector>
 
 namespace seating_optimization_masala_plugins {
 namespace seating_optimization {
@@ -159,6 +163,10 @@ protected:
 	/// the parent class implementation.
 	void protected_assign( SeatingElementBase const & src ) override;
 
+	/// @brief Allow derived classes to access the seats vector.  This is expected to occur under mutex lock, but
+	/// this function does no mutex-locking.
+	std::vector< SeatSP > & protected_seats();
+
 private:
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -175,6 +183,8 @@ private:
 	/// north (the (0,1) direction in x-y space).
 	Real angle_degrees_ = 0.0;
 
+	/// @brief A set of seats associated with this table.
+	std::vector< SeatSP > seats_;
 
 }; // class Table
 

@@ -88,7 +88,7 @@ Seat::deep_clone() const {
 
 /// @brief Get the category or categories for this plugin class.  Default for all
 /// optimization problems; may be overridden by derived classes.
-/// @returns { { "OptimizationSolution", "CostFunctionNetworkOptimizationSolution", "Seat" } }
+/// @returns { { "SeatingProblem", "SeatingProblemElement", "Seat" } }
 /// @note Categories are hierarchical (e.g. Selector->AtomSelector->AnnotatedRegionSelector,
 /// stored as { {"Selector", "AtomSelector", "AnnotatedRegionSelector"} }). A plugin can be
 /// in more than one hierarchical category (in which case there would be more than one
@@ -103,7 +103,7 @@ Seat::get_categories() const {
 
 /// @brief Get the keywords for this plugin class.  Default for all
 /// optimization solutions; may be overridden by derived classes.
-/// @returns { "optimization_solution", "qubo_solution", "numeric" }
+/// @returns { "seating_problem", "seating_problem_element", "seat" }
 std::vector< std::string >
 Seat::get_keywords() const {
 	return std::vector< std::string > {

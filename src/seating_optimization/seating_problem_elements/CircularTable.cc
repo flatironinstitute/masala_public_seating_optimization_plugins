@@ -143,6 +143,36 @@ CircularTable::get_api_definition() {
 		// Work functions:
 
 		// Getters:
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< Real const > >(
+				"x",
+				"Get the x-coordinate of the table's centre.",
+				"x", "The x-coordinate of the tables's centre, in meters.",
+				false, false,
+				std::bind( &CircularTable::x, this )
+			)
+		);
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< Real const > >(
+				"y",
+				"Get the y-coordinate of the table's centre.",
+				"y", "The y-coordinate of the tables's centre, in meters.",
+				false, false,
+				std::bind( &CircularTable::y, this )
+			)
+		);
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< Real const > >(
+				"angle_degrees",
+				"Get the orientation of the table.  A table has an orientation, defined as the clockwise angle, in degrees, from facing "
+				"north (the (0,1) direction in x-y space).  Note that for a circular table, the angle defines the rotation of the chairs "
+				"around the centre of the table.",
+				"angle_degrees", "The table's orientation, in degrees, defined as the clockwise angle from facing north (the (0,1) "
+				"direction in x-y space).",
+				false, false,
+				std::bind( &CircularTable::angle_degrees, this )
+			)
+		);
 
 		// Setters:
 		api_def->add_setter(
@@ -159,7 +189,8 @@ CircularTable::get_api_definition() {
 			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< Real const > >(
 				"set_angle",
 				"Set the table's angle.  A table has an orientation, defined as the clockwise angle, "
-				"in degrees, from facing north (the (0,1) direction in x-y space).",
+				"in degrees, from facing north (the (0,1) direction in x-y space).  Note that for a circular table, the angle "
+				"defines the rotation of the chairs around the centre of the table.",
 				"angle_in", "The input angle, in degrees.",
 				false, false,
 				std::bind( &CircularTable::set_angle, this, std::placeholders::_1 )
@@ -282,7 +313,7 @@ CircularTable::protected_assign( SeatingElementBase const & src ) {
 /// @brief Update the coordinates of seats on a change of table coordinates or dimensions.
 void
 CircularTable::protected_update_seat_coordinates() {
-	// TODO TODO TODO
+
 }
 
 } // namespace seating_problem_elements

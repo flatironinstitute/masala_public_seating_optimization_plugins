@@ -165,6 +165,7 @@ protected:
 	void protected_assign( SeatingElementBase const & src ) override;
 
 	/// @brief Update the coordinates of seats on a change of table coordinates or dimensions.
+	/// @note Performs no mutex-locking.  Should only be called in a mutex-locked context.
 	void protected_update_seat_coordinates() override;
 
 private:

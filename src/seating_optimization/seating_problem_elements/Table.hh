@@ -136,7 +136,7 @@ public:
 	/// @brief Get the orientation of the table.
 	/// @details A table has an orientation, defined as the clockwise angle, in degrees, from facing
 	/// north (the (0,1) direction in x-y space).
-	Real angle_degrees() const;
+	Real angle() const;
 
 public:
 

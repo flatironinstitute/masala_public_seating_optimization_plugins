@@ -33,9 +33,14 @@
 #include <base/api/constructor/MasalaObjectAPIConstructorMacros.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_TwoInput.tmpl.hh>
+#include <base/api/getter/MasalaObjectAPIGetterDefinition_ZeroInput.tmpl.hh>
 #include <base/utility/container/container_util.tmpl.hh>
 
+// Numeric API headers:
+#include <numeric_api/utility/constants/constants.hh>
+
 // STL headers:
+#include <cmath>
 
 namespace seating_optimization_masala_plugins {
 namespace seating_optimization {
@@ -124,6 +129,7 @@ masala::base::api::MasalaObjectAPIDefinitionCWP
 CircularTable::get_api_definition() {
 	using namespace masala::base::api;
 	using namespace masala::base::api::setter;
+	using namespace masala::base::api::getter;
 	using masala::base::Real;
 	using masala::base::Size;
 
@@ -143,8 +149,8 @@ CircularTable::get_api_definition() {
 		// Work functions:
 
 		// Getters:
-		api_def->add_setter(
-			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< Real const > >(
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< Real > >(
 				"x",
 				"Get the x-coordinate of the table's centre.",
 				"x", "The x-coordinate of the tables's centre, in meters.",
@@ -152,8 +158,8 @@ CircularTable::get_api_definition() {
 				std::bind( &CircularTable::x, this )
 			)
 		);
-		api_def->add_setter(
-			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< Real const > >(
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< Real > >(
 				"y",
 				"Get the y-coordinate of the table's centre.",
 				"y", "The y-coordinate of the tables's centre, in meters.",
@@ -161,16 +167,16 @@ CircularTable::get_api_definition() {
 				std::bind( &CircularTable::y, this )
 			)
 		);
-		api_def->add_setter(
-			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< Real const > >(
-				"angle_degrees",
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< Real > >(
+				"angle",
 				"Get the orientation of the table.  A table has an orientation, defined as the clockwise angle, in degrees, from facing "
 				"north (the (0,1) direction in x-y space).  Note that for a circular table, the angle defines the rotation of the chairs "
 				"around the centre of the table.",
 				"angle_degrees", "The table's orientation, in degrees, defined as the clockwise angle from facing north (the (0,1) "
 				"direction in x-y space).",
 				false, false,
-				std::bind( &CircularTable::angle_degrees, this )
+				std::bind( &CircularTable::angle, this )
 			)
 		);
 
@@ -313,7 +319,22 @@ CircularTable::protected_assign( SeatingElementBase const & src ) {
 /// @brief Update the coordinates of seats on a change of table coordinates or dimensions.
 void
 CircularTable::protected_update_seat_coordinates() {
+	std::vector< SeatSP > & seats( protected_seats() );
+	if( seats.empty() ) { return; }
 
+	Real const angle_increment( 360.0 / static_cast< Real >( seats.size() ) );
+	for( Size i(0); i<seats.size(); ++i ) {
+		SeatSP & seat( seats[i] );
+		if( seat != nullptr ) {
+			Real const curangle( protected_angle_degrees() + angle_increment * i );
+			seat->set_angle( curangle );
+			Real const curangle_radians( curangle / 180.0 * MASALA_PI );
+			seat->set_coordinates(
+				std::sin( curangle_radians ) * radius_,
+				std::cos( curangle_radians ) * radius_
+			);
+		}
+	}
 }
 
 } // namespace seating_problem_elements

@@ -145,8 +145,8 @@ Table::get_api_definition() {
 		// Work functions:
 
 		// Getters:
-		api_def->add_setter(
-			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< Real const > >(
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< Real > >(
 				"x",
 				"Get the x-coordinate of the table's centre.",
 				"x", "The x-coordinate of the tables's centre, in meters.",
@@ -154,8 +154,8 @@ Table::get_api_definition() {
 				std::bind( &Table::x, this )
 			)
 		);
-		api_def->add_setter(
-			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< Real const > >(
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< Real > >(
 				"y",
 				"Get the y-coordinate of the table's centre.",
 				"y", "The y-coordinate of the tables's centre, in meters.",
@@ -163,15 +163,15 @@ Table::get_api_definition() {
 				std::bind( &Table::y, this )
 			)
 		);
-		api_def->add_setter(
-			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< Real const > >(
-				"angle_degrees",
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< Real > >(
+				"angle",
 				"Get the orientation of the table.  A table has an orientation, defined as the clockwise angle, in degrees, from facing "
 				"north (the (0,1) direction in x-y space).",
 				"angle_degrees", "The table's orientation, in degrees, defined as the clockwise angle from facing north (the (0,1) "
 				"direction in x-y space).",
 				false, false,
-				std::bind( &Table::angle_degrees, this )
+				std::bind( &Table::angle, this )
 			)
 		);
 
@@ -225,7 +225,7 @@ Table::y() const {
 /// @details A table has an orientation, defined as the clockwise angle, in degrees, from facing
 /// north (the (0,1) direction in x-y space).	
 masala::base::Real
-Table::angle_degrees() const {
+Table::angle() const {
 	std::lock_guard< std::mutex > lock( mutex() );
 	return angle_degrees_;
 }

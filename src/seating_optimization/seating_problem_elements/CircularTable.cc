@@ -24,8 +24,8 @@
 // Unit header:
 #include <seating_optimization/seating_problem_elements/CircularTable.hh>
 
-// Numeric headers:
-#include <numeric_api/utility/angles/angle_util.hh>
+// Seating optimization headers:
+#include <seating_optimization/seating_problem_elements/Seat.hh>
 
 // Base headers:
 #include <base/error/ErrorHandling.hh>
@@ -33,6 +33,7 @@
 #include <base/api/constructor/MasalaObjectAPIConstructorMacros.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_TwoInput.tmpl.hh>
+#include <base/utility/container/container_util.tmpl.hh>
 
 // STL headers:
 
@@ -169,9 +170,21 @@ CircularTable::get_api_definition() {
 				"set_radius",
 				"Set the radius of the table (the distance from the centre at which seat centres are found), in meters.",
 				"radius_in", "The input radius of the table, in meters.  Note that this is the radius from the centre at "
-				"which seat centres are found, not the radius of the tabletop.",
+				"which seat centres are found, not the radius of the tabletop.  Defaults to 1.0.",
 				false, false,
 				std::bind( &CircularTable::set_radius, this, std::placeholders::_1 )
+			)
+		);
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_TwoInput< Size const, std::vector< Size > const & > >(
+				"set_seat_count",
+				"Set the number of seats evenly spaced around the table.  Clears any existing seats.",
+				"seat_count_in", "The number of seats to space around the table evenly.",
+				"omitted_seats", "An optional set of seat indices (zero-based) to omit.  This can be useful if, for instance, "
+				"a table is against a wall, or one seat would be too close to a pillar, or whatnot.  Leave this as an empty vector "
+				"to have seats evenly spaced all the way around the table.",
+				false, false,
+				std::bind( &CircularTable::set_seat_count, this, std::placeholders::_1, std::placeholders::_2 )
 			)
 		);
 
@@ -199,6 +212,40 @@ CircularTable::set_radius(
 	CHECK_OR_THROW_FOR_CLASS( radius_in > 0.0, "set_radius", "The table radius must be positive." );
 	std::lock_guard< std::mutex > lock( mutex() );
 	radius_ = radius_in;
+	protected_update_seat_coordinates();
+}
+
+/// @brief Set the number of seats evenly spaced around the table.  Clears any existing seats.
+/// @param seat_count_in The number of seats to space around the table evenly.
+/// @param omitted_seats An optional set of seat indices (zero-based) to omit.  This can be useful if, for instance,
+/// a table is against a wall, or one seat would be too close to a pillar, or whatnot.  Leave this as an empty vector
+/// to have seats evenly spaced all the way around the table.
+void
+CircularTable::set_seat_count(
+	Size const seat_count_in,
+	std::vector< Size > const & omitted_seats
+) {
+	std::lock_guard< std::mutex > lock( mutex() );
+	std::vector< SeatSP > & seats( protected_seats() );
+	seats.clear();
+	if( seat_count_in == 0 ) { return; }
+	seats.resize( seat_count_in, nullptr );
+	seats.shrink_to_fit();
+	std::vector< bool > omitted_seat_bools( seat_count_in, false );
+	for( Size const entry : omitted_seats ) {
+		CHECK_OR_THROW_FOR_CLASS( entry < seat_count_in, "set_seat_count", "Cannot omit seat " + std::to_string( entry ) + " given a table with "
+			"only " + std::to_string( seat_count_in ) + " seats."
+		);
+		omitted_seat_bools[entry] = true;
+	}
+	Size counter(0);
+	for( SeatSP & seat : seats ) {
+		if( !omitted_seat_bools[counter] ) {
+			seat = masala::make_shared< Seat >();
+		}
+		++counter;
+	}
+
 	protected_update_seat_coordinates();
 }
 

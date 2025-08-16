@@ -134,8 +134,15 @@ public:
 
 	/// @brief Set the radius of the table.
 	/// @param radius_in The radius of the table, in meters.  Note that this is the radius from
-	/// the centre at which seat centres are found, not the radius of the tabletop.
+	/// the centre at which seat centres are found, not the radius of the tabletop.  Defaults to 1.0.
 	void set_radius( Real const radius_in );
+
+	/// @brief Set the number of seats evenly spaced around the table.  Clears any existing seats.
+	/// @param seat_count_in The number of seats to space around the table evenly.
+	/// @param omitted_seats An optional set of seat indices (zero-based) to omit.  This can be useful if, for instance,
+	/// a table is against a wall, or one seat would be too close to a pillar, or whatnot.  Leave this as an empty vector
+	/// to have seats evenly spaced all the way around the table.
+	void set_seat_count( Size const seat_count_in, std::vector< Size > const & omitted_seats );
 
 public:
 
@@ -167,8 +174,8 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 
 	/// @brief The radius of the table, in meters.  Note that this is the distance from the centre at which seat centres are
-	/// found, not the radius of the tabletop.
-	Real radius_ = 0.0;
+	/// found, not the radius of the tabletop.  Defaults to 1.0.
+	Real radius_ = 1.0;
 
 }; // class CircularTable
 

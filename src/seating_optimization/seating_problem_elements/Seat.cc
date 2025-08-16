@@ -32,6 +32,7 @@
 #include <base/error/ErrorHandling.hh>
 #include <base/api/MasalaObjectAPIDefinition.hh>
 #include <base/api/constructor/MasalaObjectAPIConstructorMacros.hh>
+#include <base/api/constructor/MasalaObjectAPIConstructorDefinition_ThreeInput.tmpl.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_TwoInput.tmpl.hh>
 
@@ -135,6 +136,7 @@ Seat::class_namespace() const {
 masala::base::api::MasalaObjectAPIDefinitionCWP
 Seat::get_api_definition() {
 	using namespace masala::base::api;
+	using namespace masala::base::api::constructor;
 	using namespace masala::base::api::setter;
 	using masala::base::Real;
 	using masala::base::Size;
@@ -150,7 +152,18 @@ Seat::get_api_definition() {
 				false, false
 			)
 		);
+
+		// Constructors:
 		ADD_PUBLIC_CONSTRUCTOR_DEFINITIONS( Seat, api_def );
+		api_def->add_constructor(
+			masala::make_shared< MasalaObjectAPIConstructorDefinition_ThreeInput< Seat, Real const, Real const, Real const > >(
+				"Seat", "Options constructor for a seat object.",
+				"x_in", "The x-coordinate of the seat, in meters.",
+				"y_in", "The y-coordinate of the seat, in meters.",
+				"angle_degrees_in", "The orientation of the seat, as an angle in degrees defined as the clockwise "
+				"rotation of the seat from facing north (the (0,1) direction)."
+			)
+		);
 
 		// Work functions:
 

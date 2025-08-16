@@ -34,6 +34,7 @@
 #include <base/api/constructor/MasalaObjectAPIConstructorMacros.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_TwoInput.tmpl.hh>
+#include <base/api/getter/MasalaObjectAPIGetterDefinition_ZeroInput.tmpl.hh>
 
 // STL headers:
 
@@ -123,6 +124,7 @@ masala::base::api::MasalaObjectAPIDefinitionCWP
 Table::get_api_definition() {
 	using namespace masala::base::api;
 	using namespace masala::base::api::setter;
+	using namespace masala::base::api::getter;
 	using masala::base::Real;
 	using masala::base::Size;
 
@@ -143,6 +145,35 @@ Table::get_api_definition() {
 		// Work functions:
 
 		// Getters:
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< Real const > >(
+				"x",
+				"Get the x-coordinate of the table's centre.",
+				"x", "The x-coordinate of the tables's centre, in meters.",
+				false, false,
+				std::bind( &Table::x, this )
+			)
+		);
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< Real const > >(
+				"y",
+				"Get the y-coordinate of the table's centre.",
+				"y", "The y-coordinate of the tables's centre, in meters.",
+				false, false,
+				std::bind( &Table::y, this )
+			)
+		);
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< Real const > >(
+				"angle_degrees",
+				"Get the orientation of the table.  A table has an orientation, defined as the clockwise angle, in degrees, from facing "
+				"north (the (0,1) direction in x-y space).",
+				"angle_degrees", "The table's orientation, in degrees, defined as the clockwise angle from facing north (the (0,1) "
+				"direction in x-y space).",
+				false, false,
+				std::bind( &Table::angle_degrees, this )
+			)
+		);
 
 		// Setters:
 		api_def->add_setter(
@@ -175,6 +206,29 @@ Table::get_api_definition() {
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC GETTERS
 ////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Get the x-coordinate of the centre of the table.
+masala::base::Real
+Table::x() const {
+	std::lock_guard< std::mutex > lock( mutex() );
+	return x_;
+}
+
+/// @brief Get the y-coordinate of the centre of the table.
+masala::base::Real
+Table::y() const {
+	std::lock_guard< std::mutex > lock( mutex() );
+	return y_;
+}
+
+/// @brief Get the orientation of the table.
+/// @details A table has an orientation, defined as the clockwise angle, in degrees, from facing
+/// north (the (0,1) direction in x-y space).	
+masala::base::Real
+Table::angle_degrees() const {
+	std::lock_guard< std::mutex > lock( mutex() );
+	return angle_degrees_;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC SETTERS

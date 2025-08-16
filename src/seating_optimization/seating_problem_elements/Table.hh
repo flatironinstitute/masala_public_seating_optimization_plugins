@@ -127,6 +127,16 @@ public:
 // PUBLIC GETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
+	/// @brief Get the x-coordinate of the centre of the table.
+	Real x() const;
+
+	/// @brief Get the y-coordinate of the centre of the table.
+	Real y() const;
+
+	/// @brief Get the orientation of the table.
+	/// @details A table has an orientation, defined as the clockwise angle, in degrees, from facing
+	/// north (the (0,1) direction in x-y space).
+	Real angle_degrees() const;
 
 public:
 
@@ -169,7 +179,22 @@ protected:
 
 	/// @brief Update the coordinates of seats on a change of table coordinates or dimensions.
 	/// @details Base class throws.  Derived classes should override this.
+	/// @note Performs no mutex-locking.  Should only be called in a mutex-locked context.
 	virtual void protected_update_seat_coordinates();
+
+	/// @brief Allow derived classes to access the x-coordinate of the centre of the table.
+	/// @note Performs no mutex-locking.  Should only be called in a mutex-locked context.
+	inline Real protected_x() const { return x_; }
+
+	/// @brief Allow derived classes to access the y-coordinate of the centre of the table.
+	/// @note Performs no mutex-locking.  Should only be called in a mutex-locked context.
+	inline Real protected_y() const { return y_; }
+
+	/// @brief Allow derived classes to access the table's orientation.
+	/// @details A table has an orientation, defined as the clockwise angle, in degrees, from facing
+	/// north (the (0,1) direction in x-y space).
+	/// @note Performs no mutex-locking.  Should only be called in a mutex-locked context.
+	inline Real protected_angle_degrees() const { return angle_degrees_; }
 
 private:
 

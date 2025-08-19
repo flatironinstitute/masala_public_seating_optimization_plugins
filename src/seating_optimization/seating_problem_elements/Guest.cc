@@ -34,6 +34,7 @@
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_TwoInput.tmpl.hh>
 #include <base/api/getter/MasalaObjectAPIGetterDefinition_ZeroInput.tmpl.hh>
+#include <base/utility/string/string_manipulation.hh>
 
 // STL headers:
 
@@ -143,8 +144,25 @@ Guest::get_api_definition() {
 		// Work functions:
 
 		// Getters:
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< std::string const & > > (
+				"name", "Get the name of this guest.",
+				"name", "The name of this guest.",
+				false, false,
+				std::bind( &Guest::name, this )
+			)
+		);
 
 		// Setters:
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< std::string const & > > (
+				"set_name", "Set the name of this guest.",
+				"name_in", "The name of this guest.  Preceding and trailing whitespace will automatically be trimmed.  "
+				"Throws if this is an emtpy string.",
+				false, false,
+				std::bind( &Guest::set_name, this, std::placeholders::_1 )
+			)
+		);
 
 		api_definition() = api_def; //Make const.
 	}
@@ -156,11 +174,26 @@ Guest::get_api_definition() {
 // PUBLIC GETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
+std::string const &
+Guest::name() const {
+	std::lock_guard< std::mutex > lock( mutex() );
+	return name_;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Set the guest's name.
+void
+Guest::set_name(
+	std::string const & name_in
+) {
+	std::string const name_in_stripped( masala::base::utility::string::trim( name_in ) );
+	CHECK_OR_THROW_FOR_CLASS( !name_in_stripped.empty(), "set_name", "Name cannot be empty!" );
+	std::lock_guard< std::mutex > lock( mutex() );
+	name_ = name_in_stripped;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC WORK FUNCTIONS
@@ -188,6 +221,7 @@ Guest::protected_assign( SeatingElementBase const & src ) {
 	);
 
 	// TODO TODO TODO
+	name_ = src_ptr_cast->name_;
 
 	Parent::protected_assign( src );
 }

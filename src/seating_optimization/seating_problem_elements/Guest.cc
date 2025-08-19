@@ -18,8 +18,7 @@
 
 /// @file src/seating_optimization/seating_problem_elements/Guest.cc
 /// @brief Implementations for a Guest.
-/// @details A Guest is an object around which a bunch of Seat objects are arranged, at which several people may sit.
-/// This is intended to be a non-instantiable base class for concrete derived classes defining various table shapes.
+/// @details A Guest is a person who must be assigned a seat.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
 
 // Unit header:
@@ -41,8 +40,6 @@
 namespace seating_optimization_masala_plugins {
 namespace seating_optimization {
 namespace seating_problem_elements {
-
-TODO TODO TODO CONTINUE HERE;
 
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTION AND DESTRUCTION
@@ -67,9 +64,9 @@ Guest::clone() const {
 /// @brief Make a fully independent copy of this object.
 GuestSP
 Guest::deep_clone() const {
-	GuestSP new_table( std::static_pointer_cast< Guest >( this->clone() ) );
-	new_table->make_independent();
-	return new_table;
+	GuestSP new_guest( std::static_pointer_cast< Guest >( this->clone() ) );
+	new_guest->make_independent();
+	return new_guest;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -93,13 +90,13 @@ Guest::get_categories() const {
 
 /// @brief Get the keywords for this plugin class.  Default for all
 /// optimization solutions; may be overridden by derived classes.
-/// @returns { "seating_problem", "seating_problem_element", "table" }
+/// @returns { "seating_problem", "seating_problem_element", "guest" }
 std::vector< std::string >
 Guest::get_keywords() const {
 	return std::vector< std::string > {
 		"seating_problem",
 		"seating_problem_element",
-		"table",
+		"guest",
 	};
 }
 
@@ -137,8 +134,7 @@ Guest::get_api_definition() {
 		MasalaObjectAPIDefinitionSP api_def(
 			masala::make_shared< MasalaObjectAPIDefinition >(
 				*this,
-				"The Guest class stores all information associated with a table around which several guest seats could be arranged.  This "
-				"is a base class not intended to be instantiated directly.  Derived classes are defined for particular shapes of table.",
+				"The Guest class stores all information associated with a person in a seating problem who must be assigned a seat.",
 				false, true
 			)
 		);
@@ -147,57 +143,8 @@ Guest::get_api_definition() {
 		// Work functions:
 
 		// Getters:
-		api_def->add_getter(
-			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< Real > >(
-				"x",
-				"Get the x-coordinate of the table's centre.",
-				"x", "The x-coordinate of the tables's centre, in meters.",
-				false, false,
-				std::bind( &Guest::x, this )
-			)
-		);
-		api_def->add_getter(
-			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< Real > >(
-				"y",
-				"Get the y-coordinate of the table's centre.",
-				"y", "The y-coordinate of the tables's centre, in meters.",
-				false, false,
-				std::bind( &Guest::y, this )
-			)
-		);
-		api_def->add_getter(
-			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< Real > >(
-				"angle",
-				"Get the orientation of the table.  A table has an orientation, defined as the clockwise angle, in degrees, from facing "
-				"north (the (0,1) direction in x-y space).",
-				"angle_degrees", "The table's orientation, in degrees, defined as the clockwise angle from facing north (the (0,1) "
-				"direction in x-y space).",
-				false, false,
-				std::bind( &Guest::angle, this )
-			)
-		);
 
 		// Setters:
-		api_def->add_setter(
-			masala::make_shared< MasalaObjectAPISetterDefinition_TwoInput< Real const, Real const > >(
-				"set_coordinates",
-				"Set the coordinates of the centre of the table.  A table has coordinates in R^2 (x and y).",
-				"x_in", "The x coordinate, in meters.",
-				"y_in", "The y coordinate, in meters.",
-				false, false,
-				std::bind( &Guest::set_coordinates, this, std::placeholders::_1, std::placeholders::_1 )
-			)
-		);
-		api_def->add_setter(
-			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< Real const > >(
-				"set_angle",
-				"Set the table's angle.  A table has an orientation, defined as the clockwise angle, "
-				"in degrees, from facing north (the (0,1) direction in x-y space).",
-				"angle_in", "The input angle, in degrees.",
-				false, false,
-				std::bind( &Guest::set_angle, this, std::placeholders::_1 )
-			)
-		);
 
 		api_definition() = api_def; //Make const.
 	}
@@ -209,54 +156,11 @@ Guest::get_api_definition() {
 // PUBLIC GETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
-/// @brief Get the x-coordinate of the centre of the table.
-masala::base::Real
-Guest::x() const {
-	std::lock_guard< std::mutex > lock( mutex() );
-	return x_;
-}
-
-/// @brief Get the y-coordinate of the centre of the table.
-masala::base::Real
-Guest::y() const {
-	std::lock_guard< std::mutex > lock( mutex() );
-	return y_;
-}
-
-/// @brief Get the orientation of the table.
-/// @details A table has an orientation, defined as the clockwise angle, in degrees, from facing
-/// north (the (0,1) direction in x-y space).	
-masala::base::Real
-Guest::angle() const {
-	std::lock_guard< std::mutex > lock( mutex() );
-	return angle_degrees_;
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
-/// @brief Set the coordinates of the table's centre.  A table has coordinates in R^2 (x and y).
-void
-Guest::set_coordinates(
-	Real const x_in,
-	Real const y_in
-) {
-	std::lock_guard< std::mutex > lock( mutex() );
-	x_ = x_in;
-	y_ = y_in;
-}
-
-/// @brief Set the table's angle.
-/// @details A table has an orientation, defined as the clockwise angle, in degrees, from facing
-/// north (the (0,1) direction in x-y space).	
-void
-Guest::set_angle(
-	Real const angle_degrees_in
-) {
-	std::lock_guard< std::mutex > lock( mutex() );
-	angle_degrees_ = masala::numeric_api::utility::angles::positive_angle_degrees( angle_degrees_in );
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC WORK FUNCTIONS
@@ -282,28 +186,10 @@ Guest::protected_assign( SeatingElementBase const & src ) {
 	CHECK_OR_THROW_FOR_CLASS( src_ptr_cast != nullptr, "protected_assign", "Cannot assign an object of type " + src.class_name()
 		+ " to a Guest object."
 	);
-	
-	x_ = src_ptr_cast->x_;
-	y_ = src_ptr_cast->y_;
-	angle_degrees_ = src_ptr_cast->angle_degrees_;
+
+	// TODO TODO TODO
 
 	Parent::protected_assign( src );
-}
-
-/// @brief Allow derived classes to access the seats vector.  This is expected to occur under mutex lock, but
-/// this function does no mutex-locking.
-std::vector< SeatSP > &
-Guest::protected_seats() {
-	return seats_;
-}
-
-/// @brief Update the coordinates of seats on a change of table coordinates or dimensions.
-/// @details Base class throws.  Derived classes should override this.
-void
-Guest::protected_update_seat_coordinates() {
-	MASALA_THROW( class_namespace() + "::" + class_name(), "protected_update_seat_coordinates", "This class has not implemented this function.  This is a "
-		"program error which ought not to occur.  Please consult a developer."
-	);
 }
 
 } // namespace seating_problem_elements

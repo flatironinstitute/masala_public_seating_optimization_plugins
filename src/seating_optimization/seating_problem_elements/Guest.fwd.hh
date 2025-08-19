@@ -18,8 +18,7 @@
 
 /// @file src/seating_optimization/seating_problem_elements/Guest.fwd.hh
 /// @brief Forward declarations for a Guest.
-/// @details A Guest is an object around which a bunch of Seat objects are arranged, at which several people may sit.
-/// This is intended to be a non-instantiable base class for concrete derived classes defining various table shapes.
+/// @details A Guest is a person who must be assigned a seat.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
 
 #ifndef Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_Guest_fwd_hh

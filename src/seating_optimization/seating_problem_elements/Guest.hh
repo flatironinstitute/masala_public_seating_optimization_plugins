@@ -18,8 +18,7 @@
 
 /// @file src/seating_optimization/seating_problem_elements/Guest.hh
 /// @brief Headers for a Guest.
-/// @details A Guest is an object around which a bunch of Seat objects are arranged, at which several people may sit.
-/// This is intended to be a non-instantiable base class for concrete derived classes defining various table shapes.
+/// @details A Guest is a person who must be assigned a seat.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
 
 #ifndef Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_Guest_hh
@@ -43,8 +42,7 @@ namespace seating_optimization {
 namespace seating_problem_elements {
 
 /// @brief A Guest.
-/// @details A Guest is an object around which a bunch of Seat objects are arranged, at which several people may sit.
-/// This is intended to be a non-instantiable base class for concrete derived classes defining various table shapes.
+/// @details A Guest is a person who must be assigned a seat.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
 class Guest : public seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBase {
 
@@ -97,7 +95,7 @@ public:
 
 	/// @brief Get the keywords for this plugin class.  Default for all
 	/// optimization solutions; may be overridden by derived classes.
-	/// @returns { "seating_problem", "seating_problem_element", "table" }
+	/// @returns { "seating_problem", "seating_problem_element", "guest" }
 	std::vector< std::string >
 	get_keywords() const override;
 
@@ -127,31 +125,11 @@ public:
 // PUBLIC GETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
-	/// @brief Get the x-coordinate of the centre of the table.
-	Real x() const;
-
-	/// @brief Get the y-coordinate of the centre of the table.
-	Real y() const;
-
-	/// @brief Get the orientation of the table.
-	/// @details A table has an orientation, defined as the clockwise angle, in degrees, from facing
-	/// north (the (0,1) direction in x-y space).
-	Real angle() const;
-
 public:
 
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
-
-	/// @brief Set the coordinates of the table's centre.  A table has coordinates in R^2 (x and y).
-	void set_coordinates( Real const x_in, Real const y_in );
-
-	/// @brief Set the table's angle.
-	/// @details A table has an orientation, defined as the clockwise angle, in degrees, from facing
-	/// north (the (0,1) direction in x-y space).	
-	void
-	set_angle( Real const angle_degrees_in );
 
 public:
 
@@ -177,43 +155,11 @@ protected:
 	/// this function does no mutex-locking.
 	std::vector< SeatSP > & protected_seats();
 
-	/// @brief Update the coordinates of seats on a change of table coordinates or dimensions.
-	/// @details Base class throws.  Derived classes should override this.
-	/// @note Performs no mutex-locking.  Should only be called in a mutex-locked context.
-	virtual void protected_update_seat_coordinates();
-
-	/// @brief Allow derived classes to access the x-coordinate of the centre of the table.
-	/// @note Performs no mutex-locking.  Should only be called in a mutex-locked context.
-	inline Real protected_x() const { return x_; }
-
-	/// @brief Allow derived classes to access the y-coordinate of the centre of the table.
-	/// @note Performs no mutex-locking.  Should only be called in a mutex-locked context.
-	inline Real protected_y() const { return y_; }
-
-	/// @brief Allow derived classes to access the table's orientation.
-	/// @details A table has an orientation, defined as the clockwise angle, in degrees, from facing
-	/// north (the (0,1) direction in x-y space).
-	/// @note Performs no mutex-locking.  Should only be called in a mutex-locked context.
-	inline Real protected_angle_degrees() const { return angle_degrees_; }
-
 private:
 
 ////////////////////////////////////////////////////////////////////////////////
 // PRIVATE DATA
 ////////////////////////////////////////////////////////////////////////////////
-
-	/// @brief A seat has an x-coordinate.
-	Real x_ = 0.0;
-
-	/// @brief A seat has a y-coordinate.
-	Real y_ = 0.0;
-
-	/// @brief A seat has an orientation, defined as the clockwise angle, in degrees, from facing
-	/// north (the (0,1) direction in x-y space).
-	Real angle_degrees_ = 0.0;
-
-	/// @brief A set of seats associated with this table.
-	std::vector< SeatSP > seats_;
 
 }; // class Guest
 

@@ -312,6 +312,7 @@ CircularTable::protected_assign( SeatingElementBase const & src ) {
 	);
 
 	// TODO TODO TODO
+	radius_ = src_ptr_cast->radius_;
 
 	Parent::protected_assign( src );
 }

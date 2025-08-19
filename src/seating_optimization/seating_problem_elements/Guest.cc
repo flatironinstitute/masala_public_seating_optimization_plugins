@@ -158,7 +158,7 @@ Guest::get_api_definition() {
 			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< std::string const & > > (
 				"set_name", "Set the name of this guest.",
 				"name_in", "The name of this guest.  Preceding and trailing whitespace will automatically be trimmed.  "
-				"Throws if this is an emtpy string.",
+				"Throws if this is an empty string.",
 				false, false,
 				std::bind( &Guest::set_name, this, std::placeholders::_1 )
 			)

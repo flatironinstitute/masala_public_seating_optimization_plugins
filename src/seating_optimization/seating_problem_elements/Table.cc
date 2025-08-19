@@ -28,6 +28,9 @@
 // Numeric headers:
 #include <numeric_api/utility/angles/angle_util.hh>
 
+// Seating optimization headers:
+#include <seating_optimization/seating_problem_elements/Seat.hh>
+
 // Base headers:
 #include <base/error/ErrorHandling.hh>
 #include <base/api/MasalaObjectAPIDefinition.hh>
@@ -269,6 +272,15 @@ Table::set_angle(
 void
 Table::protected_make_independent() {
 	// TODO DEEP CLONING
+
+	for( Size i(0); i<seats_.size(); ++i ) {
+		if( seats_[i] != nullptr ) {
+			seats_[i] = std::static_pointer_cast< Seat >( seats_[i]->clone() );
+			CHECK_OR_THROW_FOR_CLASS( seats_[i] != nullptr, "protected_make_independent", "Could not clone a Seat object." );
+			seats_[i]->make_independent();
+		}
+	}
+
 	Parent::protected_make_independent();
 }
 
@@ -284,6 +296,7 @@ Table::protected_assign( SeatingElementBase const & src ) {
 	x_ = src_ptr_cast->x_;
 	y_ = src_ptr_cast->y_;
 	angle_degrees_ = src_ptr_cast->angle_degrees_;
+	seats_ = src_ptr_cast->seats_;
 
 	Parent::protected_assign( src );
 }

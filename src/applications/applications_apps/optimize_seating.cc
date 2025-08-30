@@ -130,56 +130,35 @@ set_setter(
 	);
 }
 
-/// @brief Load a hill-flattening Monte Carlo cost function network optimizer.
-masala::base::managers::engine::MasalaEngineAPICSP
-load_hill_flattening_mc_cfn_optimizer(
-	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
-	std::string const & appname,
-	masala::base::Size const classical_mc_steps
-) {
-	using namespace masala::base::managers::engine;
-	using namespace masala::base::api;
-
-	MasalaEngineAPISP optimizer(
-		MasalaEngineManager::get_instance()->create_engine_by_short_name( "HillFlatteningMonteCarloCostFunctionNetworkOptimizer", false )
-	);
-	CHECK_OR_THROW( optimizer != nullptr && optimizer->inner_class_name() == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer",
-		appname,"load_hill_flattening_mc_cfn_optimizer", "Could not load a HillFlatteningMonteCarloCostFunctionNetworkOptimizer "
-		"from the Masala engine manager.  Has the Standard Masala Plugins library path been passed to the -masala_plugins commandling option?"
-	);
-	tracerman->write_to_tracer( appname + "::load_hill_flattening_mc_cfn_optimizer", "Created a HillFlatteningMonteCarloCostFunctionNetworkOptimizer." );
-
-	// TODO CONFIGURE HERE.
-	MasalaObjectAPIDefinitionCSP api_def( optimizer->get_api_definition_for_inner_class().lock() );
-	CHECK_OR_THROW( api_def != nullptr, appname, "load_hill_flattening_mc_cfn_optimizer", "Could not get an API definition for the " + optimizer->inner_class_name() + " optimizer." );
-	set_setter( tracerman, appname, *api_def, "set_annealing_steps_per_attempt", classical_mc_steps );
-	set_setter( tracerman, appname, *api_def, "set_cpu_threads_to_request", 0 );
-
-	return optimizer;
-}
-
-/// @brief Load a Monte Carlo cost function network optimizer.
+/// @brief Load a Monte Carlo cost function network optimizer or a hill-flattening Monte Carlo cost function network optimizer.
 masala::base::managers::engine::MasalaEngineAPICSP
 load_mc_cfn_optimizer(
 	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
 	std::string const & appname,
-	masala::base::Size const classical_mc_steps
+	masala::base::Size const classical_mc_steps,
+	bool const load_hill_flattening_version
 ) {
 	using namespace masala::base::managers::engine;
 	using namespace masala::base::api;
 
-	MasalaEngineAPISP optimizer(
-		MasalaEngineManager::get_instance()->create_engine_by_short_name( "MonteCarloCostFunctionNetworkOptimizer", false )
+	std::string const optname(
+		load_hill_flattening_version ?
+		"HillFlatteningMonteCarloCostFunctionNetworkOptimizer" :
+		"MonteCarloCostFunctionNetworkOptimizer"
 	);
-	CHECK_OR_THROW( optimizer != nullptr && optimizer->inner_class_name() == "MonteCarloCostFunctionNetworkOptimizer",
-		appname,"load_hill_flattening_mc_cfn_optimizer", "Could not load a MonteCarloCostFunctionNetworkOptimizer "
+
+	MasalaEngineAPISP optimizer(
+		MasalaEngineManager::get_instance()->create_engine_by_short_name( optname, false )
+	);
+	CHECK_OR_THROW( optimizer != nullptr && optimizer->inner_class_name() == optname,
+		appname,"load_mc_cfn_optimizer", "Could not load a " + optname +
 		"from the Masala engine manager.  Has the Standard Masala Plugins library path been passed to the -masala_plugins commandling option?"
 	);
-	tracerman->write_to_tracer( appname + "::load_hill_flattening_mc_cfn_optimizer", "Created a MonteCarloCostFunctionNetworkOptimizer." );
+	tracerman->write_to_tracer( appname + "::load_mc_cfn_optimizer", "Created a " + optimizer->inner_class_name() + "." );
 
 	// TODO CONFIGURE HERE.
 	MasalaObjectAPIDefinitionCSP api_def( optimizer->get_api_definition_for_inner_class().lock() );
-	CHECK_OR_THROW( api_def != nullptr, appname, "load_hill_flattening_mc_cfn_optimizer", "Could not get an API definition for the " + optimizer->inner_class_name() + " optimizer." );
+	CHECK_OR_THROW( api_def != nullptr, appname, "load_mc_cfn_optimizer", "Could not get an API definition for the " + optimizer->inner_class_name() + " optimizer." );
 	set_setter( tracerman, appname, *api_def, "set_annealing_steps_per_attempt", classical_mc_steps );
 	set_setter( tracerman, appname, *api_def, "set_cpu_threads_to_request", 0 );
 
@@ -204,9 +183,9 @@ load_optimizer_settings(
 	}
 
 	if( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" ) {
-		return load_hill_flattening_mc_cfn_optimizer( tracerman, appname, classical_mc_steps );
+		return load_mc_cfn_optimizer( tracerman, appname, classical_mc_steps, true );
 	} else if( optimizer_name == "MonteCarloCostFunctionNetworkOptimizer" ) {
-		return load_mc_cfn_optimizer( tracerman, appname, classical_mc_steps );
+		return load_mc_cfn_optimizer( tracerman, appname, classical_mc_steps, false );
 	} else {
 		MASALA_THROW( appname, "load_optimizer_settings", "Did not recognize \"" + optimizer_name + "\" as an allowed optimizer.  "
 			"Supported optimizers are: " + masala::base::utility::container::container_to_string( allowed_optimizer_names, ", " ) + "."

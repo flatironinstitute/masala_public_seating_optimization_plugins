@@ -105,13 +105,14 @@ print_help_messages(
 }
 
 /// @brief Set the number of classical Monte Carlo steps for a classical optimizer.
+template< typename T >
 void
-set_integer_setter(
+set_setter(
 	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
 	std::string const & appname,
 	masala::base::api::MasalaObjectAPIDefinition const & api_def,
 	std::string const & setter_name,
-	masala::base::Size const setting
+	T const setting
 ) {
 	using namespace masala::base::api;
 	using namespace masala::base::api::setter;
@@ -119,11 +120,11 @@ set_integer_setter(
 	MasalaObjectAPISetterDefinition_OneInputCSP< masala::base::Size > setter(
 		api_def.get_oneinput_setter_function< masala::base::Size >( setter_name ).lock()
 	);
-	CHECK_OR_THROW( setter != nullptr, appname, "set_integer_setter", "The " + api_def.api_class_name() + " did not have a "
+	CHECK_OR_THROW( setter != nullptr, appname, "set_setter", "The " + api_def.api_class_name() + " did not have a "
 		+ setter_name + "() function."
 	);
 	setter->function(setting);
-	tracerman->write_to_tracer( appname + "::set_integer_setter", "Set " + api_def.api_class_name() + "."
+	tracerman->write_to_tracer( appname + "::set_setter", "Set " + api_def.api_class_name() + "."
 		+ setter_name + "(" + std::to_string(setting) + ")."
 	);
 }
@@ -150,7 +151,7 @@ load_hill_flattening_mc_cfn_optimizer(
 	// TODO CONFIGURE HERE.
 	MasalaObjectAPIDefinitionCSP api_def( optimizer->get_api_definition_for_inner_class().lock() );
 	CHECK_OR_THROW( api_def != nullptr, appname, "load_hill_flattening_mc_cfn_optimizer", "Could not get an API definition for the " + optimizer->inner_class_name() + " optimizer." );
-	set_integer_setter( tracerman, appname, *api_def, "set_annealing_steps_per_attempt", classical_mc_steps );
+	set_setter( tracerman, appname, *api_def, "set_annealing_steps_per_attempt", classical_mc_steps );
 
 	return optimizer;
 }
@@ -177,7 +178,7 @@ load_mc_cfn_optimizer(
 	// TODO CONFIGURE HERE.
 	MasalaObjectAPIDefinitionCSP api_def( optimizer->get_api_definition_for_inner_class().lock() );
 	CHECK_OR_THROW( api_def != nullptr, appname, "load_hill_flattening_mc_cfn_optimizer", "Could not get an API definition for the " + optimizer->inner_class_name() + " optimizer." );
-	set_integer_setter( tracerman, appname, *api_def, "set_annealing_steps_per_attempt", classical_mc_steps );
+	set_setter( tracerman, appname, *api_def, "set_annealing_steps_per_attempt", classical_mc_steps );
 
 	return optimizer;
 }

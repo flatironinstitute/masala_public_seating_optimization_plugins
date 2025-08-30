@@ -37,6 +37,8 @@
 #include <base/managers/engine/MasalaDataRepresentationAPI.hh>
 #include <base/utility/container/container_util.tmpl.hh>
 #include <base/utility/string/string_manipulation.hh>
+#include <base/api/MasalaObjectAPIDefinition.hh>
+#include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 
 // Masala numeric_api headers
 #include <numeric_api/base_classes/optimization/cost_function_network/PluginCostFunctionNetworkOptimizer.hh>
@@ -102,13 +104,40 @@ print_help_messages(
     masala::base::managers::tracer::MasalaTracerManager::get_instance()->write_to_tracer( appname, ss.str() );
 }
 
+/// @brief Set the number of classical Monte Carlo steps for a classical optimizer.
+void
+set_integer_setter(
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	std::string const & appname,
+	masala::base::api::MasalaObjectAPIDefinition const & api_def,
+	std::string const & setter_name,
+	masala::base::Size const setting
+) {
+	using namespace masala::base::api;
+	using namespace masala::base::api::setter;
+
+	MasalaObjectAPISetterDefinition_OneInputCSP< masala::base::Size > setter(
+		api_def.get_oneinput_setter_function< masala::base::Size >( setter_name ).lock()
+	);
+	CHECK_OR_THROW( setter != nullptr, appname, "set_integer_setter", "The " + api_def.api_class_name() + " did not have a "
+		+ setter_name + "() function."
+	);
+	setter->function(setting);
+	tracerman->write_to_tracer( appname + "::set_integer_setter", "Set " + api_def.api_class_name() + "."
+		+ setter_name + "(" + std::to_string(setting) + ")."
+	);
+}
+
 /// @brief Load a hill-flattening Monte Carlo cost function network optimizer.
 masala::base::managers::engine::MasalaEngineAPICSP
 load_hill_flattening_mc_cfn_optimizer(
 	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
-	std::string const & appname
+	std::string const & appname,
+	masala::base::Size const classical_mc_steps
 ) {
 	using namespace masala::base::managers::engine;
+	using namespace masala::base::api;
+
 	MasalaEngineAPISP optimizer(
 		MasalaEngineManager::get_instance()->create_engine_by_short_name( "HillFlatteningMonteCarloCostFunctionNetworkOptimizer", false )
 	);
@@ -116,9 +145,12 @@ load_hill_flattening_mc_cfn_optimizer(
 		appname,"load_hill_flattening_mc_cfn_optimizer", "Could not load a HillFlatteningMonteCarloCostFunctionNetworkOptimizer "
 		"from the Masala engine manager.  Has the Standard Masala Plugins library path been passed to the -masala_plugins commandling option?"
 	);
-	tracerman->write_to_tracer( appname + "load_hill_flattening_mc_cfn_optimizer", "Created a HillFlatteningMonteCarloCostFunctionNetworkOptimizer." );
+	tracerman->write_to_tracer( appname + "::load_hill_flattening_mc_cfn_optimizer", "Created a HillFlatteningMonteCarloCostFunctionNetworkOptimizer." );
 
 	// TODO CONFIGURE HERE.
+	MasalaObjectAPIDefinitionCSP api_def( optimizer->get_api_definition_for_inner_class().lock() );
+	CHECK_OR_THROW( api_def != nullptr, appname, "load_hill_flattening_mc_cfn_optimizer", "Could not get an API definition for the " + optimizer->inner_class_name() + " optimizer." );
+	set_integer_setter( tracerman, appname, *api_def, "set_annealing_steps_per_attempt", classical_mc_steps );
 
 	return optimizer;
 }
@@ -127,9 +159,12 @@ load_hill_flattening_mc_cfn_optimizer(
 masala::base::managers::engine::MasalaEngineAPICSP
 load_mc_cfn_optimizer(
 	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
-	std::string const & appname
+	std::string const & appname,
+	masala::base::Size const classical_mc_steps
 ) {
 	using namespace masala::base::managers::engine;
+	using namespace masala::base::api;
+
 	MasalaEngineAPISP optimizer(
 		MasalaEngineManager::get_instance()->create_engine_by_short_name( "MonteCarloCostFunctionNetworkOptimizer", false )
 	);
@@ -137,9 +172,12 @@ load_mc_cfn_optimizer(
 		appname,"load_hill_flattening_mc_cfn_optimizer", "Could not load a MonteCarloCostFunctionNetworkOptimizer "
 		"from the Masala engine manager.  Has the Standard Masala Plugins library path been passed to the -masala_plugins commandling option?"
 	);
-	tracerman->write_to_tracer( appname + "load_hill_flattening_mc_cfn_optimizer", "Created a MonteCarloCostFunctionNetworkOptimizer." );
+	tracerman->write_to_tracer( appname + "::load_hill_flattening_mc_cfn_optimizer", "Created a MonteCarloCostFunctionNetworkOptimizer." );
 
 	// TODO CONFIGURE HERE.
+	MasalaObjectAPIDefinitionCSP api_def( optimizer->get_api_definition_for_inner_class().lock() );
+	CHECK_OR_THROW( api_def != nullptr, appname, "load_hill_flattening_mc_cfn_optimizer", "Could not get an API definition for the " + optimizer->inner_class_name() + " optimizer." );
+	set_integer_setter( tracerman, appname, *api_def, "set_annealing_steps_per_attempt", classical_mc_steps );
 
 	return optimizer;
 }
@@ -150,12 +188,21 @@ load_optimizer_settings(
 	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
 	std::string const & appname,
 	std::vector< std::string > const & allowed_optimizer_names,
-	std::string const & optimizer_name
+	std::string const & optimizer_name,
+	int const classical_mc_steps_specified,
+	masala::base::Size const classical_mc_steps
 ) {
+	// Initial checks:
+	if( classical_mc_steps_specified ) {
+		CHECK_OR_THROW( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" || optimizer_name == "MonteCarloCostFunctionNetworkOptimizer",
+			appname, "load_optimizer_settings", "Classical Monte Carlo steps were specified, but the selected optimizer does not perform classical Monte Carlo."
+		);
+	}
+
 	if( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" ) {
-		return load_hill_flattening_mc_cfn_optimizer( tracerman, appname );
+		return load_hill_flattening_mc_cfn_optimizer( tracerman, appname, classical_mc_steps );
 	} else if( optimizer_name == "MonteCarloCostFunctionNetworkOptimizer" ) {
-		return load_mc_cfn_optimizer( tracerman, appname );
+		return load_mc_cfn_optimizer( tracerman, appname, classical_mc_steps );
 	} else {
 		MASALA_THROW( appname, "load_optimizer_settings", "Did not recognize \"" + optimizer_name + "\" as an allowed optimizer.  "
 			"Supported optimizers are: " + masala::base::utility::container::container_to_string( allowed_optimizer_names, ", " ) + "."
@@ -174,9 +221,11 @@ load_options(
 	std::vector< std::string > const & allowed_optimizer_names,
 	std::vector< std::string > & masala_plugin_paths,
 	std::string & optimizer_name,
+	masala::base::Size & classical_mc_steps,
 	int & help_indicated,
 	int & masala_plugins_found,
-	int & optimizer_name_specified
+	int & optimizer_name_specified,
+	int & classical_mc_steps_specified
 ) {
 	using namespace masala::base::utility::container;
 	using namespace masala::base::utility::string;
@@ -188,6 +237,7 @@ load_options(
 		{"help", no_argument, &help_indicated, 1},
 		{"masala_plugins", required_argument, &masala_plugins_found, 1},
 		{"optimizer_name", required_argument, &optimizer_name_specified, 1},
+		{"classical_mc_steps", required_argument, &classical_mc_steps_specified, 1},
 	};
 	std::map< std::string, std::string > const help_messages{
 		{"h", "Print a help message and exit."},
@@ -195,7 +245,11 @@ load_options(
 		{"masala_plugins", "The paths to the masala plugins that will be loaded, as a comma-separated list."},
 		{"optimizer_name", "The name of the optimizer to use to solve the seating optimization problem.  Currently supported "
 			"optimizers include: " + masala::base::utility::container::container_to_string( allowed_optimizer_names, ", " ) + "."
-		}
+		},
+		{"classical_mc_steps", "The number of Monte Carlo steps per attempt that classical optimizers, such as the "
+			"MonteCarloCostFunctionNetworkOptimizer or the HillFlatteningMonteCarloCostFunctionNetworkOptimizer, will make.  "
+			"Defaults to 1,000,000 if not specified."
+		},
 	};
 
 	int option_index;
@@ -216,6 +270,11 @@ load_options(
 			tracerman->write_to_tracer( appname, "\tGot the following Masala plugin paths: " + container_to_string( masala_plugin_paths, ", " ) + "." );
 		} else if( curname == "optimizer_name" ) {
 			optimizer_name = std::string(optarg);
+		} else if( curname == "classical_mc_steps" ) {
+			std::istringstream ss( optarg );
+			ss >> classical_mc_steps;
+			CHECK_OR_THROW( ss.eof() && !(ss.bad() || ss.fail() ), appname, "load_options", "Could not parse \"" + std::string(optarg) + "\" as an integer." );
+			CHECK_OR_THROW( classical_mc_steps > 0, appname, "load_options", "The number of classical Monte Carlo steps must be a positive integer." );
 		}
 	}
 
@@ -240,6 +299,7 @@ main(
     int help_indicated(0);
     int masala_plugins_found(0);
     int optimizer_name_specified(0);
+	int classical_mc_steps_specified(0);
 
 	// Allowed optimizer names:
 	std::vector< std::string > const allowed_optimizer_names{
@@ -250,6 +310,7 @@ main(
     // Options that we will load:
     std::vector< std::string > masala_plugin_paths;
     std::string optimizer_name;
+	masala::base::Size classical_mc_steps( 1000000 );
 
     // Masala tracer manager:
     MasalaTracerManagerHandle tracerman( MasalaTracerManager::get_instance() );
@@ -264,8 +325,8 @@ main(
     if(
 		!load_options(
 			argc, argv, tracerman, appname,
-			allowed_optimizer_names, masala_plugin_paths, optimizer_name,
-			help_indicated, masala_plugins_found, optimizer_name_specified
+			allowed_optimizer_names, masala_plugin_paths, optimizer_name, classical_mc_steps,
+			help_indicated, masala_plugins_found, optimizer_name_specified, classical_mc_steps_specified
 		)
 	) {
 		return 0;
@@ -281,7 +342,8 @@ main(
 			tracerman,
 			appname,
 			allowed_optimizer_names,
-			optimizer_name
+			optimizer_name,
+			classical_mc_steps_specified, classical_mc_steps
 		)
 	);
 

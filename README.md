@@ -14,11 +14,11 @@ Plugins for the Masala software suite that allow Masala to optimize seating arra
 
 ## Setup
 
-1.  Compile Masala using the buildme.sh script in the masala/ directory.
-2.  Set up a simlink to the headers/masala/headers directory.  For instance: `ln -s ~/my_projects/masala/headers/ ~/my_projects/seating_optimization_masala_plugins/headers/masala/`
-3.  Set up simlinks to the dylib files or so files in your masala build directory.  For instance `cd ~/myprojects/seating_optimization_masala_plugins/lib && ln -s ~/my_projects/masala/build/lib* .`
-4.  Set up a simlink to the external/ directory.  For instance: `ln -s ~/my_projects/masala/external ~/my_projects/seating_optimization_masala_plugins/`
-5.  Set up a simlink to the code\_templates/ directory.  For instance: `ln -s ~/my_projects/masala/code_templates ~/my_projects/seating_optimization_masala_plugins/`
+1.  Compile Masala, the Standard Masala Plugins, and the Quantum Computing Masala Plugins using the buildme.sh scripts in these repositories' various directories.
+2.  Set up simlinks to the headers/masala/headers, headers/standard_masala_plugins/headers, and headers/quantum_computing_masala_plugins/headers  directories.  For instance: `ln -s ~/my_projects/masala/headers/ ~/my_projects/seating_optimization_masala_plugins/headers/masala/ && ln -s ~/my_projects/standard_masala_plugins/headers/ ~/my_projects/seating_optimization_masala_plugins/headers/standard_masala_plugins/ && ln -s ~/my_projects/quantum_computing_masala_plugins/headers/ ~/my_projects/seating_optimization_masala_plugins/headers/quantum_computing_masala_plugins/`
+3.  Set up simlinks to the dylib files or so files in your Masala, Standard Masala Plugins, and Quantum Computing Masala Plugins build directories.  For instance `cd ~/myprojects/seating_optimization_masala_plugins/lib && ln -s ~/my_projects/masala/build/lib* ~/my_projects/standard_masala_plugins/build/lib* ~/my_projects/quantum_computing_masala_plugins/lib* .`
+4.  Set up a simlink to the Masala external/ directory.  For instance: `ln -s ~/my_projects/masala/external ~/my_projects/seating_optimization_masala_plugins/`
+5.  Set up a simlink to the Masala code\_templates/ directory.  For instance: `ln -s ~/my_projects/masala/code_templates ~/my_projects/seating_optimization_masala_plugins/`
 6.  Run the buildme.sh script (`./buildme.sh`) to compile and link the Masala seating optimization plugin library.
 
 ## Unit Testing

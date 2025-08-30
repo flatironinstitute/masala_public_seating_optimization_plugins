@@ -30,6 +30,7 @@
 #include <base/managers/tracer/MasalaTracerManager.hh>
 #include <base/managers/plugin_module/MasalaPluginLibraryManager.hh>
 #include <base/managers/plugin_module/MasalaPluginModuleManager.hh>
+#include <base/managers/engine/MasalaEngineManager.hh>
 #include <base/managers/engine/MasalaEngine.hh>
 #include <base/managers/engine/MasalaDataRepresentation.hh>
 #include <base/managers/engine/MasalaEngineAPI.hh>
@@ -101,6 +102,45 @@ print_help_messages(
     masala::base::managers::tracer::MasalaTracerManager::get_instance()->write_to_tracer( appname, ss.str() );
 }
 
+/// @brief Load a hill-flattening Monte Carlo cost function network optimizer.
+masala::base::managers::engine::MasalaEngineAPICSP
+load_hill_flattening_mc_cfn_optimizer(
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	std::string const & appname
+) {
+	using namespace masala::base::managers::engine;
+	MasalaEngineAPISP optimizer(
+		MasalaEngineManager::get_instance()->create_engine_by_short_name( "HillFlatteningMonteCarloCostFunctionNetworkOptimizer", false )
+	);
+	CHECK_OR_THROW( optimizer != nullptr && optimizer->inner_class_name() == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer",
+		appname,"load_hill_flattening_mc_cfn_optimizer", "Could not load a HillFlatteningMonteCarloCostFunctionNetworkOptimizer "
+		"from the Masala engine manager.  Has the Standard Masala Plugins library path been passed to the -masala_plugins commandling option?"
+	);
+	tracerman->write_to_tracer( appname + "load_hill_flattening_mc_cfn_optimizer", "Created a HillFlatteningMonteCarloCostFunctionNetworkOptimizer." );
+
+	// TODO CONFIGURE HERE.
+
+	return optimizer;
+}
+
+/// @brief Load optimizer.
+masala::base::managers::engine::MasalaEngineAPICSP
+load_optimizer_settings(
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	std::string const & appname,
+	std::vector< std::string > const & allowed_optimizer_names,
+	std::string const & optimizer_name
+) {
+	if( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" ) {
+		return load_hill_flattening_mc_cfn_optimizer( tracerman, appname );
+	} else {
+		MASALA_THROW( appname, "load_optimizer_settings", "Did not recognize \"" + optimizer_name + "\" as an allowed optimizer.  "
+			"Supported optimizers are: " + masala::base::utility::container::container_to_string( allowed_optimizer_names, ", " ) + "."
+		);
+	}
+	return nullptr;
+} 
+
 /// @brief Load options.
 bool
 load_options(
@@ -108,6 +148,7 @@ load_options(
 	char * const argv[],
 	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
 	std::string const & appname,
+	std::vector< std::string > const & allowed_optimizer_names,
 	std::vector< std::string > & masala_plugin_paths,
 	std::string & optimizer_name,
 	int & help_indicated,
@@ -117,11 +158,6 @@ load_options(
 	using namespace masala::base::utility::container;
 	using namespace masala::base::utility::string;
 	using namespace masala::base::managers::tracer;
-
-	// Allowed optimizer names:
-	std::vector< std::string > const allowed_optimizer_names{
-		"HillFlatteningMonteCarloCostFunctionNetworkOptimizer"
-	};
 
 	// Options that we can load:
 	option long_options[] {
@@ -134,7 +170,9 @@ load_options(
 		{"h", "Print a help message and exit."},
 		{"help", "Print a help message and exit."},
 		{"masala_plugins", "The paths to the masala plugins that will be loaded, as a comma-separated list."},
-		{"optimizer_name", "The name of the optimizer to use to solve the seating optimization problem.  Currently supported optimizers include: " + masala::base::utility::container::container_to_string( allowed_optimizer_names, " " ) }
+		{"optimizer_name", "The name of the optimizer to use to solve the seating optimization problem.  Currently supported "
+			"optimizers include: " + masala::base::utility::container::container_to_string( allowed_optimizer_names, ", " ) + "."
+		}
 	};
 
 	int option_index;
@@ -152,7 +190,7 @@ load_options(
 				ss >> temp;
 				masala_plugin_paths.push_back( temp );
 			}
-			tracerman->write_to_tracer( appname, "\tGot the following Masala plugin paths: " + container_to_string( masala_plugin_paths, " " ) );
+			tracerman->write_to_tracer( appname, "\tGot the following Masala plugin paths: " + container_to_string( masala_plugin_paths, ", " ) + "." );
 		} else if( curname == "optimizer_name" ) {
 			optimizer_name = std::string(optarg);
 		}
@@ -180,6 +218,11 @@ main(
     int masala_plugins_found(0);
     int optimizer_name_specified(0);
 
+	// Allowed optimizer names:
+	std::vector< std::string > const allowed_optimizer_names{
+		"HillFlatteningMonteCarloCostFunctionNetworkOptimizer"
+	};
+
     // Options that we will load:
     std::vector< std::string > masala_plugin_paths;
     std::string optimizer_name;
@@ -195,7 +238,7 @@ main(
     if(
 		!load_options(
 			argc, argv, tracerman, appname,
-			masala_plugin_paths, optimizer_name,
+			allowed_optimizer_names, masala_plugin_paths, optimizer_name,
 			help_indicated, masala_plugins_found, optimizer_name_specified
 		)
 	) {
@@ -207,7 +250,14 @@ main(
 
     // Load the optimizer settings.  This fully configures the optimizer.
     CHECK_OR_THROW( optimizer_name_specified == 1, appname, "main", "An optimizer must be specified with the -optimizer_name flag." );
-    //MasalaEngineAPICSP optimizer_api( load_optimizer_settings( optimizer_name ) );
+    MasalaEngineAPICSP optimizer_api(
+		load_optimizer_settings(
+			tracerman,
+			appname,
+			allowed_optimizer_names,
+			optimizer_name
+		)
+	);
 
     // Load the problem specification:
     //load_problem_specification();

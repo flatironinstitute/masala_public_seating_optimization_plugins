@@ -28,6 +28,8 @@
 #include <base/types.hh>
 #include <base/error/ErrorHandling.hh>
 #include <base/managers/tracer/MasalaTracerManager.hh>
+#include <base/managers/plugin_module/MasalaPluginLibraryManager.hh>
+#include <base/managers/plugin_module/MasalaPluginModuleManager.hh>
 #include <base/utility/container/container_util.tmpl.hh>
 #include <base/utility/string/string_manipulation.hh>
 
@@ -51,6 +53,25 @@ print_help() {
 		"Below are the options for this program.\n"
 		// TODO TODO TODO
 	;
+}
+
+/// @brief Load all Masala plugins.
+void
+load_masala_plugins(
+    std::vector< std::string > const & plugin_paths
+) {
+    using namespace masala::base::managers::plugin_module;
+    MasalaPluginLibraryManagerHandle libman( MasalaPluginLibraryManager::get_instance() );
+    for( auto const & plugin_path : plugin_paths ) {
+        libman->load_and_register_plugin_libraries_in_subdirectories( plugin_path );
+    }
+}
+
+/// @brief Unload all Masala plugins.
+void
+unload_masala_plugins() {
+    using namespace masala::base::managers::plugin_module;
+    MasalaPluginLibraryManager::get_instance()->reset();
 }
 
 // Program entry point:
@@ -100,6 +121,12 @@ main(
             tracerman->write_to_tracer( appname, "\tGot the following Masala plugin paths: " + container_to_string( masala_plugin_paths, " " ) );
         }
     }
+
+    load_masala_plugins( masala_plugin_paths );
+
+    // TODO TODO TODO;
+
+    unload_masala_plugins();
 
 	return 0;
 

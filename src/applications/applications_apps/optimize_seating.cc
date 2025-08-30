@@ -118,8 +118,8 @@ set_setter(
 	using namespace masala::base::api;
 	using namespace masala::base::api::setter;
 
-	MasalaObjectAPISetterDefinition_OneInputCSP< masala::base::Size > setter(
-		api_def.get_oneinput_setter_function< masala::base::Size >( setter_name ).lock()
+	MasalaObjectAPISetterDefinition_OneInputCSP< T > setter(
+		api_def.get_oneinput_setter_function< T >( setter_name ).lock()
 	);
 	CHECK_OR_THROW( setter != nullptr, appname, "set_setter", "The " + api_def.api_class_name() + " did not have a "
 		+ setter_name + "() function."
@@ -127,6 +127,43 @@ set_setter(
 	setter->function(setting);
 	tracerman->write_to_tracer( appname + "::set_setter", "Set " + api_def.api_class_name() + "."
 		+ setter_name + "(" + std::to_string(setting) + ")."
+	);
+}
+
+/// @brief Set the annealing schedule
+void
+configure_annealing_schedule(
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	std::string const & appname,
+	masala::base::api::MasalaObjectAPIDefinition const & api_def
+) {
+	using namespace masala::base::api;
+	using namespace masala::base::api::setter;
+	using namespace masala::base::managers::plugin_module;
+	using masala::base::Real;
+
+	MasalaPluginAPISP annealsched(
+		MasalaPluginModuleManager::get_instance()->create_plugin_object_instance_by_short_name(
+			{ "AnnealingSchedule" }, "LogarithmicRepeatAnnealingSchedule", true
+		)
+	);
+	CHECK_OR_THROW( annealsched != nullptr, appname, "configure_annealing_schedule", "Could not create a LogarithmicRepeatAnnealingSchedule.  "
+		"Has the standard Masala plugins library been loaded?"
+	);
+	MasalaObjectAPIDefinitionCSP anneal_apidef( annealsched->get_api_definition_for_inner_class().lock() );
+	set_setter< Real >( tracerman, appname, *anneal_apidef, "set_temperature_initial", 100.0 );
+	set_setter< Real >( tracerman, appname, *anneal_apidef, "set_temperature_final", 0.1 );
+	set_setter< Size >( tracerman, appname, *anneal_apidef, "set_n_repeats", 5 );
+
+	MasalaObjectAPISetterDefinition_OneInputCSP< masala::base::managers::plugin_module::MasalaPluginAPI const & > setter(
+		api_def.get_oneinput_setter_function< masala::base::managers::plugin_module::MasalaPluginAPI const & >( "set_annealing_schedule" ).lock()
+	);
+	CHECK_OR_THROW( setter != nullptr, appname, "configure_annealing_schedule", "The " + api_def.api_class_name() + " did not have a "
+		+ "set_annealing_schedule" + "() function."
+	);
+	setter->function(*annealsched);
+	tracerman->write_to_tracer( appname + "::configure_annealing_schedule", "Set " + api_def.api_class_name() + "."
+		+ "set_annealing_schedule" + "(" + annealsched->inner_class_name() + ")."
 	);
 }
 
@@ -141,6 +178,7 @@ load_mc_cfn_optimizer(
 ) {
 	using namespace masala::base::managers::engine;
 	using namespace masala::base::api;
+	using masala::base::Size;
 
 	std::string const optname(
 		load_hill_flattening_version ?
@@ -160,9 +198,12 @@ load_mc_cfn_optimizer(
 	// TODO CONFIGURE HERE.
 	MasalaObjectAPIDefinitionCSP api_def( optimizer->get_api_definition_for_inner_class().lock() );
 	CHECK_OR_THROW( api_def != nullptr, appname, "load_mc_cfn_optimizer", "Could not get an API definition for the " + optimizer->inner_class_name() + " optimizer." );
-	set_setter( tracerman, appname, *api_def, "set_annealing_steps_per_attempt", classical_mc_steps );
-	set_setter( tracerman, appname, *api_def, "set_cpu_threads_to_request", 0 );
-	set_setter( tracerman, appname, *api_def, "set_attempts_per_problem", classical_attempts_per_problem );
+	set_setter<Size>( tracerman, appname, *api_def, "set_annealing_steps_per_attempt", classical_mc_steps );
+	set_setter<Size>( tracerman, appname, *api_def, "set_cpu_threads_to_request", 0 );
+	set_setter<Size>( tracerman, appname, *api_def, "set_attempts_per_problem", classical_attempts_per_problem );
+
+	// Set annealing schedule:
+	configure_annealing_schedule( tracerman, appname, *api_def );
 
 	return optimizer;
 }

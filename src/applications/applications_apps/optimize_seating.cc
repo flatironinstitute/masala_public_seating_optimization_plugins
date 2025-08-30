@@ -30,6 +30,7 @@
 #include <base/managers/tracer/MasalaTracerManager.hh>
 #include <base/managers/plugin_module/MasalaPluginLibraryManager.hh>
 #include <base/managers/plugin_module/MasalaPluginModuleManager.hh>
+#include <base/managers/threads/MasalaThreadManager.hh>
 #include <base/managers/engine/MasalaEngineManager.hh>
 #include <base/managers/engine/MasalaEngine.hh>
 #include <base/managers/engine/MasalaDataRepresentation.hh>
@@ -152,6 +153,7 @@ load_hill_flattening_mc_cfn_optimizer(
 	MasalaObjectAPIDefinitionCSP api_def( optimizer->get_api_definition_for_inner_class().lock() );
 	CHECK_OR_THROW( api_def != nullptr, appname, "load_hill_flattening_mc_cfn_optimizer", "Could not get an API definition for the " + optimizer->inner_class_name() + " optimizer." );
 	set_setter( tracerman, appname, *api_def, "set_annealing_steps_per_attempt", classical_mc_steps );
+	set_setter( tracerman, appname, *api_def, "set_cpu_threads_to_request", 0 );
 
 	return optimizer;
 }
@@ -179,6 +181,7 @@ load_mc_cfn_optimizer(
 	MasalaObjectAPIDefinitionCSP api_def( optimizer->get_api_definition_for_inner_class().lock() );
 	CHECK_OR_THROW( api_def != nullptr, appname, "load_hill_flattening_mc_cfn_optimizer", "Could not get an API definition for the " + optimizer->inner_class_name() + " optimizer." );
 	set_setter( tracerman, appname, *api_def, "set_annealing_steps_per_attempt", classical_mc_steps );
+	set_setter( tracerman, appname, *api_def, "set_cpu_threads_to_request", 0 );
 
 	return optimizer;
 }
@@ -223,14 +226,17 @@ load_options(
 	std::vector< std::string > & masala_plugin_paths,
 	std::string & optimizer_name,
 	masala::base::Size & classical_mc_steps,
+	masala::base::Size & total_threads,
 	int & help_indicated,
 	int & masala_plugins_found,
 	int & optimizer_name_specified,
-	int & classical_mc_steps_specified
+	int & classical_mc_steps_specified,
+	int & total_threads_specified
 ) {
 	using namespace masala::base::utility::container;
 	using namespace masala::base::utility::string;
 	using namespace masala::base::managers::tracer;
+	using masala::base::Size;
 
 	// Options that we can load:
 	option long_options[] {
@@ -239,6 +245,7 @@ load_options(
 		{"masala_plugins", required_argument, &masala_plugins_found, 1},
 		{"optimizer_name", required_argument, &optimizer_name_specified, 1},
 		{"classical_mc_steps", required_argument, &classical_mc_steps_specified, 1},
+		{"total_threads", required_argument, &total_threads_specified, 1},
 	};
 	std::map< std::string, std::string > const help_messages{
 		{"h", "Print a help message and exit."},
@@ -251,6 +258,7 @@ load_options(
 			"MonteCarloCostFunctionNetworkOptimizer or the HillFlatteningMonteCarloCostFunctionNetworkOptimizer, will make.  "
 			"Defaults to 1,000,000 if not specified."
 		},
+		{"total_threads", "The number of threads to launch.  Defaults to 1.  Zero means to launch one thread per CPU core on the node."},
 	};
 
 	int option_index;
@@ -276,6 +284,13 @@ load_options(
 			ss >> classical_mc_steps;
 			CHECK_OR_THROW( ss.eof() && !(ss.bad() || ss.fail() ), appname, "load_options", "Could not parse \"" + std::string(optarg) + "\" as an integer." );
 			CHECK_OR_THROW( classical_mc_steps > 0, appname, "load_options", "The number of classical Monte Carlo steps must be a positive integer." );
+		} else if( curname == "total_threads" ) {
+			std::istringstream ss( optarg );
+			long signed int temp;
+			ss >> temp;
+			CHECK_OR_THROW( ss.eof() && !(ss.bad() || ss.fail() ), appname, "load_options", "Could not parse \"" + std::string(optarg) + "\" as an integer." );
+			CHECK_OR_THROW( temp >= 0, appname, "load_options", "The number of total threads must be a non-negative integer.  Zero means to launch one thread per CPU core." );
+			total_threads = static_cast< Size >(temp);
 		}
 	}
 
@@ -295,12 +310,14 @@ main(
 ) {
     using namespace masala::base::managers::tracer;
     using namespace masala::base::managers::engine;
+    using namespace masala::base::managers::threads;
 
     // Were options loaded?
     int help_indicated(0);
     int masala_plugins_found(0);
     int optimizer_name_specified(0);
 	int classical_mc_steps_specified(0);
+	int total_threads_specified(0);
 
 	// Allowed optimizer names:
 	std::vector< std::string > const allowed_optimizer_names{
@@ -312,6 +329,7 @@ main(
     std::vector< std::string > masala_plugin_paths;
     std::string optimizer_name;
 	masala::base::Size classical_mc_steps( 1000000 );
+	masala::base::Size total_threads( 1 );
 
     // Masala tracer manager:
     MasalaTracerManagerHandle tracerman( MasalaTracerManager::get_instance() );
@@ -326,12 +344,15 @@ main(
     if(
 		!load_options(
 			argc, argv, tracerman, appname,
-			allowed_optimizer_names, masala_plugin_paths, optimizer_name, classical_mc_steps,
-			help_indicated, masala_plugins_found, optimizer_name_specified, classical_mc_steps_specified
+			allowed_optimizer_names, masala_plugin_paths, optimizer_name, classical_mc_steps, total_threads,
+			help_indicated, masala_plugins_found, optimizer_name_specified, classical_mc_steps_specified, total_threads_specified
 		)
 	) {
 		return 0;
 	}
+
+	// Set threads:
+	MasalaThreadManager::get_instance()->set_total_threads( total_threads );
 
     // Load masala plugins:
     load_masala_plugins( masala_plugin_paths );

@@ -123,6 +123,27 @@ load_hill_flattening_mc_cfn_optimizer(
 	return optimizer;
 }
 
+/// @brief Load a Monte Carlo cost function network optimizer.
+masala::base::managers::engine::MasalaEngineAPICSP
+load_mc_cfn_optimizer(
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	std::string const & appname
+) {
+	using namespace masala::base::managers::engine;
+	MasalaEngineAPISP optimizer(
+		MasalaEngineManager::get_instance()->create_engine_by_short_name( "MonteCarloCostFunctionNetworkOptimizer", false )
+	);
+	CHECK_OR_THROW( optimizer != nullptr && optimizer->inner_class_name() == "MonteCarloCostFunctionNetworkOptimizer",
+		appname,"load_hill_flattening_mc_cfn_optimizer", "Could not load a MonteCarloCostFunctionNetworkOptimizer "
+		"from the Masala engine manager.  Has the Standard Masala Plugins library path been passed to the -masala_plugins commandling option?"
+	);
+	tracerman->write_to_tracer( appname + "load_hill_flattening_mc_cfn_optimizer", "Created a MonteCarloCostFunctionNetworkOptimizer." );
+
+	// TODO CONFIGURE HERE.
+
+	return optimizer;
+}
+
 /// @brief Load optimizer.
 masala::base::managers::engine::MasalaEngineAPICSP
 load_optimizer_settings(
@@ -133,6 +154,8 @@ load_optimizer_settings(
 ) {
 	if( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" ) {
 		return load_hill_flattening_mc_cfn_optimizer( tracerman, appname );
+	} else if( optimizer_name == "MonteCarloCostFunctionNetworkOptimizer" ) {
+		return load_mc_cfn_optimizer( tracerman, appname );
 	} else {
 		MASALA_THROW( appname, "load_optimizer_settings", "Did not recognize \"" + optimizer_name + "\" as an allowed optimizer.  "
 			"Supported optimizers are: " + masala::base::utility::container::container_to_string( allowed_optimizer_names, ", " ) + "."
@@ -220,7 +243,8 @@ main(
 
 	// Allowed optimizer names:
 	std::vector< std::string > const allowed_optimizer_names{
-		"HillFlatteningMonteCarloCostFunctionNetworkOptimizer"
+		"HillFlatteningMonteCarloCostFunctionNetworkOptimizer",
+		"MonteCarloCostFunctionNetworkOptimizer"
 	};
 
     // Options that we will load:

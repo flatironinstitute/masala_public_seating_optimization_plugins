@@ -155,9 +155,23 @@ main(
         return 0;
     }
 
+    // Load masala plugins:
     load_masala_plugins( masala_plugin_paths );
 
-    // TODO TODO TODO;
+    // Load the problem specification:
+    //load_problem_specification();
+    
+    // Load the optimizer settings:
+    //load_optimizer_settings();
+
+    // Print a summary of the setup:
+   // print_setup_sumamry();
+
+    // Solve the problem:
+    //solve_problem();
+
+    // Print the solution(s):
+    //print_solutions();
 
     unload_masala_plugins();
 

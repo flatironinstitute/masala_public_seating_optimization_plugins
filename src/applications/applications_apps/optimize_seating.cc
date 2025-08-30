@@ -28,6 +28,8 @@
 #include <base/types.hh>
 #include <base/error/ErrorHandling.hh>
 #include <base/managers/tracer/MasalaTracerManager.hh>
+#include <base/utility/container/container_util.tmpl.hh>
+#include <base/utility/string/string_manipulation.hh>
 
 // STL headers:
 #include <sstream>
@@ -58,9 +60,14 @@ main(
 	char * argv[]
 ) {
     using namespace masala::base::managers::tracer;
+    using namespace masala::base::utility::container;
+    using namespace masala::base::utility::string;
 
     // Were options loaded?
     int masala_plugins_found(0);
+
+    // Options that we will load:
+    std::vector< std::string > masala_plugin_paths;
 
     // Options that we can load:
 	struct option long_options[] {
@@ -70,11 +77,28 @@ main(
     // Masala tracer manager:
     MasalaTracerManagerHandle tracerman( MasalaTracerManager::get_instance() );
     std::string const appname( "seating_optimization_masala_plugins::applications::applications_apps::optimize_seating" );
+    tracerman->write_to_tracer( appname, "Starting optimize_seating application." );
+    tracerman->write_to_tracer( appname, "Application created 15 August 2025 by Vikram K. Mulligan, Biomolecular Design Group, Center for Computational Biology, Flatiron Institute." );
+    tracerman->write_to_tracer( appname, "Please write to vmulligan@flatironinstitute.org for questions.");
 
     // Load options:
     int option_index;
     while( !getopt_long_only( argc, argv, "", long_options, &option_index ) ){
-        tracerman->write_to_tracer( appname, "Parsed -" + std::string(long_options[option_index].name) +  " option." );
+        //std::cout << "option_index: " << option_index << std::endl; // DELETE ME
+        std::string const curname(long_options[option_index].name);
+        tracerman->write_to_tracer( appname, "Parsed -" + curname +  " option." );
+
+        if( curname == "masala_plugins" ) {
+            std::string optargstring(optarg);
+            replace_all_instances_of_text(optargstring, ",", " ");
+            std::istringstream ss( optargstring );
+            while( !ss.eof() ) {
+                std::string temp;
+                ss >> temp;
+                masala_plugin_paths.push_back( temp );
+            }
+            tracerman->write_to_tracer( appname, "\tGot the following Masala plugin paths: " + container_to_string( masala_plugin_paths, " " ) );
+        }
     }
 
 	return 0;

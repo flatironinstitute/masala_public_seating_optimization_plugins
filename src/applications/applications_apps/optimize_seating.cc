@@ -26,9 +26,16 @@
 
 // Masala base headers:
 #include <base/types.hh>
+#include <base/error/ErrorHandling.hh>
+#include <base/managers/tracer/MasalaTracerManager.hh>
 
 // STL headers:
 #include <sstream>
+#include <vector>
+#include <string>
+#include <map>
+#include <getopt.h>
+#include <iostream>
 
 using masala::base::Size;
 using masala::base::Real;
@@ -47,10 +54,28 @@ print_help() {
 // Program entry point:
 int 
 main(
-	int ,//argc,
-	char ** //argv[]
+	int argc,
+	char * argv[]
 ) {
-	// TODO
+    using namespace masala::base::managers::tracer;
+
+    // Were options loaded?
+    int masala_plugins_found(0);
+
+    // Options that we can load:
+	struct option long_options[] {
+        {"masala_plugins", required_argument, &masala_plugins_found, 1}
+    };
+
+    // Masala tracer manager:
+    MasalaTracerManagerHandle tracerman( MasalaTracerManager::get_instance() );
+    std::string const appname( "seating_optimization_masala_plugins::applications::applications_apps::optimize_seating" );
+
+    // Load options:
+    int option_index;
+    while( !getopt_long_only( argc, argv, "", long_options, &option_index ) ){
+        tracerman->write_to_tracer( appname, "Parsed -" + std::string(long_options[option_index].name) +  " option." );
+    }
 
 	return 0;
 

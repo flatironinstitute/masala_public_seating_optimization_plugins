@@ -67,11 +67,30 @@ load_masala_plugins(
     }
 }
 
+/// @brief 
+
 /// @brief Unload all Masala plugins.
 void
 unload_masala_plugins() {
     using namespace masala::base::managers::plugin_module;
     MasalaPluginLibraryManager::get_instance()->reset();
+}
+
+/// @brief Print help messages.
+void
+print_help_messages(
+    std::map< std::string, std::string > const & help_messages,
+    std::string const & appname
+) {
+    using masala::base::Size;
+    std::ostringstream ss;
+    ss << "The following options may be set:" << std::endl;
+
+    for( std::map< std::string, std::string >::const_iterator it( help_messages.begin()); it!=help_messages.end(); ++it ) {
+        ss << "-" << it->first << "\t" << it->second << std::endl;
+    }
+
+    masala::base::managers::tracer::MasalaTracerManager::get_instance()->write_to_tracer( appname, ss.str() );
 }
 
 // Program entry point:
@@ -86,13 +105,21 @@ main(
 
     // Were options loaded?
     int masala_plugins_found(0);
+    int help_indicated(0);
 
     // Options that we will load:
     std::vector< std::string > masala_plugin_paths;
 
     // Options that we can load:
-	struct option long_options[] {
-        {"masala_plugins", required_argument, &masala_plugins_found, 1}
+	option long_options[] {
+        {"masala_plugins", required_argument, &masala_plugins_found, 1},
+        {"h", no_argument, &help_indicated, 1},
+        {"help", no_argument, &help_indicated, 1}
+    };
+    std::map< std::string, std::string > const help_messages{
+        {"masala_plugins", "The paths to the masala plugins that will be loaded, as a comma-separated list."},
+        {"h", "Print a help message and exit."},
+        {"help", "Print a help message and exit."}
     };
 
     // Masala tracer manager:
@@ -120,6 +147,12 @@ main(
             }
             tracerman->write_to_tracer( appname, "\tGot the following Masala plugin paths: " + container_to_string( masala_plugin_paths, " " ) );
         }
+    }
+
+    // Stop with help message if help has been requeseted:
+    if( help_indicated == 1 ) {
+        print_help_messages( help_messages, appname );
+        return 0;
     }
 
     load_masala_plugins( masala_plugin_paths );

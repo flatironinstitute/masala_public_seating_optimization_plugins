@@ -158,12 +158,12 @@ main(
     // Load masala plugins:
     load_masala_plugins( masala_plugin_paths );
 
-    // Load the problem specification:
-    //load_problem_specification();
-    
     // Load the optimizer settings:
     //load_optimizer_settings();
 
+    // Load the problem specification:
+    //load_problem_specification();
+    
     // Print a summary of the setup:
    // print_setup_sumamry();
 

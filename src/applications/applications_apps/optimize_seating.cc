@@ -104,22 +104,26 @@ main(
     using namespace masala::base::utility::string;
 
     // Were options loaded?
-    int masala_plugins_found(0);
     int help_indicated(0);
+    int masala_plugins_found(0);
+    int optimizer_name_specified(0);
 
     // Options that we will load:
     std::vector< std::string > masala_plugin_paths;
+    std::string optimizer_name;
 
     // Options that we can load:
 	option long_options[] {
-        {"masala_plugins", required_argument, &masala_plugins_found, 1},
         {"h", no_argument, &help_indicated, 1},
-        {"help", no_argument, &help_indicated, 1}
+        {"help", no_argument, &help_indicated, 1},
+        {"masala_plugins", required_argument, &masala_plugins_found, 1},
+        {"optimizer_name", required_argument, &optimizer_name_specified, 1},
     };
     std::map< std::string, std::string > const help_messages{
-        {"masala_plugins", "The paths to the masala plugins that will be loaded, as a comma-separated list."},
         {"h", "Print a help message and exit."},
-        {"help", "Print a help message and exit."}
+        {"help", "Print a help message and exit."},
+        {"masala_plugins", "The paths to the masala plugins that will be loaded, as a comma-separated list."},
+        {"optimizer_name", "The name of the optimizer to use to solve the seating optimization problem.  Currently supported optimizers include: HillFlatteningMonteCarloCostFunctionNetworkOptimizer"}
     };
 
     // Masala tracer manager:
@@ -146,6 +150,8 @@ main(
                 masala_plugin_paths.push_back( temp );
             }
             tracerman->write_to_tracer( appname, "\tGot the following Masala plugin paths: " + container_to_string( masala_plugin_paths, " " ) );
+        } else if( curname == "optimizer_name" ) {
+            optimizer_name = std::string(optarg);
         }
     }
 

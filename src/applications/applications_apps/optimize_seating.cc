@@ -255,7 +255,9 @@ main(
     MasalaTracerManagerHandle tracerman( MasalaTracerManager::get_instance() );
     std::string const appname( "seating_optimization_masala_plugins::applications::applications_apps::optimize_seating" );
     tracerman->write_to_tracer( appname, "Starting optimize_seating application." );
-    tracerman->write_to_tracer( appname, "Application created 15 August 2025 by Vikram K. Mulligan, Biomolecular Design Group, Center for Computational Biology, Flatiron Institute." );
+    tracerman->write_to_tracer( appname, "Application created 15 August 2025 by Vikram K. Mulligan, Biomolecular Design Group, "
+		"Center for Computational Biology, Flatiron Institute, in collaboration with Karie A. Nicholas, Foundation for Health Care Quality."
+	);
     tracerman->write_to_tracer( appname, "Please write to vmulligan@flatironinstitute.org for questions.");
 
     // Load options:

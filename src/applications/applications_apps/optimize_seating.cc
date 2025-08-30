@@ -112,6 +112,9 @@ main(
     std::vector< std::string > masala_plugin_paths;
     std::string optimizer_name;
 
+    // Allowed optimizer names:
+    std::vector< std::string > const allowed_optimizer_names{ "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" };
+
     // Options that we can load:
 	option long_options[] {
         {"h", no_argument, &help_indicated, 1},
@@ -123,7 +126,7 @@ main(
         {"h", "Print a help message and exit."},
         {"help", "Print a help message and exit."},
         {"masala_plugins", "The paths to the masala plugins that will be loaded, as a comma-separated list."},
-        {"optimizer_name", "The name of the optimizer to use to solve the seating optimization problem.  Currently supported optimizers include: HillFlatteningMonteCarloCostFunctionNetworkOptimizer"}
+        {"optimizer_name", "The name of the optimizer to use to solve the seating optimization problem.  Currently supported optimizers include: " + masala::base::utility::container::container_to_string( allowed_optimizer_names, " " ) }
     };
 
     // Masala tracer manager:
@@ -165,6 +168,7 @@ main(
     load_masala_plugins( masala_plugin_paths );
 
     // Load the optimizer settings:
+    CHECK_OR_THROW( optimizer_name_specified == 1, appname, "main", "An optimizer must be specified with the -optimizer_name flag." );
     //load_optimizer_settings();
 
     // Load the problem specification:

@@ -30,8 +30,16 @@
 #include <base/managers/tracer/MasalaTracerManager.hh>
 #include <base/managers/plugin_module/MasalaPluginLibraryManager.hh>
 #include <base/managers/plugin_module/MasalaPluginModuleManager.hh>
+#include <base/managers/engine/MasalaEngine.hh>
+#include <base/managers/engine/MasalaDataRepresentation.hh>
+#include <base/managers/engine/MasalaEngineAPI.hh>
+#include <base/managers/engine/MasalaDataRepresentationAPI.hh>
 #include <base/utility/container/container_util.tmpl.hh>
 #include <base/utility/string/string_manipulation.hh>
+
+// Masala numeric_api headers
+#include <numeric_api/base_classes/optimization/cost_function_network/PluginCostFunctionNetworkOptimizer.hh>
+#include <numeric_api/base_classes/optimization/cost_function_network/PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem.hh>
 
 // STL headers:
 #include <sstream>
@@ -93,15 +101,79 @@ print_help_messages(
     masala::base::managers::tracer::MasalaTracerManager::get_instance()->write_to_tracer( appname, ss.str() );
 }
 
-// Program entry point:
+/// @brief Load options.
+bool
+load_options(
+	int const & argc,
+	char * const argv[],
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	std::string const & appname,
+	std::vector< std::string > & masala_plugin_paths,
+	std::string & optimizer_name,
+	int & help_indicated,
+	int & masala_plugins_found,
+	int & optimizer_name_specified
+) {
+	using namespace masala::base::utility::container;
+	using namespace masala::base::utility::string;
+	using namespace masala::base::managers::tracer;
+
+	// Allowed optimizer names:
+	std::vector< std::string > const allowed_optimizer_names{
+		"HillFlatteningMonteCarloCostFunctionNetworkOptimizer"
+	};
+
+	// Options that we can load:
+	option long_options[] {
+		{"h", no_argument, &help_indicated, 1},
+		{"help", no_argument, &help_indicated, 1},
+		{"masala_plugins", required_argument, &masala_plugins_found, 1},
+		{"optimizer_name", required_argument, &optimizer_name_specified, 1},
+	};
+	std::map< std::string, std::string > const help_messages{
+		{"h", "Print a help message and exit."},
+		{"help", "Print a help message and exit."},
+		{"masala_plugins", "The paths to the masala plugins that will be loaded, as a comma-separated list."},
+		{"optimizer_name", "The name of the optimizer to use to solve the seating optimization problem.  Currently supported optimizers include: " + masala::base::utility::container::container_to_string( allowed_optimizer_names, " " ) }
+	};
+
+	int option_index;
+	while( !getopt_long_only( argc, argv, "", long_options, &option_index ) ){
+		//std::cout << "option_index: " << option_index << std::endl; // DELETE ME
+		std::string const curname(long_options[option_index].name);
+		tracerman->write_to_tracer( appname, "Parsed -" + curname +  " option." );
+
+		if( curname == "masala_plugins" ) {
+			std::string optargstring(optarg);
+			replace_all_instances_of_text(optargstring, ",", " ");
+			std::istringstream ss( optargstring );
+			while( !ss.eof() ) {
+				std::string temp;
+				ss >> temp;
+				masala_plugin_paths.push_back( temp );
+			}
+			tracerman->write_to_tracer( appname, "\tGot the following Masala plugin paths: " + container_to_string( masala_plugin_paths, " " ) );
+		} else if( curname == "optimizer_name" ) {
+			optimizer_name = std::string(optarg);
+		}
+	}
+
+	// Stop with help message if help has been requeseted:
+	if( help_indicated == 1 ) {
+		print_help_messages( help_messages, appname );
+		return false;
+	}
+	return true;
+}
+
+/// @brief Program entry point:
 int 
 main(
 	int argc,
 	char * argv[]
 ) {
     using namespace masala::base::managers::tracer;
-    using namespace masala::base::utility::container;
-    using namespace masala::base::utility::string;
+    using namespace masala::base::managers::engine;
 
     // Were options loaded?
     int help_indicated(0);
@@ -112,23 +184,6 @@ main(
     std::vector< std::string > masala_plugin_paths;
     std::string optimizer_name;
 
-    // Allowed optimizer names:
-    std::vector< std::string > const allowed_optimizer_names{ "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" };
-
-    // Options that we can load:
-	option long_options[] {
-        {"h", no_argument, &help_indicated, 1},
-        {"help", no_argument, &help_indicated, 1},
-        {"masala_plugins", required_argument, &masala_plugins_found, 1},
-        {"optimizer_name", required_argument, &optimizer_name_specified, 1},
-    };
-    std::map< std::string, std::string > const help_messages{
-        {"h", "Print a help message and exit."},
-        {"help", "Print a help message and exit."},
-        {"masala_plugins", "The paths to the masala plugins that will be loaded, as a comma-separated list."},
-        {"optimizer_name", "The name of the optimizer to use to solve the seating optimization problem.  Currently supported optimizers include: " + masala::base::utility::container::container_to_string( allowed_optimizer_names, " " ) }
-    };
-
     // Masala tracer manager:
     MasalaTracerManagerHandle tracerman( MasalaTracerManager::get_instance() );
     std::string const appname( "seating_optimization_masala_plugins::applications::applications_apps::optimize_seating" );
@@ -137,39 +192,22 @@ main(
     tracerman->write_to_tracer( appname, "Please write to vmulligan@flatironinstitute.org for questions.");
 
     // Load options:
-    int option_index;
-    while( !getopt_long_only( argc, argv, "", long_options, &option_index ) ){
-        //std::cout << "option_index: " << option_index << std::endl; // DELETE ME
-        std::string const curname(long_options[option_index].name);
-        tracerman->write_to_tracer( appname, "Parsed -" + curname +  " option." );
-
-        if( curname == "masala_plugins" ) {
-            std::string optargstring(optarg);
-            replace_all_instances_of_text(optargstring, ",", " ");
-            std::istringstream ss( optargstring );
-            while( !ss.eof() ) {
-                std::string temp;
-                ss >> temp;
-                masala_plugin_paths.push_back( temp );
-            }
-            tracerman->write_to_tracer( appname, "\tGot the following Masala plugin paths: " + container_to_string( masala_plugin_paths, " " ) );
-        } else if( curname == "optimizer_name" ) {
-            optimizer_name = std::string(optarg);
-        }
-    }
-
-    // Stop with help message if help has been requeseted:
-    if( help_indicated == 1 ) {
-        print_help_messages( help_messages, appname );
-        return 0;
-    }
+    if(
+		!load_options(
+			argc, argv, tracerman, appname,
+			masala_plugin_paths, optimizer_name,
+			help_indicated, masala_plugins_found, optimizer_name_specified
+		)
+	) {
+		return 0;
+	}
 
     // Load masala plugins:
     load_masala_plugins( masala_plugin_paths );
 
-    // Load the optimizer settings:
+    // Load the optimizer settings.  This fully configures the optimizer.
     CHECK_OR_THROW( optimizer_name_specified == 1, appname, "main", "An optimizer must be specified with the -optimizer_name flag." );
-    //load_optimizer_settings();
+    //MasalaEngineAPICSP optimizer_api( load_optimizer_settings( optimizer_name ) );
 
     // Load the problem specification:
     //load_problem_specification();

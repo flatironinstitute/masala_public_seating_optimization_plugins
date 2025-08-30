@@ -16,6 +16,7 @@ cd ../api
 ln -s ../../build/generate_*_api ./
 cd ..
 # TODO link any applications here.
+ln -s ../build/optimize_seating ./
 cd ..
 
 mkdir headers/seating_optimization_masala_plugins && echo "Created headers/seating_optimization_masala_plugins/ directory." || echo "Directory headers/seating_optimization_masala_plugins/ already exists."

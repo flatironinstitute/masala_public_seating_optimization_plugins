@@ -32,9 +32,11 @@
 #include <base/api/MasalaObjectAPIDefinition.hh>
 #include <base/api/constructor/MasalaObjectAPIConstructorMacros.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
-#include <base/api/setter/MasalaObjectAPISetterDefinition_TwoInput.tmpl.hh>
-#include <base/api/getter/MasalaObjectAPIGetterDefinition_ZeroInput.tmpl.hh>
+#include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_TwoInput.tmpl.hh>
 #include <base/utility/string/string_manipulation.hh>
+
+// Numeric API headers:
+#include <numeric_api/base_classes/optimization/cost_function_network/PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem.hh>
 
 // STL headers:
 
@@ -125,7 +127,7 @@ masala::base::api::MasalaObjectAPIDefinitionCWP
 Constraint::get_api_definition() {
 	using namespace masala::base::api;
 	using namespace masala::base::api::setter;
-	using namespace masala::base::api::getter;
+	using namespace masala::base::api::work_function;
 	using masala::base::Real;
 	using masala::base::Size;
 
@@ -142,8 +144,6 @@ Constraint::get_api_definition() {
 		);
 		ADD_PROTECTED_CONSTRUCTOR_DEFINITIONS( Constraint, api_def );
 
-		// Work functions:
-
 		// Getters:
 
 		// Setters:
@@ -155,6 +155,25 @@ Constraint::get_api_definition() {
 				"derived class.  Must start with an identifier for the constraint type.",
 				true, false,
 				std::bind( &Constraint::configure_from_input_line, this, std::placeholders::_1 )
+			)
+		);
+
+		// Work functions:
+		api_def->add_work_function(
+			masala::make_shared<
+				MasalaObjectAPIWorkFunctionDefinition_TwoInput<
+					void,
+					masala::numeric_api::base_classes::optimization::cost_function_network::PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem &,
+					masala::base::Real const
+				>
+			>(
+				"add_constraint_to_cfn_problem", "Modify a pairwise precomputed cost function network optimization problem to add "
+				"the constraint to it.  Base class implementation throws.  Must be overridden by derived classes.",
+				true, false, true, false,
+				"problem", "The cost function network optimizaton problem, modified by this operation.",
+				"global_strength_multiplier", "A global multiplier for the strength of this constraint.",
+				"void", "This function returns nothing.",
+				std::bind( &Constraint::add_constraint_to_cfn_problem, this, std::placeholders::_1, std::placeholders::_2 )
 			)
 		);
 
@@ -187,6 +206,19 @@ Constraint::configure_from_input_line(
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC WORK FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
+
+
+/// @brief Modify a pairwise precomputed cost function network optimization problem to add
+/// the constraint to it.
+/// @details Base class implementation throws.  Must be overridden by derived classes.
+/*virtual*/
+void
+Constraint::add_constraint_to_cfn_problem(
+	masala::numeric_api::base_classes::optimization::cost_function_network::PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem & ,//problem,
+	masala::base::Real const //global_strength_multiplier
+) const {
+	MASALA_THROW( class_namespace() + "::" + class_name(), "add_constraint_to_cfn_problem", "This class must override this function." );
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PROTECTED FUNCTIONS

@@ -130,6 +130,9 @@ public:
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
+	/// @brief Configure this object from a line in an input file.
+	/// @details Base class implementation throws.  Must be overridden by derived classes.
+	virtual void configure_from_input_line( std::string const & input_line );
 
 public:
 

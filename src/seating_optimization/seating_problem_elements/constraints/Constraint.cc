@@ -147,6 +147,16 @@ Constraint::get_api_definition() {
 		// Getters:
 
 		// Setters:
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< std::string const & > >(
+				"configure_from_input_line", "Configure this object from a line in an input file.  "
+				"Base class implementation throws.  Must be overridden by derived classes.",
+				"input_line", "The line from which we are configuring this object.  Syntax depends on "
+				"derived class.  Must start with an identifier for the constraint type.",
+				true, false,
+				std::bind( &Constraint::configure_from_input_line, this, std::placeholders::_1 )
+			)
+		);
 
 		api_definition() = api_def; //Make const.
 	}
@@ -162,6 +172,16 @@ Constraint::get_api_definition() {
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Configure this object from a line in an input file.
+/// @details Base class implementation throws.  Must be overridden by derived classes.
+/*virtual*/
+void
+Constraint::configure_from_input_line(
+	std::string const & input_line
+) {
+	MASALA_THROW( class_namespace() + "::" + class_name(), "configure_from_input_line", "This class must override this function." );
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////

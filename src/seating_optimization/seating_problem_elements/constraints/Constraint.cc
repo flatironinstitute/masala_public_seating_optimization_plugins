@@ -30,6 +30,7 @@
 
 // Numeric headers:
 #include <numeric_api/utility/angles/angle_util.hh>
+#include <numeric/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem.hh>
 
 // Base headers:
 #include <base/error/ErrorHandling.hh>
@@ -38,9 +39,6 @@
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 #include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_ThreeInput.tmpl.hh>
 #include <base/utility/string/string_manipulation.hh>
-
-// Numeric API headers:
-#include <numeric_api/base_classes/optimization/cost_function_network/PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem.hh>
 
 // STL headers:
 
@@ -170,7 +168,7 @@ Constraint::get_api_definition() {
 				MasalaObjectAPIWorkFunctionDefinition_ThreeInput<
 					void,
 					seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const &,
-					masala::numeric_api::base_classes::optimization::cost_function_network::PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem &,
+					masala::numeric::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem &,
 					masala::base::Real const
 				>
 			>(
@@ -223,7 +221,7 @@ Constraint::configure_from_input_line(
 void
 Constraint::add_constraint_to_cfn_problem(
 	seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const & ,//seating_problem,
-	masala::numeric_api::base_classes::optimization::cost_function_network::PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem & ,//cfn_problem,
+	masala::numeric::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem & ,//cfn_problem,
 	masala::base::Real const //global_strength_multiplier
 ) const {
 	MASALA_THROW( class_namespace() + "::" + class_name(), "add_constraint_to_cfn_problem", "This class must override this function." );

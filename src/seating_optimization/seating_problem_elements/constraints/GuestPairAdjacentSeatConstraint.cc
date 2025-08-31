@@ -31,6 +31,7 @@
 // Numeric headers:
 #include <numeric_api/utility/angles/angle_util.hh>
 #include <numeric/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem.hh>
+#include <numeric_api/base_classes/optimization/cost_function_network/PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem.hh>
 
 // Base headers:
 #include <base/error/ErrorHandling.hh>
@@ -222,10 +223,35 @@ GuestPairAdjacentSeatConstraint::configure_from_input_line(
 /// @details Base class implementation throws.  Must be overridden by derived classes.
 void
 GuestPairAdjacentSeatConstraint::add_constraint_to_cfn_problem(
-	seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const & ,//seating_problem,
-	masala::numeric::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem & ,//cfn_problem,
-	masala::base::Real const //global_strength_multiplier
+	seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const & seating_problem,
+	masala::numeric::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem & cfn_problem,
+	masala::base::Real const global_strength_multiplier
 ) const {
+	using masala::base::Size;
+	using masala::base::Real;
+	using namespace masala::numeric_api::base_classes::optimization::cost_function_network;
+
+	PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem * cfn_problem_cast(
+		dynamic_cast< PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem * >( &cfn_problem )
+	);
+	CHECK_OR_THROW_FOR_CLASS( cfn_problem_cast != nullptr, "add_constraint_to_cfn_problem", "Could not interpret a CFN problem of "
+		"type " + cfn_problem.class_name() + " as a PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem."
+	);
+
+	std::lock_guard< std::mutex > lock( mutex() );
+	Size guest1_index( seating_problem.guest_index_from_uid( first_guest_uid_ ) );
+	Size guest2_index( seating_problem.guest_index_from_uid( second_guest_uid_ ) );
+	if( guest2_index < guest1_index ) {
+		std::swap( guest1_index, guest2_index );
+	}
+	Real const penalty_value( global_strength_multiplier * constraint_strength_ );
+
+	std::vector< std::pair< Size, Size > > const adjacent_seat_indices( seating_problem.get_adjacent_seat_indices() );
+	for( auto const & seat_pair : adjacent_seat_indices ) {
+		cfn_problem_cast->add_to_twobody_penalty( std::make_pair( guest1_index, guest2_index ), std::make_pair( seat_pair.first, seat_pair.second ), penalty_value );
+		cfn_problem_cast->add_to_twobody_penalty( std::make_pair( guest1_index, guest2_index ), std::make_pair( seat_pair.second, seat_pair.first ), penalty_value );
+	}
+
 	MASALA_THROW( class_namespace() + "::" + class_name(), "add_constraint_to_cfn_problem", "This class must override this function." );
 }
 

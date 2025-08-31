@@ -38,6 +38,7 @@
 
 // STL headers:
 #include <mutex>
+#include <map>
 
 namespace seating_optimization_masala_plugins {
 namespace seating_optimization {
@@ -131,6 +132,8 @@ public:
 // PUBLIC GETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
+	/// @brief Given a unique guest identifier, get the guest index.  Throws if guest not found.  Indices are zero-based.
+	masala::base::Size guest_index_from_uid( std::string const & guest_unique_identifier ) const;
 
 public:
 

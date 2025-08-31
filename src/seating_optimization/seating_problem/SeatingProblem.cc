@@ -32,6 +32,7 @@
 #include <base/api/MasalaObjectAPIDefinition.hh>
 #include <base/api/constructor/MasalaObjectAPIConstructorMacros.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
+#include <base/api/getter/MasalaObjectAPIGetterDefinition_OneInput.tmpl.hh>
 
 // STL headers:
 
@@ -139,6 +140,7 @@ masala::base::api::MasalaObjectAPIDefinitionCWP
 SeatingProblem::get_api_definition() {
     using namespace masala::base::api;
     using namespace masala::base::api::setter;
+    using namespace masala::base::api::getter;
     using masala::base::Real;
     using masala::base::Size;
 
@@ -158,6 +160,15 @@ SeatingProblem::get_api_definition() {
         // Work functions:
 
         // Getters:
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_OneInput< Size, std::string const & > >(
+				"guest_index_from_uid", "Given a unique guest identifier, get the guest index.  Throws if guest not found.  Indices are zero-based.",
+				"guest_unique_identifier", "The unique identifier for the guest in question.",
+				"guest_index", "The zero-based index (number) for the guest.",
+				false, false,
+				std::bind( &SeatingProblem::guest_index_from_uid, this, std::placeholders::_1 )
+			)
+		);
 
         // Setters:
 		api_def->add_setter(
@@ -178,6 +189,21 @@ SeatingProblem::get_api_definition() {
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC GETTERS
 ////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Given a unique guest identifier, get the guest index.  Throws if guest not found.  Indices are zero-based.
+masala::base::Size
+SeatingProblem::guest_index_from_uid(
+	std::string const & guest_unique_identifier
+) const {
+	using masala::base::Size;
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
+
+	std::lock_guard< std::mutex > lock( mutex_ );
+	std::map< std::string, std::pair< Size, GuestCSP > >::const_iterator it( guests_.find( guest_unique_identifier ) );
+	CHECK_OR_THROW_FOR_CLASS( it != guests_.end(), "guest_index_from_uid", "No unique guest ID \"" + guest_unique_identifier + "\" was found." );
+	return it->second.first;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC SETTERS

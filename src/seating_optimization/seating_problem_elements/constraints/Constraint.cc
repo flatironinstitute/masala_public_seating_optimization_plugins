@@ -102,7 +102,7 @@ Constraint::get_keywords() const {
 	return std::vector< std::string > {
 		"seating_problem",
 		"seating_problem_element",
-		"guest",
+		"constraint",
 	};
 }
 

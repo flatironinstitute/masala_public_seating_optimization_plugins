@@ -30,6 +30,9 @@
 // Parent header:
 #include <base/managers/plugin_module/MasalaPlugin.hh>
 
+// Seating optimization headers:
+#include <seating_optimization/seating_problem_elements/Guest.fwd.hh>
+
 // Base headers:
 #include <base/types.hh>
 
@@ -135,6 +138,12 @@ public:
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
+	/// @brief Add a guest.  Stored directly; not cloned.  Throws if the unique guest ID has already been taken.
+	void
+	add_guest(
+		seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP const & guest_in
+	);
+
 public:
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -175,6 +184,10 @@ private:
 
 	/// @brief The API definition for this object.s
 	masala::base::api::MasalaObjectAPIDefinitionCSP api_definition_;
+
+	/// @brief The guests that we are storing, stored by unique identifier.
+	/// @details The UID string points to a pair of guest index, guest object.
+	std::map< std::string, std::pair< masala::base::Size, seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP > > guests_;
 
 }; // class SeatingProblem
 

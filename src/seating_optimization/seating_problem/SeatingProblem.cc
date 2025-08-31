@@ -24,7 +24,8 @@
 // Unit header:
 #include <seating_optimization/seating_problem/SeatingProblem.hh>
 
-// Numeric headers:
+// Seating optimization headers:
+#include <seating_optimization/seating_problem_elements/Guest.hh>
 
 // Base headers:
 #include <base/error/ErrorHandling.hh>
@@ -171,6 +172,20 @@ SeatingProblem::get_api_definition() {
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Add a guest.  Stored directly; not cloned.  Throws if the unique guest ID has already been taken.
+void
+SeatingProblem::add_guest(
+	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP const & guest_in
+) {
+	std::string const uid( guest_in->unique_identifier() );
+	std::lock_guard< std::mutex > lock( mutex_ );
+	CHECK_OR_THROW_FOR_CLASS( guests_.count( uid ) == 0, "add_guest", "A guest with unique identifier \""
+		+ uid + "\" has already been added."
+	);
+	masala::base::Size nguests( guests_.size() );
+	guests_[uid] = std::make_pair( nguests, guest_in );
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC WORK FUNCTIONS

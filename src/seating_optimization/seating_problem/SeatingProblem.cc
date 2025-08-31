@@ -31,6 +31,7 @@
 #include <base/error/ErrorHandling.hh>
 #include <base/api/MasalaObjectAPIDefinition.hh>
 #include <base/api/constructor/MasalaObjectAPIConstructorMacros.hh>
+#include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 
 // STL headers:
 
@@ -137,6 +138,7 @@ SeatingProblem::class_namespace() const {
 masala::base::api::MasalaObjectAPIDefinitionCWP
 SeatingProblem::get_api_definition() {
     using namespace masala::base::api;
+    using namespace masala::base::api::setter;
     using masala::base::Real;
     using masala::base::Size;
 
@@ -158,6 +160,14 @@ SeatingProblem::get_api_definition() {
         // Getters:
 
         // Setters:
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP const & > >(
+				"add_guest", "Add a guest.  Stored directly; not cloned.  Throws if the unique guest ID has already been taken.",
+				"guest_in", "The guest to add.",
+				false, false,
+				std::bind( &SeatingProblem::add_guest, this, std::placeholders::_1 )
+			)
+		);
 
         api_definition() = api_def; //Make const.
     }

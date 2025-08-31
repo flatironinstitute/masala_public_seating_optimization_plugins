@@ -221,13 +221,11 @@ load_optimizer_settings(
 	masala::base::Size const classical_attempts_per_problem
 ) {
 	// Initial checks:
-	if( classical_mc_steps_specified ) {
-		CHECK_OR_THROW( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" || optimizer_name == "MonteCarloCostFunctionNetworkOptimizer",
+	if( !( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" || optimizer_name == "MonteCarloCostFunctionNetworkOptimizer" ) ) {
+		CHECK_OR_THROW( !classical_mc_steps_specified,
 			appname, "load_optimizer_settings", "Classical Monte Carlo steps were specified, but the selected optimizer does not perform classical Monte Carlo."
 		);
-	}
-	if( classical_attempts_per_problem_specified ) {
-		CHECK_OR_THROW( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" || optimizer_name == "MonteCarloCostFunctionNetworkOptimizer",
+		CHECK_OR_THROW( !classical_attempts_per_problem_specified,
 			appname, "load_optimizer_settings", "Classical attempts per problem were specified, but the selected optimizer does not perform classical Monte Carlo."
 		);
 	}

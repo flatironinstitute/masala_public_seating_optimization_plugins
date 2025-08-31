@@ -178,6 +178,16 @@ private:
 // PRIVATE DATA
 ////////////////////////////////////////////////////////////////////////////////
 
+	/// @brief First guest unique identifier.
+	std::string first_guest_uid_;
+
+	/// @brief Second guest unique identifier.
+	std::string second_guest_uid_;
+
+	/// @brief Constraint strength.  Defaults to 0.  Positive values indicate a penalty for two guests being side-by-side;
+	/// negative values indicate a bonus.
+	masala::base::Real constraint_strength_ = 0.0;
+
 }; // class GuestPairAdjacentSeatConstraint
 
 } // namespace constraints

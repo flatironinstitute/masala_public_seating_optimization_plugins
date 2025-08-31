@@ -201,9 +201,14 @@ GuestPairAdjacentSeatConstraint::get_api_definition() {
 /// @details Base class implementation throws.  Must be overridden by derived classes.
 void
 GuestPairAdjacentSeatConstraint::configure_from_input_line(
-	std::string const & //input_line
+	std::string const & input_line
 ) {
-	MASALA_THROW( class_namespace() + "::" + class_name(), "configure_from_input_line", "This class must override this function." );
+	std::istringstream ss( input_line );
+	std::string linestart;
+	std::lock_guard< std::mutex > lock( mutex() );
+	ss >> linestart >> first_guest_uid_ >> second_guest_uid_ >> constraint_strength_;
+	CHECK_OR_THROW_FOR_CLASS( !(ss.bad() || ss.fail()), "configure_from_input_line", "Could not parse line \"" + input_line + "\"." );
+	CHECK_OR_THROW_FOR_CLASS( ss.eof(), "configure_from_input_line", "Extra input at end of line \"" + input_line + "\"." );
 }
 
 
@@ -246,6 +251,9 @@ GuestPairAdjacentSeatConstraint::protected_assign( SeatingElementBase const & sr
 	);
 
 	// TODO TODO TODO
+	first_guest_uid_ = src_ptr_cast->first_guest_uid_;
+	second_guest_uid_ = src_ptr_cast->second_guest_uid_;
+	constraint_strength_ = src_ptr_cast->constraint_strength_;
 
 	Parent::protected_assign( src );
 }

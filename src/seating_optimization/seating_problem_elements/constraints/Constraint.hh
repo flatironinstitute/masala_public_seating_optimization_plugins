@@ -30,6 +30,9 @@
 // Parent header:
 #include <seating_optimization/seating_problem_elements/SeatingElementBase.hh>
 
+// Numeric API headers:
+#include <numeric_api/base_classes/optimization/cost_function_network/PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem.fwd.hh>
+
 // Base headers:
 #include <base/types.hh>
 #include <vector>
@@ -139,6 +142,16 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC WORK FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
+
+	/// @brief Modify a pairwise precomputed cost function network optimization problem to add
+	/// the constraint to it.
+	/// @details Base class implementation throws.  Must be overridden by derived classes.
+	virtual
+	void
+	add_constraint_to_cfn_problem(
+		masala::numeric_api::base_classes::optimization::cost_function_network::PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem & cfn_problem,
+		masala::base::Real const global_strength_multiplier
+	) const;
 
 protected:
 

@@ -18,7 +18,8 @@
 
 /// @file src/seating_optimization/seating_problem_elements/constraints/Constraint.fwd.hh
 /// @brief Forward declarations for a Constraint.
-/// @details A Constraint is a person who must be assigned a seat.
+/// @details The Constraint class is the base class for constraints, which are elements of a seating problem.  They can
+/// be things like, "Guests A and B should be seated next to one another," or "Guest C should be near the front of the room", etc.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
 
 #ifndef Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_constraints_Constraint_fwd_hh

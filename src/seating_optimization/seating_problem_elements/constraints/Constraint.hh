@@ -18,7 +18,8 @@
 
 /// @file src/seating_optimization/seating_problem_elements/constraints/Constraint.hh
 /// @brief Headers for a Constraint.
-/// @details A Constraint is a person who must be assigned a seat.
+/// @details The Constraint class is the base class for constraints, which are elements of a seating problem.  They can
+/// be things like, "Guests A and B should be seated next to one another," or "Guest C should be near the front of the room", etc.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
 
 #ifndef Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_constraints_Constraint_hh
@@ -43,7 +44,8 @@ namespace seating_problem_elements {
 namespace constraints {
 
 /// @brief A Constraint.
-/// @details A Constraint is a person who must be assigned a seat.
+/// @details The Constraint class is the base class for constraints, which are elements of a seating problem.  They can
+/// be things like, "Guests A and B should be seated next to one another," or "Guest C should be near the front of the room", etc.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
 class Constraint : public seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBase {
 

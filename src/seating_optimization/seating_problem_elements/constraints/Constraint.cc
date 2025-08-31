@@ -18,7 +18,8 @@
 
 /// @file src/seating_optimization/seating_problem_elements/constraints/Constraint.cc
 /// @brief Implementations for a Constraint.
-/// @details A Constraint is a person who must be assigned a seat.
+/// @details The Constraint class is the base class for constraints, which are elements of a seating problem.  They can
+/// be things like, "Guests A and B should be seated next to one another," or "Guest C should be near the front of the room", etc.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
 
 // Unit header:
@@ -138,7 +139,9 @@ Constraint::get_api_definition() {
 		MasalaObjectAPIDefinitionSP api_def(
 			masala::make_shared< MasalaObjectAPIDefinition >(
 				*this,
-				"The Constraint class stores all information associated with a person in a seating problem who must be assigned a seat.",
+				"The Constraint class is the base class for constraints, which are elements of a seating problem.  They can "
+				"be things like, 'Guests A and B should be seated next to one another,' or 'Guest C should be near the front of the "
+				"room', etc.  This is a base class that is not intended to be instantiated outside of the API system.",
 				false, true
 			)
 		);

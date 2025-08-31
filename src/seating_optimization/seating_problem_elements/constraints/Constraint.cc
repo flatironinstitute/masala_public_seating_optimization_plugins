@@ -181,7 +181,7 @@ Constraint::get_api_definition() {
 				"cfn_problem", "The cost function network optimizaton problem, modified by this operation.",
 				"global_strength_multiplier", "A global multiplier for the strength of this constraint.",
 				"void", "This function returns nothing.",
-				std::bind( &Constraint::add_constraint_to_cfn_problem, this, std::placeholders::_1, std::placeholders::_2 )
+				std::bind( &Constraint::add_constraint_to_cfn_problem, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 )
 			)
 		);
 
@@ -205,7 +205,7 @@ Constraint::get_api_definition() {
 /*virtual*/
 void
 Constraint::configure_from_input_line(
-	std::string const & input_line
+	std::string const & //input_line
 ) {
 	MASALA_THROW( class_namespace() + "::" + class_name(), "configure_from_input_line", "This class must override this function." );
 }

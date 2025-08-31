@@ -146,8 +146,7 @@ SeatingProblem::get_api_definition() {
         MasalaObjectAPIDefinitionSP api_def(
             masala::make_shared< MasalaObjectAPIDefinition >(
                 *this,
-                "The SeatingProblem class is a common base class for all seating elements.  It is not intended to be "
-                "instantiated outside of the build system.",
+                "The SeatingProblem describes a seating problem, including the tables, the seats, the guests, and the constraints.",
                 false, true
             )
         );

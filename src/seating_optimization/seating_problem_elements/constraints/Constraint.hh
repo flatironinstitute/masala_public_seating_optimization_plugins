@@ -123,8 +123,6 @@ public:
 // PUBLIC GETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
-	/// @brief Get the guest's name.
-	std::string const & name() const;
 
 public:
 
@@ -132,8 +130,6 @@ public:
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
-	/// @brief Set the guest's name.
-	void set_name( std::string const & name_in );
 
 public:
 

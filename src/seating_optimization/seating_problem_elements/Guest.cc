@@ -139,7 +139,7 @@ Guest::get_api_definition() {
 				false, true
 			)
 		);
-		ADD_PROTECTED_CONSTRUCTOR_DEFINITIONS( Guest, api_def );
+		ADD_PUBLIC_CONSTRUCTOR_DEFINITIONS( Guest, api_def );
 
 		// Work functions:
 

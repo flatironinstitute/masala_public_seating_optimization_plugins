@@ -157,10 +157,6 @@ protected:
 	/// the parent class implementation.
 	void protected_assign( SeatingElementBase const & src ) override;
 
-	/// @brief Allow derived classes to access the seats vector.  This is expected to occur under mutex lock, but
-	/// this function does no mutex-locking.
-	std::vector< SeatSP > & protected_seats();
-
 private:
 
 ////////////////////////////////////////////////////////////////////////////////

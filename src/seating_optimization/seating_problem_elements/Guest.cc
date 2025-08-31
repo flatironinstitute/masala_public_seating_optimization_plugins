@@ -146,21 +146,38 @@ Guest::get_api_definition() {
 		// Getters:
 		api_def->add_getter(
 			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< std::string const & > > (
-				"name", "Get the name of this guest.",
-				"name", "The name of this guest.",
+				"name", "Get the full name of this guest.",
+				"name", "The full name of this guest.",
 				false, false,
 				std::bind( &Guest::name, this )
+			)
+		);
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< std::string const & > > (
+				"unique_identifier", "Get a short string lacking whitespace that serves as a unique identifier for the guest.",
+				"unique_identifier", "A short string lacking whitespace that serves as a unique identifier for the guest.",
+				false, false,
+				std::bind( &Guest::unique_identifier, this )
 			)
 		);
 
 		// Setters:
 		api_def->add_setter(
 			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< std::string const & > > (
-				"set_name", "Set the name of this guest.",
-				"name_in", "The name of this guest.  Preceding and trailing whitespace will automatically be trimmed.  "
+				"set_name", "Set the full name of this guest.",
+				"name_in", "The full name of this guest.  Preceding and trailing whitespace will automatically be trimmed.  "
 				"Throws if this is an empty string.",
 				false, false,
 				std::bind( &Guest::set_name, this, std::placeholders::_1 )
+			)
+		);
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< std::string const & > > (
+				"set_unique_identifier", "Set a short string lacking whitespace that serves as a unique identifier for the guest.",
+				"set_unique_identifier_in", "A short string lacking whitespace that serves as a unique identifier for the guest..  Preceding and trailing whitespace will automatically be trimmed.  "
+				"Throws if this is an empty string, or if this contains whitespace.",
+				false, false,
+				std::bind( &Guest::set_unique_identifier, this, std::placeholders::_1 )
 			)
 		);
 
@@ -174,17 +191,25 @@ Guest::get_api_definition() {
 // PUBLIC GETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Get the guest's full name.
 std::string const &
 Guest::name() const {
 	std::lock_guard< std::mutex > lock( mutex() );
 	return name_;
 }
 
+/// @brief Get a short string lacking whitespace that serves as a unique identifier for the guest.
+std::string const &
+Guest::unique_identifier() const {
+	std::lock_guard< std::mutex > lock( mutex() );
+	return unique_identifier_;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
-/// @brief Set the guest's name.
+/// @brief Set the guest's full name.
 void
 Guest::set_name(
 	std::string const & name_in
@@ -193,6 +218,23 @@ Guest::set_name(
 	CHECK_OR_THROW_FOR_CLASS( !name_in_stripped.empty(), "set_name", "Name cannot be empty!" );
 	std::lock_guard< std::mutex > lock( mutex() );
 	name_ = name_in_stripped;
+}
+
+
+/// @brief Set a short string lacking whitespace that serves as a unique identifier for the guest.
+void
+Guest::set_unique_identifier(
+	std::string const &identifier_in
+) {
+	std::string const identifier_in_stripped( masala::base::utility::string::trim( identifier_in ) );
+	CHECK_OR_THROW_FOR_CLASS( !identifier_in_stripped.empty(), "set_unique_identifier", "The unique identifier cannot be empty!" );
+	for( Size i(0); i<identifier_in_stripped.size(); ++i ) {
+		CHECK_OR_THROW_FOR_CLASS( identifier_in[i] != ' ' && identifier_in[i] != '\t' && identifier_in[i] != '\n' && identifier_in[i] != '\r',
+			"set_unique_identifier", "The unique identifier cannot contain whitespace.  \"" + identifier_in_stripped + "\" is invalid."
+		);
+	}
+	std::lock_guard< std::mutex > lock( mutex() );
+	unique_identifier_ = identifier_in_stripped;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -222,6 +264,7 @@ Guest::protected_assign( SeatingElementBase const & src ) {
 
 	// TODO TODO TODO
 	name_ = src_ptr_cast->name_;
+	unique_identifier_ = src_ptr_cast->unique_identifier_;
 
 	Parent::protected_assign( src );
 }

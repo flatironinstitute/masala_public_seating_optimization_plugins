@@ -125,8 +125,11 @@ public:
 // PUBLIC GETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
-	/// @brief Get the guest's name.
+	/// @brief Get the guest's full name.
 	std::string const & name() const;
+
+	/// @brief Get a short string lacking whitespace that serves as a unique identifier for the guest.
+	std::string const & unique_identifier() const;
 
 public:
 
@@ -134,8 +137,11 @@ public:
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
-	/// @brief Set the guest's name.
+	/// @brief Set the guest's full name.
 	void set_name( std::string const & name_in );
+
+	/// @brief Set a short string lacking whitespace that serves as a unique identifier for the guest.
+	void set_unique_identifier( std::string const &identifier_in );
 
 public:
 
@@ -163,8 +169,11 @@ private:
 // PRIVATE DATA
 ////////////////////////////////////////////////////////////////////////////////
 
-	/// @brief The guest's name.
+	/// @brief The guest's full name.
 	std::string name_;
+
+	/// @brief A short string lacking whitespace that serves as a unique identifier for the guest.
+	std::string unique_identifier_;
 
 }; // class Guest
 

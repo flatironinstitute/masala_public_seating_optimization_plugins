@@ -31,6 +31,9 @@
 // Parent header:
 #include <seating_optimization/seating_problem_elements/SeatingElementBase.hh>
 
+// Seating optimization headers:
+#include <seating_optimization/seating_problem/SeatingProblem.fwd.hh>
+
 // Numeric API headers:
 #include <numeric_api/base_classes/optimization/cost_function_network/PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem.fwd.hh>
 
@@ -151,6 +154,7 @@ public:
 	virtual
 	void
 	add_constraint_to_cfn_problem(
+		seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const & seating_problem,
 		masala::numeric_api::base_classes::optimization::cost_function_network::PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem & cfn_problem,
 		masala::base::Real const global_strength_multiplier
 	) const;

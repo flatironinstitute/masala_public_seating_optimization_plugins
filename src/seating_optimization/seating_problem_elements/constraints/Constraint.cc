@@ -25,6 +25,9 @@
 // Unit header:
 #include <seating_optimization/seating_problem_elements/constraints/Constraint.hh>
 
+// Seating optimization headers:
+#include <seating_optimization/seating_problem/SeatingProblem.hh>
+
 // Numeric headers:
 #include <numeric_api/utility/angles/angle_util.hh>
 
@@ -33,7 +36,7 @@
 #include <base/api/MasalaObjectAPIDefinition.hh>
 #include <base/api/constructor/MasalaObjectAPIConstructorMacros.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
-#include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_TwoInput.tmpl.hh>
+#include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_ThreeInput.tmpl.hh>
 #include <base/utility/string/string_manipulation.hh>
 
 // Numeric API headers:
@@ -164,8 +167,9 @@ Constraint::get_api_definition() {
 		// Work functions:
 		api_def->add_work_function(
 			masala::make_shared<
-				MasalaObjectAPIWorkFunctionDefinition_TwoInput<
+				MasalaObjectAPIWorkFunctionDefinition_ThreeInput<
 					void,
+					seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const &,
 					masala::numeric_api::base_classes::optimization::cost_function_network::PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem &,
 					masala::base::Real const
 				>
@@ -173,6 +177,7 @@ Constraint::get_api_definition() {
 				"add_constraint_to_cfn_problem", "Modify a pairwise precomputed cost function network optimization problem to add "
 				"the constraint to it.  Base class implementation throws.  Must be overridden by derived classes.",
 				true, false, true, false,
+				"seating_problem", "The object describing the seats, tables, guests, and constraints.",
 				"cfn_problem", "The cost function network optimizaton problem, modified by this operation.",
 				"global_strength_multiplier", "A global multiplier for the strength of this constraint.",
 				"void", "This function returns nothing.",
@@ -217,6 +222,7 @@ Constraint::configure_from_input_line(
 /*virtual*/
 void
 Constraint::add_constraint_to_cfn_problem(
+	seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const & seating_problem,
 	masala::numeric_api::base_classes::optimization::cost_function_network::PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem & ,//cfn_problem,
 	masala::base::Real const //global_strength_multiplier
 ) const {

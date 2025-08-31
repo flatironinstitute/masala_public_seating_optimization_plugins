@@ -103,7 +103,7 @@ public:
 	class_name() const override;
 
 	/// @brief Get the namespace for this class.
-	/// @returns "seating_optimization_masala_plugins::seating_optimization::constraints::seating_problem_elements".
+	/// @returns "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints".
 	std::string
 	class_namespace() const override;
 

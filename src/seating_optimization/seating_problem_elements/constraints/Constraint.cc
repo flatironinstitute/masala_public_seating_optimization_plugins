@@ -110,10 +110,10 @@ Constraint::class_name() const {
 }
 
 /// @brief Get the namespace for this class.
-/// @returns "seating_optimization_masala_plugins::seating_optimization::sconstraints::eating_problem_elements".
+/// @returns "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints".
 std::string
 Constraint::class_namespace() const {
-	return "seating_optimization_masala_plugins::seating_optimization::sconstraints::eating_problem_elements";
+	return "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints";
 }
 
 ////////////////////////////////////////////////////////////////////////////////

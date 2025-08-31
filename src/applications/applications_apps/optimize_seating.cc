@@ -174,6 +174,7 @@ load_mc_cfn_optimizer(
 	std::string const & appname,
 	masala::base::Size const classical_mc_steps,
 	masala::base::Size const classical_attempts_per_problem,
+	masala::base::Size const solutions_to_store_per_problem,
 	bool const load_hill_flattening_version
 ) {
 	using namespace masala::base::managers::engine;
@@ -201,6 +202,7 @@ load_mc_cfn_optimizer(
 	set_setter<Size>( tracerman, appname, *api_def, "set_annealing_steps_per_attempt", classical_mc_steps );
 	set_setter<Size>( tracerman, appname, *api_def, "set_cpu_threads_to_request", 0 );
 	set_setter<Size>( tracerman, appname, *api_def, "set_attempts_per_problem", classical_attempts_per_problem );
+	set_setter<Size>( tracerman, appname, *api_def, "set_n_solutions_to_store_per_problem", solutions_to_store_per_problem );
 
 	// Set annealing schedule:
 	configure_annealing_schedule( tracerman, appname, *api_def );
@@ -218,7 +220,9 @@ load_optimizer_settings(
 	int const classical_mc_steps_specified,
 	masala::base::Size const classical_mc_steps,
 	int const classical_attempts_per_problem_specified,
-	masala::base::Size const classical_attempts_per_problem
+	masala::base::Size const classical_attempts_per_problem,
+	int const /*solutions_to_store_per_problem_specified*/, // Used for all optimizers, so no checks here.
+	masala::base::Size const solutions_to_store_per_problem
 ) {
 	// Initial checks:
 	if( !( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" || optimizer_name == "MonteCarloCostFunctionNetworkOptimizer" ) ) {
@@ -231,9 +235,9 @@ load_optimizer_settings(
 	}
 
 	if( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" ) {
-		return load_mc_cfn_optimizer( tracerman, appname, classical_mc_steps, classical_attempts_per_problem, true );
+		return load_mc_cfn_optimizer( tracerman, appname, classical_mc_steps, classical_attempts_per_problem, solutions_to_store_per_problem, true );
 	} else if( optimizer_name == "MonteCarloCostFunctionNetworkOptimizer" ) {
-		return load_mc_cfn_optimizer( tracerman, appname, classical_mc_steps, classical_attempts_per_problem, false );
+		return load_mc_cfn_optimizer( tracerman, appname, classical_mc_steps, classical_attempts_per_problem, solutions_to_store_per_problem, false );
 	} else {
 		MASALA_THROW( appname, "load_optimizer_settings", "Did not recognize \"" + optimizer_name + "\" as an allowed optimizer.  "
 			"Supported optimizers are: " + masala::base::utility::container::container_to_string( allowed_optimizer_names, ", " ) + "."
@@ -255,12 +259,14 @@ load_options(
 	masala::base::Size & classical_mc_steps,
 	masala::base::Size & total_threads,
 	masala::base::Size & classical_attempts_per_problem,
+	masala::base::Size & solutions_to_store_per_problem,
 	int & help_indicated,
 	int & masala_plugins_found,
 	int & optimizer_name_specified,
 	int & classical_mc_steps_specified,
 	int & total_threads_specified,
-	int & classical_attempts_per_problem_specified
+	int & classical_attempts_per_problem_specified,
+	int & solutions_to_store_per_problem_specified
 ) {
 	using namespace masala::base::utility::container;
 	using namespace masala::base::utility::string;
@@ -276,6 +282,7 @@ load_options(
 		{"classical_mc_steps", required_argument, &classical_mc_steps_specified, 1},
 		{"total_threads", required_argument, &total_threads_specified, 1},
 		{"classical_attempts_per_problem", required_argument, &classical_attempts_per_problem_specified, 1},
+		{"solutions_to_store_per_problem", required_argument, &solutions_to_store_per_problem_specified, 1},
 	};
 	std::map< std::string, std::string > const help_messages{
 		{"h", "Print a help message and exit."},
@@ -288,11 +295,12 @@ load_options(
 			"MonteCarloCostFunctionNetworkOptimizer or the HillFlatteningMonteCarloCostFunctionNetworkOptimizer, will make.  "
 			"Defaults to 1,000,000 if not specified."
 		},
+		{"total_threads", "The number of threads to launch.  Defaults to 1.  Zero means to launch one thread per CPU core on the node."},
 		{"classical_attempts_per_problem", "The number of attempts (Monte Carlo trajectories) that classical optimizers, such as the "
 			"MonteCarloCostFunctionNetworkOptimizer or the HillFlatteningMonteCarloCostFunctionNetworkOptimizer, will run.  "
 			"Defaults to 1 if not specified."
 		},
-		{"total_threads", "The number of threads to launch.  Defaults to 1.  Zero means to launch one thread per CPU core on the node."},
+		{"solutions_to_store_per_problem", "The maximum number of solutions to return, for any optimizer.  Defaults to 1." },
 	};
 
 	int option_index;
@@ -334,6 +342,13 @@ load_options(
 			CHECK_OR_THROW( ss.eof() && !(ss.bad() || ss.fail() ), appname, "load_options", "Could not parse \"" + std::string(optarg) + "\" as an integer." );
 			CHECK_OR_THROW( temp > 0, appname, "load_options", "The number of classical attempts per problem must be a positive integer." );
 			classical_attempts_per_problem = static_cast< Size >(temp);
+		} else if( curname == "solutions_to_store_per_problem" ) {
+			std::istringstream ss( optarg );
+			long signed int temp;
+			ss >> temp;
+			CHECK_OR_THROW( ss.eof() && !(ss.bad() || ss.fail() ), appname, "load_options", "Could not parse \"" + std::string(optarg) + "\" as an integer." );
+			CHECK_OR_THROW( temp > 0, appname, "load_options", "The number solutions to store per problem must be a positive integer." );
+			solutions_to_store_per_problem = static_cast< Size >(temp);
 		}
 	}
 
@@ -362,6 +377,7 @@ main(
 	int classical_mc_steps_specified(0);
 	int total_threads_specified(0);
 	int classical_attempts_per_problem_specified(0);
+	int solutions_to_store_per_problem_specified(0);
 
 	// Allowed optimizer names:
 	std::vector< std::string > const allowed_optimizer_names{
@@ -375,6 +391,7 @@ main(
 	masala::base::Size classical_mc_steps( 1000000 );
 	masala::base::Size total_threads( 1 );
 	masala::base::Size classical_attempts_per_problem( 1 );
+	masala::base::Size solutions_to_store_per_problem( 1 );
 
     // Masala tracer manager:
     MasalaTracerManagerHandle tracerman( MasalaTracerManager::get_instance() );
@@ -391,8 +408,10 @@ main(
 			argc, argv, tracerman, appname,
 			allowed_optimizer_names, masala_plugin_paths, optimizer_name,
 			classical_mc_steps, total_threads, classical_attempts_per_problem,
+			solutions_to_store_per_problem,
 			help_indicated, masala_plugins_found, optimizer_name_specified,
-			classical_mc_steps_specified, total_threads_specified, classical_attempts_per_problem_specified
+			classical_mc_steps_specified, total_threads_specified, classical_attempts_per_problem_specified,
+			solutions_to_store_per_problem_specified
 		)
 	) {
 		return 0;
@@ -413,7 +432,8 @@ main(
 			allowed_optimizer_names,
 			optimizer_name,
 			classical_mc_steps_specified, classical_mc_steps,
-			classical_attempts_per_problem_specified, classical_attempts_per_problem
+			classical_attempts_per_problem_specified, classical_attempts_per_problem,
+			solutions_to_store_per_problem_specified, solutions_to_store_per_problem
 		)
 	);
 

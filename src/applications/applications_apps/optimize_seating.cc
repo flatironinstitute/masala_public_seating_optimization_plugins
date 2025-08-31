@@ -131,6 +131,33 @@ set_setter(
 }
 
 /// @brief Set the number of classical Monte Carlo steps for a classical optimizer.
+/// @details Specialization for bools.
+template<>
+void
+set_setter(
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	std::string const & appname,
+	masala::base::api::MasalaObjectAPIDefinition const & api_def,
+	std::string const & setter_name,
+	bool const setting
+) {
+	using namespace masala::base::api;
+	using namespace masala::base::api::setter;
+
+	MasalaObjectAPISetterDefinition_OneInputCSP< bool const > setter(
+		api_def.get_oneinput_setter_function< bool const >( setter_name ).lock()
+	);
+	CHECK_OR_THROW( setter != nullptr, appname, "set_setter", "The " + api_def.api_class_name() + " did not have a "
+		+ setter_name + "() function."
+	);
+	setter->function(setting);
+	tracerman->write_to_tracer( appname + "::set_setter", "Set " + api_def.api_class_name() + "."
+		+ setter_name + "(" + (setting ? "true" : "false" ) + ")."
+	);
+}
+
+/// @brief Set the number of classical Monte Carlo steps for a classical optimizer.
+/// @details Specialization for strings.
 template<>
 void
 set_setter(
@@ -237,6 +264,7 @@ load_mc_cfn_optimizer(
 	masala::base::Size const classical_attempts_per_problem,
 	masala::base::Size const solutions_to_store_per_problem,
 	masala::base::Real const flattening_boltzmann_temperature,
+	bool const do_greedy_refinement,
 	bool const load_hill_flattening_version
 ) {
 	using namespace masala::base::managers::engine;
@@ -267,6 +295,8 @@ load_mc_cfn_optimizer(
 	set_setter<Size>( tracerman, appname, *api_def, "set_attempts_per_problem", classical_attempts_per_problem );
 	set_setter<Size>( tracerman, appname, *api_def, "set_n_solutions_to_store_per_problem", solutions_to_store_per_problem );
 	set_setter<std::string const &>( tracerman, appname, *api_def, "set_solution_storage_mode", "check_on_acceptance" );
+	set_setter<std::string const &>( tracerman, appname, *api_def, "set_greedy_refinement_mode", "refine_top" );
+	set_setter<bool>( tracerman, appname, *api_def, "set_do_greedy_refinement", do_greedy_refinement );
 	if( load_hill_flattening_version ) {
 		configure_hill_flattening_kbt( tracerman, appname, *api_def, flattening_boltzmann_temperature );
 	}
@@ -291,7 +321,9 @@ load_optimizer_settings(
 	int const /*solutions_to_store_per_problem_specified*/, // Used for all optimizers, so no checks here.
 	masala::base::Size const solutions_to_store_per_problem,
 	int const flattening_boltzmann_temperature_specified,
-	masala::base::Real const flattening_boltzmann_temperature
+	masala::base::Real const flattening_boltzmann_temperature,
+	int const /*do_greedy_specified*/, // Used for all optimizers, so no checks here.
+	bool const do_greedy
 ) {
 	// Initial checks:
 	if( !( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" || optimizer_name == "MonteCarloCostFunctionNetworkOptimizer" ) ) {
@@ -310,11 +342,11 @@ load_optimizer_settings(
 
 	if( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" ) {
 		return load_mc_cfn_optimizer( tracerman, appname, classical_mc_steps, classical_attempts_per_problem,
-			solutions_to_store_per_problem, flattening_boltzmann_temperature, true
+			solutions_to_store_per_problem, flattening_boltzmann_temperature, do_greedy, true
 		);
 	} else if( optimizer_name == "MonteCarloCostFunctionNetworkOptimizer" ) {
 		return load_mc_cfn_optimizer( tracerman, appname, classical_mc_steps, classical_attempts_per_problem,
-			solutions_to_store_per_problem, flattening_boltzmann_temperature, false
+			solutions_to_store_per_problem, flattening_boltzmann_temperature, do_greedy, false
 		);
 	} else {
 		MASALA_THROW( appname, "load_optimizer_settings", "Did not recognize \"" + optimizer_name + "\" as an allowed optimizer.  "
@@ -339,6 +371,7 @@ load_options(
 	masala::base::Size & classical_attempts_per_problem,
 	masala::base::Size & solutions_to_store_per_problem,
 	masala::base::Real & flattening_boltzmann_temperature,
+	bool & do_greedy,
 	int & help_indicated,
 	int & masala_plugins_found,
 	int & optimizer_name_specified,
@@ -346,7 +379,8 @@ load_options(
 	int & total_threads_specified,
 	int & classical_attempts_per_problem_specified,
 	int & solutions_to_store_per_problem_specified,
-	int & flattening_boltzmann_temperature_specified
+	int & flattening_boltzmann_temperature_specified,
+	int & do_greedy_specified
 ) {
 	using namespace masala::base::utility::container;
 	using namespace masala::base::utility::string;
@@ -364,6 +398,7 @@ load_options(
 		{"classical_attempts_per_problem", required_argument, &classical_attempts_per_problem_specified, 1},
 		{"solutions_to_store_per_problem", required_argument, &solutions_to_store_per_problem_specified, 1},
 		{"flattening_boltzmann_temperature", required_argument, &flattening_boltzmann_temperature_specified, 1},
+		{"do_greedy", required_argument, &do_greedy_specified, 1},
 	};
 	std::map< std::string, std::string > const help_messages{
 		{"h", "Print a help message and exit."},
@@ -384,6 +419,9 @@ load_options(
 		{"solutions_to_store_per_problem", "The maximum number of solutions to return, for any optimizer.  Defaults to 1." },
 		{"flattening_boltzmann_temperature", "The Boltzmann temperature to use for flattening the solution score landscape, if the "
 			"HillFlatteningMonteCarloCostFunctionNetworkOptimizer is used.  Defaults to 10.0."
+		},
+		{"do_greedy", "Should solutions be greedily refined?  This is an option for all optimizers; must be TRUE or "
+			"FALSE.  Defaults to TRUE."
 		}
 	};
 
@@ -438,6 +476,15 @@ load_options(
 			ss >> flattening_boltzmann_temperature;
 			CHECK_OR_THROW( ss.eof() && !(ss.bad() || ss.fail() ), appname, "load_options", "Could not parse \"" + std::string(optarg) + "\" as a floating-point number." );
 			CHECK_OR_THROW( flattening_boltzmann_temperature >= 0.0, appname, "load_options", "The Boltzmann temperature for flattening the solution score landscape must be non-negative." );
+		} else if( curname == "do_greedy" ) {
+			std::string const greedystring( optarg );
+			if( greedystring == "TRUE" ) {
+				do_greedy = true;
+			} else if( greedystring == "FALSE" ) {
+				do_greedy = false;
+			} else {
+				MASALA_THROW( appname, "load_options", "Could not parse \"" + std::string(optarg) + "\" as a Boolean.  Must be either TRUE or FALSE." );
+			}
 		}
 	}
 
@@ -468,6 +515,7 @@ main(
 	int classical_attempts_per_problem_specified(0);
 	int solutions_to_store_per_problem_specified(0);
 	int flattening_boltzmann_temperature_specified(0);
+	int do_greedy_specified(0);
 
 	// Allowed optimizer names:
 	std::vector< std::string > const allowed_optimizer_names{
@@ -483,6 +531,7 @@ main(
 	masala::base::Size classical_attempts_per_problem( 1 );
 	masala::base::Size solutions_to_store_per_problem( 1 );
 	masala::base::Real flattening_boltzmann_temperature( 10.0 );
+	bool do_greedy( true );
 
     // Masala tracer manager:
     MasalaTracerManagerHandle tracerman( MasalaTracerManager::get_instance() );
@@ -499,10 +548,10 @@ main(
 			argc, argv, tracerman, appname,
 			allowed_optimizer_names, masala_plugin_paths, optimizer_name,
 			classical_mc_steps, total_threads, classical_attempts_per_problem,
-			solutions_to_store_per_problem, flattening_boltzmann_temperature,
+			solutions_to_store_per_problem, flattening_boltzmann_temperature, do_greedy,
 			help_indicated, masala_plugins_found, optimizer_name_specified,
 			classical_mc_steps_specified, total_threads_specified, classical_attempts_per_problem_specified,
-			solutions_to_store_per_problem_specified, flattening_boltzmann_temperature_specified
+			solutions_to_store_per_problem_specified, flattening_boltzmann_temperature_specified, do_greedy_specified
 		)
 	) {
 		return 0;
@@ -525,7 +574,8 @@ main(
 			classical_mc_steps_specified, classical_mc_steps,
 			classical_attempts_per_problem_specified, classical_attempts_per_problem,
 			solutions_to_store_per_problem_specified, solutions_to_store_per_problem,
-			flattening_boltzmann_temperature_specified, flattening_boltzmann_temperature
+			flattening_boltzmann_temperature_specified, flattening_boltzmann_temperature,
+			do_greedy_specified, do_greedy
 		)
 	);
 

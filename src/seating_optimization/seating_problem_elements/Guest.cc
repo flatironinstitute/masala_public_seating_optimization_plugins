@@ -136,7 +136,7 @@ Guest::get_api_definition() {
 			masala::make_shared< MasalaObjectAPIDefinition >(
 				*this,
 				"The Guest class stores all information associated with a person in a seating problem who must be assigned a seat.",
-				false, true
+				false, false
 			)
 		);
 		ADD_PUBLIC_CONSTRUCTOR_DEFINITIONS( Guest, api_def );

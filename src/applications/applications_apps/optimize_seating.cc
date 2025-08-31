@@ -167,6 +167,42 @@ configure_annealing_schedule(
 	);
 }
 
+/// @brief Set the hill-flattening Boltzmann temperature for the HillFlatteningMonteCarloCostFunctionNetworkOptimizer.
+void
+configure_hill_flattening_kbt(
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	std::string const & appname,
+	masala::base::api::MasalaObjectAPIDefinition const & api_def,
+	masala::base::Real const kbt
+) {
+	using namespace masala::base::api;
+	using namespace masala::base::api::setter;
+	using namespace masala::base::managers::plugin_module;
+	using masala::base::Real;
+
+	MasalaPluginAPISP flattening_sched(
+		MasalaPluginModuleManager::get_instance()->create_plugin_object_instance_by_short_name(
+			{ "AnnealingSchedule" }, "ConstantAnnealingSchedule", true
+		)
+	);
+	CHECK_OR_THROW( flattening_sched != nullptr, appname, "configure_hill_flattening_kbt", "Could not create a ConstantAnnealingSchedule.  "
+		"Has the standard Masala plugins library been loaded?"
+	);
+	MasalaObjectAPIDefinitionCSP anneal_apidef( flattening_sched->get_api_definition_for_inner_class().lock() );
+	set_setter< Real >( tracerman, appname, *anneal_apidef, "set_temperature", kbt );
+
+	MasalaObjectAPISetterDefinition_OneInputCSP< masala::base::managers::plugin_module::MasalaPluginAPI const & > setter(
+		api_def.get_oneinput_setter_function< masala::base::managers::plugin_module::MasalaPluginAPI const & >( "set_flattening_boltzmann_temperature_schedule" ).lock()
+	);
+	CHECK_OR_THROW( setter != nullptr, appname, "configure_hill_flattening_kbt", "The " + api_def.api_class_name() + " did not have a "
+		+ "set_flattening_boltzmann_temperature_schedule" + "() function."
+	);
+	setter->function(*flattening_sched);
+	tracerman->write_to_tracer( appname + "::configure_hill_flattening_kbt", "Set " + api_def.api_class_name() + "."
+		+ "set_flattening_boltzmann_temperature_schedule" + "(" + flattening_sched->inner_class_name() + ")."
+	);
+}
+
 /// @brief Load a Monte Carlo cost function network optimizer or a hill-flattening Monte Carlo cost function network optimizer.
 masala::base::managers::engine::MasalaEngineAPICSP
 load_mc_cfn_optimizer(
@@ -175,11 +211,13 @@ load_mc_cfn_optimizer(
 	masala::base::Size const classical_mc_steps,
 	masala::base::Size const classical_attempts_per_problem,
 	masala::base::Size const solutions_to_store_per_problem,
+	masala::base::Real const flattening_boltzmann_temperature,
 	bool const load_hill_flattening_version
 ) {
 	using namespace masala::base::managers::engine;
 	using namespace masala::base::api;
 	using masala::base::Size;
+	using masala::base::Real;
 
 	std::string const optname(
 		load_hill_flattening_version ?
@@ -203,6 +241,9 @@ load_mc_cfn_optimizer(
 	set_setter<Size>( tracerman, appname, *api_def, "set_cpu_threads_to_request", 0 );
 	set_setter<Size>( tracerman, appname, *api_def, "set_attempts_per_problem", classical_attempts_per_problem );
 	set_setter<Size>( tracerman, appname, *api_def, "set_n_solutions_to_store_per_problem", solutions_to_store_per_problem );
+	if( load_hill_flattening_version ) {
+		configure_hill_flattening_kbt( tracerman, appname, *api_def, flattening_boltzmann_temperature );
+	}
 
 	// Set annealing schedule:
 	configure_annealing_schedule( tracerman, appname, *api_def );
@@ -222,7 +263,9 @@ load_optimizer_settings(
 	int const classical_attempts_per_problem_specified,
 	masala::base::Size const classical_attempts_per_problem,
 	int const /*solutions_to_store_per_problem_specified*/, // Used for all optimizers, so no checks here.
-	masala::base::Size const solutions_to_store_per_problem
+	masala::base::Size const solutions_to_store_per_problem,
+	int const flattening_boltzmann_temperature_specified,
+	masala::base::Real const flattening_boltzmann_temperature
 ) {
 	// Initial checks:
 	if( !( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" || optimizer_name == "MonteCarloCostFunctionNetworkOptimizer" ) ) {
@@ -233,11 +276,20 @@ load_optimizer_settings(
 			appname, "load_optimizer_settings", "Classical attempts per problem were specified, but the selected optimizer does not perform classical Monte Carlo."
 		);
 	}
+	if( !( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" ) ) {
+		CHECK_OR_THROW( !flattening_boltzmann_temperature_specified,
+			appname, "load_optimizer_settings", "A flattening Boltzmann temperature was specified, but the optimizer is not the HillFlatteningMonteCarloCostFunctionNetworkOptimizer."
+		);
+	}
 
 	if( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" ) {
-		return load_mc_cfn_optimizer( tracerman, appname, classical_mc_steps, classical_attempts_per_problem, solutions_to_store_per_problem, true );
+		return load_mc_cfn_optimizer( tracerman, appname, classical_mc_steps, classical_attempts_per_problem,
+			solutions_to_store_per_problem, flattening_boltzmann_temperature, true
+		);
 	} else if( optimizer_name == "MonteCarloCostFunctionNetworkOptimizer" ) {
-		return load_mc_cfn_optimizer( tracerman, appname, classical_mc_steps, classical_attempts_per_problem, solutions_to_store_per_problem, false );
+		return load_mc_cfn_optimizer( tracerman, appname, classical_mc_steps, classical_attempts_per_problem,
+			solutions_to_store_per_problem, flattening_boltzmann_temperature, false
+		);
 	} else {
 		MASALA_THROW( appname, "load_optimizer_settings", "Did not recognize \"" + optimizer_name + "\" as an allowed optimizer.  "
 			"Supported optimizers are: " + masala::base::utility::container::container_to_string( allowed_optimizer_names, ", " ) + "."
@@ -260,13 +312,15 @@ load_options(
 	masala::base::Size & total_threads,
 	masala::base::Size & classical_attempts_per_problem,
 	masala::base::Size & solutions_to_store_per_problem,
+	masala::base::Real & flattening_boltzmann_temperature,
 	int & help_indicated,
 	int & masala_plugins_found,
 	int & optimizer_name_specified,
 	int & classical_mc_steps_specified,
 	int & total_threads_specified,
 	int & classical_attempts_per_problem_specified,
-	int & solutions_to_store_per_problem_specified
+	int & solutions_to_store_per_problem_specified,
+	int & flattening_boltzmann_temperature_specified
 ) {
 	using namespace masala::base::utility::container;
 	using namespace masala::base::utility::string;
@@ -283,6 +337,7 @@ load_options(
 		{"total_threads", required_argument, &total_threads_specified, 1},
 		{"classical_attempts_per_problem", required_argument, &classical_attempts_per_problem_specified, 1},
 		{"solutions_to_store_per_problem", required_argument, &solutions_to_store_per_problem_specified, 1},
+		{"flattening_boltzmann_temperature", required_argument, &flattening_boltzmann_temperature_specified, 1},
 	};
 	std::map< std::string, std::string > const help_messages{
 		{"h", "Print a help message and exit."},
@@ -301,6 +356,9 @@ load_options(
 			"Defaults to 1 if not specified."
 		},
 		{"solutions_to_store_per_problem", "The maximum number of solutions to return, for any optimizer.  Defaults to 1." },
+		{"flattening_boltzmann_temperature", "The Boltzmann temperature to use for flattening the solution score landscape, if the "
+			"HillFlatteningMonteCarloCostFunctionNetworkOptimizer is used.  Defaults to 10.0."
+		}
 	};
 
 	int option_index;
@@ -349,6 +407,11 @@ load_options(
 			CHECK_OR_THROW( ss.eof() && !(ss.bad() || ss.fail() ), appname, "load_options", "Could not parse \"" + std::string(optarg) + "\" as an integer." );
 			CHECK_OR_THROW( temp > 0, appname, "load_options", "The number solutions to store per problem must be a positive integer." );
 			solutions_to_store_per_problem = static_cast< Size >(temp);
+		} else if( curname == "flattening_boltzmann_temperature" ) {
+			std::istringstream ss( optarg );
+			ss >> flattening_boltzmann_temperature;
+			CHECK_OR_THROW( ss.eof() && !(ss.bad() || ss.fail() ), appname, "load_options", "Could not parse \"" + std::string(optarg) + "\" as a floating-point number." );
+			CHECK_OR_THROW( flattening_boltzmann_temperature >= 0.0, appname, "load_options", "The Boltzmann temperature for flattening the solution score landscape must be non-negative." );
 		}
 	}
 
@@ -378,6 +441,7 @@ main(
 	int total_threads_specified(0);
 	int classical_attempts_per_problem_specified(0);
 	int solutions_to_store_per_problem_specified(0);
+	int flattening_boltzmann_temperature_specified(0);
 
 	// Allowed optimizer names:
 	std::vector< std::string > const allowed_optimizer_names{
@@ -392,6 +456,7 @@ main(
 	masala::base::Size total_threads( 1 );
 	masala::base::Size classical_attempts_per_problem( 1 );
 	masala::base::Size solutions_to_store_per_problem( 1 );
+	masala::base::Real flattening_boltzmann_temperature( 10.0 );
 
     // Masala tracer manager:
     MasalaTracerManagerHandle tracerman( MasalaTracerManager::get_instance() );
@@ -408,10 +473,10 @@ main(
 			argc, argv, tracerman, appname,
 			allowed_optimizer_names, masala_plugin_paths, optimizer_name,
 			classical_mc_steps, total_threads, classical_attempts_per_problem,
-			solutions_to_store_per_problem,
+			solutions_to_store_per_problem, flattening_boltzmann_temperature,
 			help_indicated, masala_plugins_found, optimizer_name_specified,
 			classical_mc_steps_specified, total_threads_specified, classical_attempts_per_problem_specified,
-			solutions_to_store_per_problem_specified
+			solutions_to_store_per_problem_specified, flattening_boltzmann_temperature_specified
 		)
 	) {
 		return 0;
@@ -433,7 +498,8 @@ main(
 			optimizer_name,
 			classical_mc_steps_specified, classical_mc_steps,
 			classical_attempts_per_problem_specified, classical_attempts_per_problem,
-			solutions_to_store_per_problem_specified, solutions_to_store_per_problem
+			solutions_to_store_per_problem_specified, solutions_to_store_per_problem,
+			flattening_boltzmann_temperature_specified, flattening_boltzmann_temperature
 		)
 	);
 

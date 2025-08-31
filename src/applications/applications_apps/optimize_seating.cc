@@ -130,6 +130,31 @@ set_setter(
 	);
 }
 
+/// @brief Set the number of classical Monte Carlo steps for a classical optimizer.
+template<>
+void
+set_setter(
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	std::string const & appname,
+	masala::base::api::MasalaObjectAPIDefinition const & api_def,
+	std::string const & setter_name,
+	std::string const & setting
+) {
+	using namespace masala::base::api;
+	using namespace masala::base::api::setter;
+
+	MasalaObjectAPISetterDefinition_OneInputCSP< std::string const & > setter(
+		api_def.get_oneinput_setter_function< std::string const & >( setter_name ).lock()
+	);
+	CHECK_OR_THROW( setter != nullptr, appname, "set_setter", "The " + api_def.api_class_name() + " did not have a "
+		+ setter_name + "() function."
+	);
+	setter->function(setting);
+	tracerman->write_to_tracer( appname + "::set_setter", "Set " + api_def.api_class_name() + "."
+		+ setter_name + "(\"" + setting + "\")."
+	);
+}
+
 /// @brief Set the annealing schedule
 void
 configure_annealing_schedule(
@@ -241,6 +266,7 @@ load_mc_cfn_optimizer(
 	set_setter<Size>( tracerman, appname, *api_def, "set_cpu_threads_to_request", 0 );
 	set_setter<Size>( tracerman, appname, *api_def, "set_attempts_per_problem", classical_attempts_per_problem );
 	set_setter<Size>( tracerman, appname, *api_def, "set_n_solutions_to_store_per_problem", solutions_to_store_per_problem );
+	set_setter<std::string const &>( tracerman, appname, *api_def, "set_solution_storage_mode", "check_on_acceptance" );
 	if( load_hill_flattening_version ) {
 		configure_hill_flattening_kbt( tracerman, appname, *api_def, flattening_boltzmann_temperature );
 	}

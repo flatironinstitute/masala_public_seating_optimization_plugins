@@ -189,6 +189,10 @@ protected:
 	/// this function does no mutex-locking.
 	std::vector< SeatSP > & protected_seats();
 
+	/// @brief Allow derived classes to access the seats vector (const access).  This is expected to occur under mutex lock, but
+	/// this function does no mutex-locking.
+	std::vector< SeatCSP > protected_seats_const() const;
+
 	/// @brief Update the coordinates of seats on a change of table coordinates or dimensions.
 	/// @details Base class throws.  Derived classes should override this.
 	/// @note Performs no mutex-locking.  Should only be called in a mutex-locked context.

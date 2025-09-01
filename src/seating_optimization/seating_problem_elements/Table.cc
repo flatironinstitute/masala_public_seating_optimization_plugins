@@ -148,15 +148,15 @@ Table::get_api_definition() {
 		ADD_PROTECTED_CONSTRUCTOR_DEFINITIONS( Table, api_def );
 
 		// Work functions:
-		api_def->add_work_function(
-			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_ZeroInput< std::vector< std::pair< SeatCSP, SeatCSP > > > >(
-				"get_adjacent_seats", "Get a list of seats that are next to one another at this table.  Base class implementation "
-				"throws.  Must be implemented by derived classes.",
-				false, false, true, false,
-				"adjacent_seats", "A vector of pairs of const shared pointers to the seats at this table that are adjacent to each other.",
-				std::bind( &Table::get_adjacent_seats, this )
-			)
-		);
+		// api_def->add_work_function(
+		// 	masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_ZeroInput< std::vector< std::pair< SeatCSP, SeatCSP > > > >(
+		// 		"get_adjacent_seats", "Get a list of seats that are next to one another at this table.  Base class implementation "
+		// 		"throws.  Must be implemented by derived classes.",
+		// 		false, false, true, false,
+		// 		"adjacent_seats", "A vector of pairs of const shared pointers to the seats at this table that are adjacent to each other.",
+		// 		std::bind( &Table::get_adjacent_seats, this )
+		// 	)
+		// );
 
 		// Getters:
 		api_def->add_getter(
@@ -365,6 +365,17 @@ Table::protected_assign( SeatingElementBase const & src ) {
 std::vector< SeatSP > &
 Table::protected_seats() {
 	return seats_;
+}
+
+/// @brief Allow derived classes to access the seats vector (const access).  This is expected to occur under mutex lock, but
+/// this function does no mutex-locking.
+std::vector< SeatCSP >
+Table::protected_seats_const() const {
+	std::vector< SeatCSP > seats_copy( seats_.size() );
+	for( Size i(0); i<seats_.size(); ++i ) {
+		seats_copy[i] = seats_[i];
+	}
+	return seats_copy;
 }
 
 /// @brief Update the coordinates of seats on a change of table coordinates or dimensions.

@@ -179,6 +179,15 @@ CircularTable::get_api_definition() {
 				std::bind( &CircularTable::angle, this )
 			)
 		);
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< Size > >(
+				"num_seats",
+				"Get the number of seats that this table has.",
+				"num_seats", "The number of seats that this table has.",
+				false, false,
+				std::bind( &CircularTable::num_seats, this )
+			)
+		);
 
 		// Setters:
 		api_def->add_setter(

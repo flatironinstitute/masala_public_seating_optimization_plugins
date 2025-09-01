@@ -138,6 +138,9 @@ public:
 	/// north (the (0,1) direction in x-y space).
 	Real angle() const;
 
+	/// @brief Get the number of seats that this table has.
+	Size num_seats() const;
+
 public:
 
 ////////////////////////////////////////////////////////////////////////////////

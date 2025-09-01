@@ -177,6 +177,15 @@ Table::get_api_definition() {
 				std::bind( &Table::angle, this )
 			)
 		);
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< Size > >(
+				"num_seats",
+				"Get the number of seats that this table has.",
+				"num_seats", "The number of seats that this table has.",
+				false, false,
+				std::bind( &Table::num_seats, this )
+			)
+		);
 
 		// Setters:
 		api_def->add_setter(
@@ -231,6 +240,13 @@ masala::base::Real
 Table::angle() const {
 	std::lock_guard< std::mutex > lock( mutex() );
 	return angle_degrees_;
+}
+
+/// @brief Get the number of seats that this table has.
+masala::base::Size
+Table::num_seats() const {
+	std::lock_guard< std::mutex > lock( mutex() );
+	return seats_.size();	
 }
 
 ////////////////////////////////////////////////////////////////////////////////

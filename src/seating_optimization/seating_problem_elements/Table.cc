@@ -186,6 +186,17 @@ Table::get_api_definition() {
 				std::bind( &Table::num_seats, this )
 			)
 		);
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_OneInput< SeatCSP, Size > >(
+				"seat",
+				"Access a particular seat, by local index (staring at 0 with the first seat around this table).  "
+				"Throws if seat out of range.",
+				"seat_index", "The local, zero-based index of this seat.",
+				"seat", "A shared pointer to the Seat object.",
+				false, false,
+				std::bind( &Table::seat, this, std::placeholders::_1 )
+			)
+		);
 
 		// Setters:
 		api_def->add_setter(
@@ -247,6 +258,18 @@ masala::base::Size
 Table::num_seats() const {
 	std::lock_guard< std::mutex > lock( mutex() );
 	return seats_.size();	
+}
+
+/// @brief Access a particular seat, by local index (staring at 0 with the first seat around this table).  Throws if seat out of range.
+seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP
+Table::seat(
+	masala::base::Size const seat_index
+) const {
+	std::lock_guard< std::mutex > lock( mutex() );
+	CHECK_OR_THROW_FOR_CLASS( seat_index < seats_.size(), "seat", "Seat index " + std::to_string(seat_index) + " is out of range for "
+		+ std::to_string( seats_.size() ) + "-element seats_ vector."
+	);
+	return seats_[seat_index];
 }
 
 ////////////////////////////////////////////////////////////////////////////////

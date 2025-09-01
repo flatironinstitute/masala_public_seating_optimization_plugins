@@ -141,6 +141,9 @@ public:
 	/// @brief Get the number of seats that this table has.
 	Size num_seats() const;
 
+	/// @brief Access a particular seat.  Throws if seat out of range.
+	SeatCSP seat( Size const seat_index ) const;
+
 public:
 
 ////////////////////////////////////////////////////////////////////////////////

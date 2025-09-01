@@ -188,6 +188,17 @@ CircularTable::get_api_definition() {
 				std::bind( &CircularTable::num_seats, this )
 			)
 		);
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_OneInput< SeatCSP, Size > >(
+				"seat",
+				"Access a particular seat, by local index (staring at 0 with the first seat around this table).  "
+				"Throws if seat out of range.",
+				"seat_index", "The local, zero-based index of this seat.",
+				"seat", "A shared pointer to the Seat object.",
+				false, false,
+				std::bind( &CircularTable::seat, this, std::placeholders::_1 )
+			)
+		);
 
 		// Setters:
 		api_def->add_setter(

@@ -16,23 +16,26 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/// @file src/seating_optimization/seating_problem_elements/Table.hh
-/// @brief Headers for a Table.
-/// @details A Table is an object around which a bunch of Seat objects are arranged, at which several people may sit.
-/// This is intended to be a non-instantiable base class for concrete derived classes defining various table shapes.
+/// @file src/seating_optimization/seating_problem_elements/constraints/Constraint.hh
+/// @brief Headers for a Constraint.
+/// @details The Constraint class is the base class for constraints, which are elements of a seating problem.  They can
+/// be things like, "Guests A and B should be seated next to one another," or "Guest C should be near the front of the room", etc.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
 
-#ifndef Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_Table_hh
-#define Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_Table_hh
+#ifndef Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_constraints_Constraint_hh
+#define Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_constraints_Constraint_hh
 
 // Forward declarations:
-#include <seating_optimization/seating_problem_elements/Table.fwd.hh>
+#include <seating_optimization/seating_problem_elements/constraints/Constraint.fwd.hh>
 
 // Parent header:
 #include <seating_optimization/seating_problem_elements/SeatingElementBase.hh>
 
 // Seating optimization headers:
-#include <seating_optimization/seating_problem_elements/Seat.fwd.hh>
+#include <seating_optimization/seating_problem/SeatingProblem.fwd.hh>
+
+// Numeric headers:
+#include <numeric/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem.fwd.hh>
 
 // Base headers:
 #include <base/types.hh>
@@ -41,12 +44,13 @@
 namespace seating_optimization_masala_plugins {
 namespace seating_optimization {
 namespace seating_problem_elements {
+namespace constraints {
 
-/// @brief A Table.
-/// @details A Table is an object around which a bunch of Seat objects are arranged, at which several people may sit.
-/// This is intended to be a non-instantiable base class for concrete derived classes defining various table shapes.
+/// @brief A Constraint.
+/// @details The Constraint class is the base class for constraints, which are elements of a seating problem.  They can
+/// be things like, "Guests A and B should be seated next to one another," or "Guest C should be near the front of the room", etc.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
-class Table : public seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBase {
+class Constraint : public seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBase {
 
 	typedef seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBase Parent;
 	typedef seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBaseSP ParentSP;
@@ -62,20 +66,20 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 
 	/// @brief Default constructor.
-	Table() = default;
+	Constraint() = default;
 
 	/// @brief Copy constructor.  Explicit due to mutex.
-	Table( Table const & src );
+	Constraint( Constraint const & src );
 
 	/// @brief Destructor.
-	~Table() override = default;
+	~Constraint() override = default;
 
 	/// @brief Make a copy of this object.
 	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBaseSP
 	clone() const override;
 
 	/// @brief Make a fully independent copy of this object.
-	TableSP
+	ConstraintSP
 	deep_clone() const;
 
 public:
@@ -86,7 +90,7 @@ public:
 
 	/// @brief Get the category or categories for this plugin class.  Default for all
 	/// optimization problems; may be overridden by derived classes.
-	/// @returns { { "SeatingProblem", "SeatingProblemElement", "Table" } }
+	/// @returns { { "SeatingProblem", "SeatingProblemElement", "Constraint" } }
 	/// @note Categories are hierarchical (e.g. Selector->AtomSelector->AnnotatedRegionSelector,
 	/// stored as { {"Selector", "AtomSelector", "AnnotatedRegionSelector"} }). A plugin can be
 	/// in more than one hierarchical category (in which case there would be more than one
@@ -97,17 +101,17 @@ public:
 
 	/// @brief Get the keywords for this plugin class.  Default for all
 	/// optimization solutions; may be overridden by derived classes.
-	/// @returns { "seating_problem", "seating_problem_element", "table" }
+	/// @returns { "seating_problem", "seating_problem_element", "constraint" }
 	std::vector< std::string >
 	get_keywords() const override;
 
 	/// @brief Get the name of this class.
-	/// @returns "Table".
+	/// @returns "Constraint".
 	std::string
 	class_name() const override;
 
 	/// @brief Get the namespace for this class.
-	/// @returns "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements".
+	/// @returns "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints".
 	std::string
 	class_namespace() const override;
 
@@ -127,22 +131,6 @@ public:
 // PUBLIC GETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
-	/// @brief Get the x-coordinate of the centre of the table.
-	Real x() const;
-
-	/// @brief Get the y-coordinate of the centre of the table.
-	Real y() const;
-
-	/// @brief Get the orientation of the table.
-	/// @details A table has an orientation, defined as the clockwise angle, in degrees, from facing
-	/// north (the (0,1) direction in x-y space).
-	Real angle() const;
-
-	/// @brief Get the number of seats that this table has.
-	Size num_seats() const;
-
-	/// @brief Access a particular seat, by local index (staring at 0 with the first seat around this table).  Throws if seat out of range.
-	SeatCSP seat( Size const seat_index ) const;
 
 public:
 
@@ -150,14 +138,9 @@ public:
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
-	/// @brief Set the coordinates of the table's centre.  A table has coordinates in R^2 (x and y).
-	void set_coordinates( Real const x_in, Real const y_in );
-
-	/// @brief Set the table's angle.
-	/// @details A table has an orientation, defined as the clockwise angle, in degrees, from facing
-	/// north (the (0,1) direction in x-y space).	
-	void
-	set_angle( Real const angle_degrees_in );
+	/// @brief Configure this object from a line in an input file.
+	/// @details Base class implementation throws.  Must be overridden by derived classes.
+	virtual void configure_from_input_line( std::string const & input_line );
 
 public:
 
@@ -165,11 +148,16 @@ public:
 // PUBLIC WORK FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
 
-	/// @brief Get a list of seats that are next to one another at this table.
-	/// @details Base class implementation throws.  Must be implemented by derived classes.
+	/// @brief Modify a pairwise precomputed cost function network optimization problem to add
+	/// the constraint to it.
+	/// @details Base class implementation throws.  Must be overridden by derived classes.
 	virtual
-	std::vector< std::pair< SeatCSP, SeatCSP > >
-	get_adjacent_seats() const;
+	void
+	add_constraint_to_cfn_problem(
+		seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const & seating_problem,
+		masala::numeric::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem & cfn_problem,
+		masala::base::Real const global_strength_multiplier
+	) const;
 
 protected:
 
@@ -185,56 +173,17 @@ protected:
 	/// the parent class implementation.
 	void protected_assign( SeatingElementBase const & src ) override;
 
-	/// @brief Allow derived classes to access the seats vector.  This is expected to occur under mutex lock, but
-	/// this function does no mutex-locking.
-	std::vector< SeatSP > & protected_seats();
-
-	/// @brief Allow derived classes to access the seats vector (const access).  This is expected to occur under mutex lock, but
-	/// this function does no mutex-locking.
-	std::vector< SeatCSP > protected_seats_const() const;
-
-	/// @brief Update the coordinates of seats on a change of table coordinates or dimensions.
-	/// @details Base class throws.  Derived classes should override this.
-	/// @note Performs no mutex-locking.  Should only be called in a mutex-locked context.
-	virtual void protected_update_seat_coordinates();
-
-	/// @brief Allow derived classes to access the x-coordinate of the centre of the table.
-	/// @note Performs no mutex-locking.  Should only be called in a mutex-locked context.
-	inline Real protected_x() const { return x_; }
-
-	/// @brief Allow derived classes to access the y-coordinate of the centre of the table.
-	/// @note Performs no mutex-locking.  Should only be called in a mutex-locked context.
-	inline Real protected_y() const { return y_; }
-
-	/// @brief Allow derived classes to access the table's orientation.
-	/// @details A table has an orientation, defined as the clockwise angle, in degrees, from facing
-	/// north (the (0,1) direction in x-y space).
-	/// @note Performs no mutex-locking.  Should only be called in a mutex-locked context.
-	inline Real protected_angle_degrees() const { return angle_degrees_; }
-
 private:
 
 ////////////////////////////////////////////////////////////////////////////////
 // PRIVATE DATA
 ////////////////////////////////////////////////////////////////////////////////
 
-	/// @brief A seat has an x-coordinate.
-	Real x_ = 0.0;
+}; // class Constraint
 
-	/// @brief A seat has a y-coordinate.
-	Real y_ = 0.0;
-
-	/// @brief A seat has an orientation, defined as the clockwise angle, in degrees, from facing
-	/// north (the (0,1) direction in x-y space).
-	Real angle_degrees_ = 0.0;
-
-	/// @brief A set of seats associated with this table.
-	std::vector< SeatSP > seats_;
-
-}; // class Table
-
+} // namespace constraints
 } // namespace seating_problem_elements
 } // namespace seating_optimization
 } // namespace seating_optimization_masala_plugins
 
-#endif // Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_Table_hh
+#endif // Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_constraints_Constraint_hh

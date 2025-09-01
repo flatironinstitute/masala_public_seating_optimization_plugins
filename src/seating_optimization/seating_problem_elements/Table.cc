@@ -38,6 +38,7 @@
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_TwoInput.tmpl.hh>
 #include <base/api/getter/MasalaObjectAPIGetterDefinition_ZeroInput.tmpl.hh>
+#include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_ZeroInput.tmpl.hh>
 
 // STL headers:
 
@@ -128,6 +129,7 @@ Table::get_api_definition() {
 	using namespace masala::base::api;
 	using namespace masala::base::api::setter;
 	using namespace masala::base::api::getter;
+	using namespace masala::base::api::work_function;
 	using masala::base::Real;
 	using masala::base::Size;
 
@@ -146,6 +148,15 @@ Table::get_api_definition() {
 		ADD_PROTECTED_CONSTRUCTOR_DEFINITIONS( Table, api_def );
 
 		// Work functions:
+		// api_def->add_work_function(
+		// 	masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_ZeroInput< std::vector< std::pair< SeatCSP, SeatCSP > > > >(
+		// 		"get_adjacent_seats", "Get a list of seats that are next to one another at this table.  Base class implementation "
+		// 		"throws.  Must be implemented by derived classes.",
+		// 		false, false, true, false,
+		// 		"adjacent_seats", "A vector of pairs of const shared pointers to the seats at this table that are adjacent to each other.",
+		// 		std::bind( &Table::get_adjacent_seats, this )
+		// 	)
+		// );
 
 		// Getters:
 		api_def->add_getter(
@@ -175,6 +186,26 @@ Table::get_api_definition() {
 				"direction in x-y space).",
 				false, false,
 				std::bind( &Table::angle, this )
+			)
+		);
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< Size > >(
+				"num_seats",
+				"Get the number of seats that this table has.",
+				"num_seats", "The number of seats that this table has.",
+				false, false,
+				std::bind( &Table::num_seats, this )
+			)
+		);
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_OneInput< SeatCSP, Size > >(
+				"seat",
+				"Access a particular seat, by local index (staring at 0 with the first seat around this table).  "
+				"Throws if seat out of range.",
+				"seat_index", "The local, zero-based index of this seat.",
+				"seat", "A shared pointer to the Seat object.",
+				false, false,
+				std::bind( &Table::seat, this, std::placeholders::_1 )
 			)
 		);
 
@@ -233,6 +264,25 @@ Table::angle() const {
 	return angle_degrees_;
 }
 
+/// @brief Get the number of seats that this table has.
+masala::base::Size
+Table::num_seats() const {
+	std::lock_guard< std::mutex > lock( mutex() );
+	return seats_.size();	
+}
+
+/// @brief Access a particular seat, by local index (staring at 0 with the first seat around this table).  Throws if seat out of range.
+seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP
+Table::seat(
+	masala::base::Size const seat_index
+) const {
+	std::lock_guard< std::mutex > lock( mutex() );
+	CHECK_OR_THROW_FOR_CLASS( seat_index < seats_.size(), "seat", "Seat index " + std::to_string(seat_index) + " is out of range for "
+		+ std::to_string( seats_.size() ) + "-element seats_ vector."
+	);
+	return seats_[seat_index];
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
@@ -262,6 +312,15 @@ Table::set_angle(
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC WORK FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Get a list of seats that are next to one another at this table.
+/// @details Base class implementation throws.  Must be implemented by derived classes.
+/*virtual*/
+std::vector< std::pair< SeatCSP, SeatCSP > >
+Table::get_adjacent_seats() const {
+	MASALA_THROW( class_namespace() + "::" + class_name(), "get_adjacent_seats", "This function must be implemented." );
+	return std::vector< std::pair< SeatCSP, SeatCSP > >{};
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PROTECTED FUNCTIONS
@@ -306,6 +365,17 @@ Table::protected_assign( SeatingElementBase const & src ) {
 std::vector< SeatSP > &
 Table::protected_seats() {
 	return seats_;
+}
+
+/// @brief Allow derived classes to access the seats vector (const access).  This is expected to occur under mutex lock, but
+/// this function does no mutex-locking.
+std::vector< SeatCSP >
+Table::protected_seats_const() const {
+	std::vector< SeatCSP > seats_copy( seats_.size() );
+	for( Size i(0); i<seats_.size(); ++i ) {
+		seats_copy[i] = seats_[i];
+	}
+	return seats_copy;
 }
 
 /// @brief Update the coordinates of seats on a change of table coordinates or dimensions.

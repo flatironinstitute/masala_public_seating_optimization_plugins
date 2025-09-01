@@ -16,24 +16,28 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/// @file src/seating_optimization/seating_problem_elements/Guest.cc
-/// @brief Implementations for a Guest.
-/// @details A Guest is a person who must be assigned a seat.
+/// @file src/seating_optimization/seating_problem_elements/constraints/Constraint.cc
+/// @brief Implementations for a Constraint.
+/// @details The Constraint class is the base class for constraints, which are elements of a seating problem.  They can
+/// be things like, "Guests A and B should be seated next to one another," or "Guest C should be near the front of the room", etc.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
 
 // Unit header:
-#include <seating_optimization/seating_problem_elements/Guest.hh>
+#include <seating_optimization/seating_problem_elements/constraints/Constraint.hh>
+
+// Seating optimization headers:
+#include <seating_optimization/seating_problem/SeatingProblem.hh>
 
 // Numeric headers:
 #include <numeric_api/utility/angles/angle_util.hh>
+#include <numeric/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem.hh>
 
 // Base headers:
 #include <base/error/ErrorHandling.hh>
 #include <base/api/MasalaObjectAPIDefinition.hh>
 #include <base/api/constructor/MasalaObjectAPIConstructorMacros.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
-#include <base/api/setter/MasalaObjectAPISetterDefinition_TwoInput.tmpl.hh>
-#include <base/api/getter/MasalaObjectAPIGetterDefinition_ZeroInput.tmpl.hh>
+#include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_ThreeInput.tmpl.hh>
 #include <base/utility/string/string_manipulation.hh>
 
 // STL headers:
@@ -41,31 +45,32 @@
 namespace seating_optimization_masala_plugins {
 namespace seating_optimization {
 namespace seating_problem_elements {
+namespace constraints {
 
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTION AND DESTRUCTION
 ////////////////////////////////////////////////////////////////////////////////
 
 /// @brief Copy constructor.  Explicit due to mutex.
-Guest::Guest( Guest const & src ) :
+Constraint::Constraint( Constraint const & src ) :
 	Parent( src )
 {
 	std::lock< std::mutex, std::mutex >( mutex(), src.mutex() );
 	std::lock_guard< std::mutex > lockthis( mutex(), std::adopt_lock );
 	std::lock_guard< std::mutex > lockthat( src.mutex(), std::adopt_lock );
-	Guest::protected_assign( src );
+	Constraint::protected_assign( src );
 }
 
 /// @brief Make a copy of this object.
 seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBaseSP
-Guest::clone() const {
-	return masala::make_shared< Guest >( *this );
+Constraint::clone() const {
+	return masala::make_shared< Constraint >( *this );
 }
 
 /// @brief Make a fully independent copy of this object.
-GuestSP
-Guest::deep_clone() const {
-	GuestSP new_guest( std::static_pointer_cast< Guest >( this->clone() ) );
+ConstraintSP
+Constraint::deep_clone() const {
+	ConstraintSP new_guest( std::static_pointer_cast< Constraint >( this->clone() ) );
 	new_guest->make_independent();
 	return new_guest;
 }
@@ -76,55 +81,55 @@ Guest::deep_clone() const {
 
 /// @brief Get the category or categories for this plugin class.  Default for all
 /// optimization problems; may be overridden by derived classes.
-/// @returns { { "SeatingProblem", "SeatingProblemElement", "Guest" } }
+/// @returns { { "SeatingProblem", "SeatingProblemElement", "Constraint" } }
 /// @note Categories are hierarchical (e.g. Selector->AtomSelector->AnnotatedRegionSelector,
 /// stored as { {"Selector", "AtomSelector", "AnnotatedRegionSelector"} }). A plugin can be
 /// in more than one hierarchical category (in which case there would be more than one
 /// entry in the outer vector), but must be in at least one.  The first one is used as
 /// the primary key.
 std::vector< std::vector< std::string > >
-Guest::get_categories() const {
+Constraint::get_categories() const {
 	return std::vector< std::vector< std::string > > {
-		{ "SeatingProblem", "SeatingProblemElement", "Guest" }
+		{ "SeatingProblem", "SeatingProblemElement", "Constraint" }
 	};
 }
 
 /// @brief Get the keywords for this plugin class.  Default for all
 /// optimization solutions; may be overridden by derived classes.
-/// @returns { "seating_problem", "seating_problem_element", "guest" }
+/// @returns { "seating_problem", "seating_problem_element", "constraint" }
 std::vector< std::string >
-Guest::get_keywords() const {
+Constraint::get_keywords() const {
 	return std::vector< std::string > {
 		"seating_problem",
 		"seating_problem_element",
-		"guest",
+		"constraint",
 	};
 }
 
 /// @brief Get the name of this class.
-/// @returns "Guest".
+/// @returns "Constraint".
 std::string
-Guest::class_name() const {
-	return "Guest";
+Constraint::class_name() const {
+	return "Constraint";
 }
 
 /// @brief Get the namespace for this class.
-/// @returns "masala::numeric::optimization::cost_function_network".
+/// @returns "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints".
 std::string
-Guest::class_namespace() const {
-	return "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements";
+Constraint::class_namespace() const {
+	return "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints";
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC INTERFACE DEFINITION
 ////////////////////////////////////////////////////////////////////////////////
 
-/// @brief Get a description of the API for the Guest class.
+/// @brief Get a description of the API for the Constraint class.
 masala::base::api::MasalaObjectAPIDefinitionCWP
-Guest::get_api_definition() {
+Constraint::get_api_definition() {
 	using namespace masala::base::api;
 	using namespace masala::base::api::setter;
-	using namespace masala::base::api::getter;
+	using namespace masala::base::api::work_function;
 	using masala::base::Real;
 	using masala::base::Size;
 
@@ -135,49 +140,46 @@ Guest::get_api_definition() {
 		MasalaObjectAPIDefinitionSP api_def(
 			masala::make_shared< MasalaObjectAPIDefinition >(
 				*this,
-				"The Guest class stores all information associated with a person in a seating problem who must be assigned a seat.",
-				false, false
+				"The Constraint class is the base class for constraints, which are elements of a seating problem.  They can "
+				"be things like, 'Guests A and B should be seated next to one another,' or 'Guest C should be near the front of the "
+				"room', etc.  This is a base class that is not intended to be instantiated outside of the API system.",
+				false, true
 			)
 		);
-		ADD_PUBLIC_CONSTRUCTOR_DEFINITIONS( Guest, api_def );
-
-		// Work functions:
+		ADD_PROTECTED_CONSTRUCTOR_DEFINITIONS( Constraint, api_def );
 
 		// Getters:
-		api_def->add_getter(
-			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< std::string const & > > (
-				"name", "Get the full name of this guest.",
-				"name", "The full name of this guest.",
-				false, false,
-				std::bind( &Guest::name, this )
-			)
-		);
-		api_def->add_getter(
-			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< std::string const & > > (
-				"unique_identifier", "Get a short string lacking whitespace that serves as a unique identifier for the guest.",
-				"unique_identifier", "A short string lacking whitespace that serves as a unique identifier for the guest.",
-				false, false,
-				std::bind( &Guest::unique_identifier, this )
-			)
-		);
 
 		// Setters:
 		api_def->add_setter(
-			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< std::string const & > > (
-				"set_name", "Set the full name of this guest.",
-				"name_in", "The full name of this guest.  Preceding and trailing whitespace will automatically be trimmed.  "
-				"Throws if this is an empty string.",
-				false, false,
-				std::bind( &Guest::set_name, this, std::placeholders::_1 )
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< std::string const & > >(
+				"configure_from_input_line", "Configure this object from a line in an input file.  "
+				"Base class implementation throws.  Must be overridden by derived classes.",
+				"input_line", "The line from which we are configuring this object.  Syntax depends on "
+				"derived class.  Must start with an identifier for the constraint type.",
+				true, false,
+				std::bind( &Constraint::configure_from_input_line, this, std::placeholders::_1 )
 			)
 		);
-		api_def->add_setter(
-			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< std::string const & > > (
-				"set_unique_identifier", "Set a short string lacking whitespace that serves as a unique identifier for the guest.",
-				"set_unique_identifier_in", "A short string lacking whitespace that serves as a unique identifier for the guest..  Preceding and trailing whitespace will automatically be trimmed.  "
-				"Throws if this is an empty string, or if this contains whitespace.",
-				false, false,
-				std::bind( &Guest::set_unique_identifier, this, std::placeholders::_1 )
+
+		// Work functions:
+		api_def->add_work_function(
+			masala::make_shared<
+				MasalaObjectAPIWorkFunctionDefinition_ThreeInput<
+					void,
+					seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const &,
+					masala::numeric::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem &,
+					masala::base::Real const
+				>
+			>(
+				"add_constraint_to_cfn_problem", "Modify a pairwise precomputed cost function network optimization problem to add "
+				"the constraint to it.  Base class implementation throws.  Must be overridden by derived classes.",
+				true, false, true, false,
+				"seating_problem", "The object describing the seats, tables, guests, and constraints.",
+				"cfn_problem", "The cost function network optimizaton problem, modified by this operation.",
+				"global_strength_multiplier", "A global multiplier for the strength of this constraint.",
+				"void", "This function returns nothing.",
+				std::bind( &Constraint::add_constraint_to_cfn_problem, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 )
 			)
 		);
 
@@ -191,55 +193,39 @@ Guest::get_api_definition() {
 // PUBLIC GETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
-/// @brief Get the guest's full name.
-std::string const &
-Guest::name() const {
-	std::lock_guard< std::mutex > lock( mutex() );
-	return name_;
-}
-
-/// @brief Get a short string lacking whitespace that serves as a unique identifier for the guest.
-std::string const &
-Guest::unique_identifier() const {
-	std::lock_guard< std::mutex > lock( mutex() );
-	return unique_identifier_;
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
-/// @brief Set the guest's full name.
+/// @brief Configure this object from a line in an input file.
+/// @details Base class implementation throws.  Must be overridden by derived classes.
+/*virtual*/
 void
-Guest::set_name(
-	std::string const & name_in
+Constraint::configure_from_input_line(
+	std::string const & //input_line
 ) {
-	std::string const name_in_stripped( masala::base::utility::string::trim( name_in ) );
-	CHECK_OR_THROW_FOR_CLASS( !name_in_stripped.empty(), "set_name", "Name cannot be empty!" );
-	std::lock_guard< std::mutex > lock( mutex() );
-	name_ = name_in_stripped;
+	MASALA_THROW( class_namespace() + "::" + class_name(), "configure_from_input_line", "This class must override this function." );
 }
 
-
-/// @brief Set a short string lacking whitespace that serves as a unique identifier for the guest.
-void
-Guest::set_unique_identifier(
-	std::string const &identifier_in
-) {
-	std::string const identifier_in_stripped( masala::base::utility::string::trim( identifier_in ) );
-	CHECK_OR_THROW_FOR_CLASS( !identifier_in_stripped.empty(), "set_unique_identifier", "The unique identifier cannot be empty!" );
-	for( Size i(0); i<identifier_in_stripped.size(); ++i ) {
-		CHECK_OR_THROW_FOR_CLASS( identifier_in[i] != ' ' && identifier_in[i] != '\t' && identifier_in[i] != '\n' && identifier_in[i] != '\r',
-			"set_unique_identifier", "The unique identifier cannot contain whitespace.  \"" + identifier_in_stripped + "\" is invalid."
-		);
-	}
-	std::lock_guard< std::mutex > lock( mutex() );
-	unique_identifier_ = identifier_in_stripped;
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC WORK FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
+
+
+/// @brief Modify a pairwise precomputed cost function network optimization problem to add
+/// the constraint to it.
+/// @details Base class implementation throws.  Must be overridden by derived classes.
+/*virtual*/
+void
+Constraint::add_constraint_to_cfn_problem(
+	seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const & ,//seating_problem,
+	masala::numeric::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem & ,//cfn_problem,
+	masala::base::Real const //global_strength_multiplier
+) const {
+	MASALA_THROW( class_namespace() + "::" + class_name(), "add_constraint_to_cfn_problem", "This class must override this function." );
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PROTECTED FUNCTIONS
@@ -248,7 +234,7 @@ Guest::set_unique_identifier(
 /// @brief Make this object fully indepdendent.  Derived classes must override this, and the override must call
 /// the parent class implementation.
 void
-Guest::protected_make_independent() {
+Constraint::protected_make_independent() {
 	// TODO DEEP CLONING
 	Parent::protected_make_independent();
 }
@@ -256,19 +242,18 @@ Guest::protected_make_independent() {
 /// @brief Assign src to this object.  Derived classes must override this, and the override must call
 /// the parent class implementation.
 void
-Guest::protected_assign( SeatingElementBase const & src ) {
-	Guest const * const src_ptr_cast( dynamic_cast< Guest const * >( &src ) );
+Constraint::protected_assign( SeatingElementBase const & src ) {
+	Constraint const * const src_ptr_cast( dynamic_cast< Constraint const * >( &src ) );
 	CHECK_OR_THROW_FOR_CLASS( src_ptr_cast != nullptr, "protected_assign", "Cannot assign an object of type " + src.class_name()
-		+ " to a Guest object."
+		+ " to a Constraint object."
 	);
 
 	// TODO TODO TODO
-	name_ = src_ptr_cast->name_;
-	unique_identifier_ = src_ptr_cast->unique_identifier_;
 
 	Parent::protected_assign( src );
 }
 
+} // namespace constraints
 } // namespace seating_problem_elements
 } // namespace seating_optimization
 } // namespace seating_optimization_masala_plugins

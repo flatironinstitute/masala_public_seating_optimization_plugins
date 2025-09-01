@@ -30,6 +30,9 @@
 #include <seating_optimization/seating_problem_elements/Seat.hh>
 #include <seating_optimization/seating_problem_elements/Table.hh>
 #include <seating_optimization/seating_problem_elements/CircularTable.hh>
+#include <seating_optimization/seating_problem_elements/constraints/Constraint.hh>
+#include <seating_optimization/seating_problem_elements/constraints/GuestPairAdjacentSeatConstraint.hh>
+#include <seating_optimization/seating_problem/SeatingProblem.hh>
 
 namespace seating_optimization_masala_plugins {
 namespace seating_optimization {
@@ -48,6 +51,9 @@ namespace api {
         outvec.push_back( masala::make_shared< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::Seat >() );		
         outvec.push_back( masala::make_shared< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::Table >() );		
         outvec.push_back( masala::make_shared< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::CircularTable >() );		
+        outvec.push_back( masala::make_shared< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::Constraint >() );		
+        outvec.push_back( masala::make_shared< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::GuestPairAdjacentSeatConstraint >() );		
+        outvec.push_back( masala::make_shared< seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem >() );		
         // ADD MORE ENTRIES HERE
 
         return outvec;

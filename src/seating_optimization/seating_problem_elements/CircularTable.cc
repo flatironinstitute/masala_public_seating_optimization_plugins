@@ -34,6 +34,7 @@
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_TwoInput.tmpl.hh>
 #include <base/api/getter/MasalaObjectAPIGetterDefinition_ZeroInput.tmpl.hh>
+#include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_ZeroInput.tmpl.hh>
 #include <base/utility/container/container_util.tmpl.hh>
 
 // Numeric API headers:
@@ -130,6 +131,7 @@ CircularTable::get_api_definition() {
 	using namespace masala::base::api;
 	using namespace masala::base::api::setter;
 	using namespace masala::base::api::getter;
+	using namespace masala::base::api::work_function;
 	using masala::base::Real;
 	using masala::base::Size;
 
@@ -147,6 +149,15 @@ CircularTable::get_api_definition() {
 		ADD_PUBLIC_CONSTRUCTOR_DEFINITIONS( CircularTable, api_def );
 
 		// Work functions:
+		// api_def->add_work_function(
+		// 	masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_ZeroInput< std::vector< std::pair< SeatCSP, SeatCSP > > > >(
+		// 		"get_adjacent_seats", "Get a list of seats that are next to one another at this table.  Base class implementation "
+		// 		"throws.  Must be implemented by derived classes.",
+		// 		false, false, false, true,
+		// 		"adjacent_seats", "A vector of pairs of const shared pointers to the seats at this table that are adjacent to each other.",
+		// 		std::bind( &CircularTable::get_adjacent_seats, this )
+		// 	)
+		// );
 
 		// Getters:
 		api_def->add_getter(
@@ -177,6 +188,26 @@ CircularTable::get_api_definition() {
 				"direction in x-y space).",
 				false, false,
 				std::bind( &CircularTable::angle, this )
+			)
+		);
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< Size > >(
+				"num_seats",
+				"Get the number of seats that this table has.",
+				"num_seats", "The number of seats that this table has.",
+				false, false,
+				std::bind( &CircularTable::num_seats, this )
+			)
+		);
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_OneInput< SeatCSP, Size > >(
+				"seat",
+				"Access a particular seat, by local index (staring at 0 with the first seat around this table).  "
+				"Throws if seat out of range.",
+				"seat_index", "The local, zero-based index of this seat.",
+				"seat", "A shared pointer to the Seat object.",
+				false, false,
+				std::bind( &CircularTable::seat, this, std::placeholders::_1 )
 			)
 		);
 
@@ -289,6 +320,24 @@ CircularTable::set_seat_count(
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC WORK FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Get a list of seats that are next to one another at this table.
+/// @details Base class implementation throws.  Must be implemented by derived classes.
+std::vector< std::pair< SeatCSP, SeatCSP > >
+CircularTable::get_adjacent_seats() const {
+	std::lock_guard< std::mutex > lock( mutex() );
+
+	std::vector< SeatCSP > const seats( protected_seats_const() );
+	if(seats.size() < 2) {
+		return std::vector< std::pair< SeatCSP, SeatCSP > >{};
+	}
+	std::vector< std::pair< SeatCSP, SeatCSP > > outvec( seats.size() );
+	outvec[0] = std::make_pair( seats[0], seats[seats.size()-1] );
+	for( Size i(1); i<seats.size(); ++i ) {
+		outvec[i] = std::make_pair( seats[i-1], seats[i] );
+	}
+	return outvec;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PROTECTED FUNCTIONS

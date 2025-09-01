@@ -125,8 +125,11 @@ public:
 // PUBLIC GETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
-	/// @brief Get the guest's name.
+	/// @brief Get the guest's full name.
 	std::string const & name() const;
+
+	/// @brief Get a short string lacking whitespace that serves as a unique identifier for the guest.
+	std::string const & unique_identifier() const;
 
 public:
 
@@ -134,8 +137,11 @@ public:
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
-	/// @brief Set the guest's name.
+	/// @brief Set the guest's full name.
 	void set_name( std::string const & name_in );
+
+	/// @brief Set a short string lacking whitespace that serves as a unique identifier for the guest.
+	void set_unique_identifier( std::string const &identifier_in );
 
 public:
 
@@ -157,18 +163,17 @@ protected:
 	/// the parent class implementation.
 	void protected_assign( SeatingElementBase const & src ) override;
 
-	/// @brief Allow derived classes to access the seats vector.  This is expected to occur under mutex lock, but
-	/// this function does no mutex-locking.
-	std::vector< SeatSP > & protected_seats();
-
 private:
 
 ////////////////////////////////////////////////////////////////////////////////
 // PRIVATE DATA
 ////////////////////////////////////////////////////////////////////////////////
 
-	/// @brief The guest's name.
+	/// @brief The guest's full name.
 	std::string name_;
+
+	/// @brief A short string lacking whitespace that serves as a unique identifier for the guest.
+	std::string unique_identifier_;
 
 }; // class Guest
 

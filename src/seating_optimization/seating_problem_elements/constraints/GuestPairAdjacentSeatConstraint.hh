@@ -16,22 +16,26 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/// @file src/seating_optimization/seating_problem_elements/CircularTable.hh
-/// @brief Headers for a CircularTable.
-/// @details As the name suggests, a circular table is a table with a circular shape and chairs arranged around it.
+/// @file src/seating_optimization/seating_problem_elements/constraints/GuestPairAdjacentSeatConstraint.hh
+/// @brief Headers for a GuestPairAdjacentSeatConstraint.
+/// @details The GuestPairAdjacentSeatConstraint class is used to indicate that two guests should be seated in adjacent seats,
+/// or should NOT be seated in adjacent seats.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
 
-#ifndef Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_CircularTable_hh
-#define Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_CircularTable_hh
+#ifndef Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_constraints_GuestPairAdjacentSeatConstraint_hh
+#define Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_constraints_GuestPairAdjacentSeatConstraint_hh
 
 // Forward declarations:
-#include <seating_optimization/seating_problem_elements/CircularTable.fwd.hh>
+#include <seating_optimization/seating_problem_elements/constraints/GuestPairAdjacentSeatConstraint.fwd.hh>
 
 // Parent header:
-#include <seating_optimization/seating_problem_elements/Table.hh>
+#include <seating_optimization/seating_problem_elements/constraints/Constraint.hh>
 
 // Seating optimization headers:
-#include <seating_optimization/seating_problem_elements/Seat.fwd.hh>
+#include <seating_optimization/seating_problem/SeatingProblem.fwd.hh>
+
+// Numeric headers:
+#include <numeric/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem.fwd.hh>
 
 // Base headers:
 #include <base/types.hh>
@@ -40,15 +44,17 @@
 namespace seating_optimization_masala_plugins {
 namespace seating_optimization {
 namespace seating_problem_elements {
+namespace constraints {
 
-/// @brief A CircularTable.
-/// @details As the name suggests, a circular table is a table with a circular shape and chairs arranged around it.
+/// @brief A GuestPairAdjacentSeatConstraint.
+/// @details The GuestPairAdjacentSeatConstraint class is used to indicate that two guests should be seated in adjacent seats,
+/// or should NOT be seated in adjacent seats.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
-class CircularTable : public seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::Table {
+class GuestPairAdjacentSeatConstraint : public seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::Constraint {
 
-	typedef seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::Table Parent;
-	typedef seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::TableSP ParentSP;
-	typedef seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::TableCSP ParentCSP;
+	typedef seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::Constraint Parent;
+	typedef seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::ConstraintSP ParentSP;
+	typedef seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::ConstraintCSP ParentCSP;
 
 	typedef masala::base::Real Real;
 	typedef masala::base::Size Size;
@@ -60,20 +66,20 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 
 	/// @brief Default constructor.
-	CircularTable() = default;
+	GuestPairAdjacentSeatConstraint() = default;
 
 	/// @brief Copy constructor.  Explicit due to mutex.
-	CircularTable( CircularTable const & src );
+	GuestPairAdjacentSeatConstraint( GuestPairAdjacentSeatConstraint const & src );
 
 	/// @brief Destructor.
-	~CircularTable() override = default;
+	~GuestPairAdjacentSeatConstraint() override = default;
 
 	/// @brief Make a copy of this object.
 	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBaseSP
 	clone() const override;
 
 	/// @brief Make a fully independent copy of this object.
-	CircularTableSP
+	GuestPairAdjacentSeatConstraintSP
 	deep_clone() const;
 
 public:
@@ -84,7 +90,7 @@ public:
 
 	/// @brief Get the category or categories for this plugin class.  Default for all
 	/// optimization problems; may be overridden by derived classes.
-	/// @returns { { "SeatingProblem", "SeatingProblemElement", "Table", "CircularTable" } }
+	/// @returns { { "SeatingProblem", "SeatingProblemElement", "Constraint" } }
 	/// @note Categories are hierarchical (e.g. Selector->AtomSelector->AnnotatedRegionSelector,
 	/// stored as { {"Selector", "AtomSelector", "AnnotatedRegionSelector"} }). A plugin can be
 	/// in more than one hierarchical category (in which case there would be more than one
@@ -95,17 +101,17 @@ public:
 
 	/// @brief Get the keywords for this plugin class.  Default for all
 	/// optimization solutions; may be overridden by derived classes.
-	/// @returns { "seating_problem", "seating_problem_element", "table", "circular" }
+	/// @returns { "seating_problem", "seating_problem_element", "constraint" }
 	std::vector< std::string >
 	get_keywords() const override;
 
 	/// @brief Get the name of this class.
-	/// @returns "CircularTable".
+	/// @returns "GuestPairAdjacentSeatConstraint".
 	std::string
 	class_name() const override;
 
 	/// @brief Get the namespace for this class.
-	/// @returns "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements".
+	/// @returns "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints".
 	std::string
 	class_namespace() const override;
 
@@ -132,17 +138,10 @@ public:
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
-	/// @brief Set the radius of the table.
-	/// @param radius_in The radius of the table, in meters.  Note that this is the radius from
-	/// the centre at which seat centres are found, not the radius of the tabletop.  Defaults to 1.0.
-	void set_radius( Real const radius_in );
-
-	/// @brief Set the number of seats evenly spaced around the table.  Clears any existing seats.
-	/// @param seat_count_in The number of seats to space around the table evenly.
-	/// @param omitted_seats An optional set of seat indices (zero-based) to omit.  This can be useful if, for instance,
-	/// a table is against a wall, or one seat would be too close to a pillar, or whatnot.  Leave this as an empty vector
-	/// to have seats evenly spaced all the way around the table.
-	void set_seat_count( Size const seat_count_in, std::vector< Size > const & omitted_seats );
+	/// @brief Configure this object from a line in an input file.
+	/// @details Base class implementation throws.  Must be overridden by derived classes.  This version expects
+	/// a line of the form "GuestPairAdjacentSeatConstraint <guest1_uid> <guest2_uid> <constraint_strength>".
+	void configure_from_input_line( std::string const & input_line ) override;
 
 public:
 
@@ -150,10 +149,15 @@ public:
 // PUBLIC WORK FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
 
-	/// @brief Get a list of seats that are next to one another at this table.
-	/// @details Base class implementation throws.  Must be implemented by derived classes.
-	std::vector< std::pair< SeatCSP, SeatCSP > >
-	get_adjacent_seats() const override;
+	/// @brief Modify a pairwise precomputed cost function network optimization problem to add
+	/// the constraint to it.
+	/// @details Base class implementation throws.  Must be overridden by derived classes.
+	void
+	add_constraint_to_cfn_problem(
+		seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const & seating_problem,
+		masala::numeric::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem & cfn_problem,
+		masala::base::Real const global_strength_multiplier
+	) const override;
 
 protected:
 
@@ -169,24 +173,27 @@ protected:
 	/// the parent class implementation.
 	void protected_assign( SeatingElementBase const & src ) override;
 
-	/// @brief Update the coordinates of seats on a change of table coordinates or dimensions.
-	/// @note Performs no mutex-locking.  Should only be called in a mutex-locked context.
-	void protected_update_seat_coordinates() override;
-
 private:
 
 ////////////////////////////////////////////////////////////////////////////////
 // PRIVATE DATA
 ////////////////////////////////////////////////////////////////////////////////
 
-	/// @brief The radius of the table, in meters.  Note that this is the distance from the centre at which seat centres are
-	/// found, not the radius of the tabletop.  Defaults to 1.0.
-	Real radius_ = 1.0;
+	/// @brief First guest unique identifier.
+	std::string first_guest_uid_;
 
-}; // class CircularTable
+	/// @brief Second guest unique identifier.
+	std::string second_guest_uid_;
 
+	/// @brief Constraint strength.  Defaults to 0.  Positive values indicate a penalty for two guests being side-by-side;
+	/// negative values indicate a bonus.
+	masala::base::Real constraint_strength_ = 0.0;
+
+}; // class GuestPairAdjacentSeatConstraint
+
+} // namespace constraints
 } // namespace seating_problem_elements
 } // namespace seating_optimization
 } // namespace seating_optimization_masala_plugins
 
-#endif // Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_CircularTable_hh
+#endif // Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_constraints_GuestPairAdjacentSeatConstraint_hh

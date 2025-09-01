@@ -139,7 +139,8 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 
 	/// @brief Configure this object from a line in an input file.
-	/// @details Base class implementation throws.  Must be overridden by derived classes.
+	/// @details Base class implementation throws.  Must be overridden by derived classes.  This version expects
+	/// a line of the form "GuestPairAdjacentSeatConstraint <guest1_uid> <guest2_uid> <constraint_strength>".
 	void configure_from_input_line( std::string const & input_line ) override;
 
 public:

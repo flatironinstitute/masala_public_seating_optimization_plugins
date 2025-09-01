@@ -154,7 +154,8 @@ GuestPairAdjacentSeatConstraint::get_api_definition() {
 		api_def->add_setter(
 			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< std::string const & > >(
 				"configure_from_input_line", "Configure this object from a line in an input file.  "
-				"Base class implementation throws.  Must be overridden by derived classes.",
+				"Base class implementation throws.  Must be overridden by derived classes.  This version expects "
+				"a line of the form 'GuestPairAdjacentSeatConstraint <guest1_uid> <guest2_uid> <constraint_strength>'.",
 				"input_line", "The line from which we are configuring this object.  Syntax depends on "
 				"derived class.  Must start with an identifier for the constraint type.",
 				false, true,
@@ -199,7 +200,8 @@ GuestPairAdjacentSeatConstraint::get_api_definition() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /// @brief Configure this object from a line in an input file.
-/// @details Base class implementation throws.  Must be overridden by derived classes.
+/// @details Base class implementation throws.  Must be overridden by derived classes.  This version expects
+/// a line of the form "GuestPairAdjacentSeatConstraint <guest1_uid> <guest2_uid> <constraint_strength>".
 void
 GuestPairAdjacentSeatConstraint::configure_from_input_line(
 	std::string const & input_line
@@ -210,6 +212,7 @@ GuestPairAdjacentSeatConstraint::configure_from_input_line(
 	ss >> linestart >> first_guest_uid_ >> second_guest_uid_ >> constraint_strength_;
 	CHECK_OR_THROW_FOR_CLASS( !(ss.bad() || ss.fail()), "configure_from_input_line", "Could not parse line \"" + input_line + "\"." );
 	CHECK_OR_THROW_FOR_CLASS( ss.eof(), "configure_from_input_line", "Extra input at end of line \"" + input_line + "\"." );
+	CHECK_OR_THROW_FOR_CLASS( linestart == "GuestPairAdjacentSeatConstraint", "configure_from_input_line", "Expected line to begin with class name (\"GuestPairAdjacentSeatConstraint\")." );
 }
 
 

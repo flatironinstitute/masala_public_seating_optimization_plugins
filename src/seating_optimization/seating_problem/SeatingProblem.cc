@@ -27,6 +27,7 @@
 // Seating optimization headers:
 #include <seating_optimization/seating_problem_elements/Guest.hh>
 #include <seating_optimization/seating_problem_elements/Table.hh>
+#include <seating_optimization/seating_problem_elements/Seat.hh>
 
 // Base headers:
 #include <base/error/ErrorHandling.hh>
@@ -243,7 +244,7 @@ SeatingProblem::add_table(
 	}
 	tables_.push_back( table_in );
 	
-	// TODO UPDATE SEATS.
+	regenerate_seat_indices();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -272,12 +273,13 @@ SeatingProblem::protected_make_independent() {
 	}
 	if( !tables_.empty() ) {
 		for( Size i(0); i<tables_.size(); ++i ) {
-			TableSP new_table( static_cast< Table >( tables_[i]->clone() ) );
+			TableSP new_table( std::dynamic_pointer_cast< Table >( tables_[i]->clone() ) );
 			CHECK_OR_THROW_FOR_CLASS( new_table != nullptr, "protected_make_independent", "Unable to clone table " + std::to_string(i) + "." );
 			new_table->make_independent();
 			tables_[i] = new_table;
 		}
 	}
+	regenerate_seat_indices();
 }
 
 /// @brief Assign src to this object.  Derived classes must override this, and the override must call
@@ -288,7 +290,32 @@ SeatingProblem::protected_assign(
 ) {
 	guests_ = src.guests_;
 	tables_ = src.tables_;
+	seat_indices_ = src.seat_indices_;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// PRIVATE FUNCTIONS
+////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Update the list of seat indices (from scratch).
+/// @details The seat_indices_ map is cleared and repopulated by this operation.  No mutex locking
+void
+SeatingProblem::regenerate_seat_indices() {
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
+	using masala::base::Size;
+
+	seat_indices_.clear();
+	Size counter(0);
+	for( Size i(0); i<tables_.size(); ++i ) {
+		for( Size j(0); j<tables_[i]->num_seats(); ++j ) {
+			SeatCSP curseat(  tables_[i]->seat(j) );
+			CHECK_OR_THROW_FOR_CLASS( seat_indices_.count(curseat) == 0, "regenerate_seat_indices", "A seat was already added to the seat_indices_ map." );
+			seat_indices_[curseat] = counter;
+			++counter;
+		}
+	}
+}
+
 
 } // namespace seating_problem
 } // namespace seating_optimization

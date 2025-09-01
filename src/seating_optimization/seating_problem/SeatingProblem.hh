@@ -33,6 +33,7 @@
 // Seating optimization headers:
 #include <seating_optimization/seating_problem_elements/Guest.fwd.hh>
 #include <seating_optimization/seating_problem_elements/Table.fwd.hh>
+#include <seating_optimization/seating_problem_elements/Seat.fwd.hh>
 
 // Base headers:
 #include <base/types.hh>
@@ -186,6 +187,16 @@ protected:
 private:
 
 ////////////////////////////////////////////////////////////////////////////////
+// PRIVATE FUNCTIONS
+////////////////////////////////////////////////////////////////////////////////
+
+	/// @brief Update the list of seat indices (from scratch).
+	/// @details The seat_indices_ map is cleared and repopulated by this operation.  No mutex locking
+	void regenerate_seat_indices();
+
+private:
+
+////////////////////////////////////////////////////////////////////////////////
 // PRIVATE DATA
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -201,6 +212,9 @@ private:
 
 	/// @brief The tables, stored by index.
 	std::vector< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::TableCSP > tables_;
+
+	/// @brief The zero-based absolute indices of the seats.
+	std::map< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP, masala::base::Size > seat_indices_;
 
 }; // class SeatingProblem
 

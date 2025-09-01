@@ -35,6 +35,7 @@
 #include <base/api/constructor/MasalaObjectAPIConstructorMacros.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 #include <base/api/getter/MasalaObjectAPIGetterDefinition_OneInput.tmpl.hh>
+#include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_ZeroInput.tmpl.hh>
 
 // STL headers:
 
@@ -143,6 +144,7 @@ SeatingProblem::get_api_definition() {
     using namespace masala::base::api;
     using namespace masala::base::api::setter;
     using namespace masala::base::api::getter;
+    using namespace masala::base::api::work_function;
     using masala::base::Real;
     using masala::base::Size;
 
@@ -160,6 +162,17 @@ SeatingProblem::get_api_definition() {
         ADD_PROTECTED_CONSTRUCTOR_DEFINITIONS( SeatingProblem, api_def );
 
         // Work functions:
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_ZeroInput< std::vector< std::pair< masala::base::Size, masala::base::Size > > > >(
+				"get_adjacent_seat_global_indices",
+				"Get a vector of pairs of global seat indices, with one pair for every two seats that are next to one another at "
+				"each table in the problem.",
+				true, false, false, false,
+				"adjacent_seat_global_indices",
+				"A vector of pairs representing the global, zero-based indices of the seats that are adjacent to one another.",
+				std::bind( &SeatingProblem::get_adjacent_seat_global_indices, this )
+			)
+		);
 
         // Getters:
 		api_def->add_getter(
@@ -250,6 +263,29 @@ SeatingProblem::add_table(
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC WORK FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Get a vector of pairs of global seat indices, with one pair for every two seats that are next to one another
+/// at each table in the problem.
+std::vector< std::pair< masala::base::Size, masala::base::Size > >
+SeatingProblem::get_adjacent_seat_global_indices() const {
+	using masala::base::Size;
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
+	std::vector< std::pair< Size, Size > > outvec;
+	std::lock_guard< std::mutex > lock( mutex_ );
+	
+	for( Size i(0); i<tables_.size(); ++i ) {
+		std::vector< std::pair< SeatCSP, SeatCSP > > const adjacent_seats_for_table( tables_[i]->get_adjacent_seats() );
+		for( auto const & seatpair : adjacent_seats_for_table ) {
+			Size seat1_index( seat_indices_.at(seatpair.first) );
+			Size seat2_index( seat_indices_.at(seatpair.second) );
+			if( seat1_index > seat2_index ) { std::swap( seat1_index, seat2_index ); }
+			outvec.push_back( std::make_pair(seat1_index, seat2_index) );
+		}
+	}
+
+	outvec.shrink_to_fit();
+	return outvec;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PROTECTED FUNCTIONS

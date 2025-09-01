@@ -161,6 +161,11 @@ public:
 // PUBLIC WORK FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
 
+	/// @brief Get a vector of pairs of global seat indices, with one pair for every two seats that are next to one another
+	/// at each table in the problem.
+	std::vector< std::pair< masala::base::Size, masala::base::Size > >
+	get_adjacent_seat_global_indices() const;
+
 protected:
 
 ////////////////////////////////////////////////////////////////////////////////

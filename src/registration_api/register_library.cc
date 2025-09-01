@@ -49,8 +49,10 @@ register_library() {
     module_version_info->add_requirement_with_minimum_version(
         "Masala",
         true,
-        std::pair< Size, Size >( 0, 13 ), // Min version
+        std::pair< Size, Size >( 0, 15 ), // Min version
         "",
+        "Version 0.15 added the add_to_onebody_penalty() and add_to_twobody_penalty() functions for pairwise precomputed CFN problems.  "
+        "Version 0.14 added the protected_make_independent() function for CFN optimizers.  "
         "Version 0.13 updated some of the CMake files, made the release build the default build, and added support for AVX512 instructions.  "
         "Version 0.12 updated the Masala random generator to ensure that different MPI processes had different random seeds.  "
         "Version 0.11 changed base class names for optimizers, for consistency.  "
@@ -69,9 +71,10 @@ register_library() {
     module_version_info->add_requirement_with_minimum_version(
         "Standard Masala Plugins",
         false,
-        std::pair< Size, Size >( 0, 13 ), // Min version
+        std::pair< Size, Size >( 0, 15 ), // Min version
         "",
-        "If the Standard Masala Plugins repository is provided, its minimum version must be 0.12.  "
+        "Version 0.15 added the add_to_onebody_penalty() and add_to_twobody_penalty() functions for derived classes of pairwise precomputed CFN problems.  "
+        "Version 0.14 added the protected_make_independent() function for CFN optimizers.  "
         "Version 0.13 corrected the categories for real-valued local (RVL) optimizer engines.  "
         "Version 0.12 updated CMake files, made the release build (rather than the debug build) the default build, and added support for AVX512 instructions.  "
         "Version 0.11 changed base class names for optimizers, for consistency.  "
@@ -83,6 +86,14 @@ register_library() {
         "Version 0.5 adds gradient-descent minimizers which are intended for use with the approximate binary QUBO encoding.  "
         "Version 0.4 fixes the cost function network optimization problem API.  "
         "Prior to version 0.3, the BinaryCostFunctionNetworkProblemRosettaFileInterpreter did not exist."
+    );
+
+    module_version_info->add_requirement_with_minimum_version(
+        "Quantum Computing Masala Plugins",
+        false,
+        std::pair< Size, Size >( 0, 16 ), // Min version
+        "",
+        "Version 0.16 added the add_to_onebody_penalty() and add_to_twobody_penalty() functions for derived classes of pairwise precomputed CFN problems.  "
     );
     MasalaVersionManager::get_instance()->add_library_information( module_version_info );
     seating_optimization_masala_plugins::registration::register_sub_libraries();

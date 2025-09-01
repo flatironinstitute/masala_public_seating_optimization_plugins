@@ -32,6 +32,7 @@
 
 // Seating optimization headers:
 #include <seating_optimization/seating_problem_elements/Guest.fwd.hh>
+#include <seating_optimization/seating_problem_elements/Table.fwd.hh>
 
 // Base headers:
 #include <base/types.hh>
@@ -147,6 +148,12 @@ public:
 		seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP const & guest_in
 	);
 
+	/// @brief Add a table.  Stored directly; not cloned.
+	void
+	add_table(
+		seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::TableCSP const & table_in
+	);
+
 public:
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -191,6 +198,9 @@ private:
 	/// @brief The guests that we are storing, stored by unique identifier.
 	/// @details The UID string points to a pair of guest index, guest object.
 	std::map< std::string, std::pair< masala::base::Size, seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP > > guests_;
+
+	/// @brief The tables, stored by index.
+	std::vector< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::TableCSP > tables_;
 
 }; // class SeatingProblem
 

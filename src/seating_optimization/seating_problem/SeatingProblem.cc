@@ -26,6 +26,7 @@
 
 // Seating optimization headers:
 #include <seating_optimization/seating_problem_elements/Guest.hh>
+#include <seating_optimization/seating_problem_elements/Table.hh>
 
 // Base headers:
 #include <base/error/ErrorHandling.hh>
@@ -179,6 +180,14 @@ SeatingProblem::get_api_definition() {
 				std::bind( &SeatingProblem::add_guest, this, std::placeholders::_1 )
 			)
 		);
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::TableCSP const & > >(
+				"add_table", "Add a table.  Stored directly; not cloned.",
+				"table_in", "The table to add.",
+				false, false,
+				std::bind( &SeatingProblem::add_table, this, std::placeholders::_1 )
+			)
+		);
 
         api_definition() = api_def; //Make const.
     }
@@ -223,6 +232,20 @@ SeatingProblem::add_guest(
 	guests_[uid] = std::make_pair( nguests, guest_in );
 }
 
+/// @brief Add a table.  Stored directly; not cloned.
+void
+SeatingProblem::add_table(
+	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::TableCSP const & table_in
+) {
+	std::lock_guard< std::mutex > lock( mutex_ );
+	for( auto const & table : tables_ ) {
+		CHECK_OR_THROW_FOR_CLASS( table.get() != table_in.get(), "add_table", "A table was passed to this function that has already been added!" );
+	}
+	tables_.push_back( table_in );
+	
+	// TODO UPDATE SEATS.
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC WORK FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
@@ -235,16 +258,36 @@ SeatingProblem::add_guest(
 /// the parent class implementation.
 void
 SeatingProblem::protected_make_independent() {
-    /* GNDN */
+	using masala::base::Size;
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
+
+	api_definition_ = nullptr;
+	if( !guests_.empty() ) {
+		for( std::map< std::string, std::pair< Size, GuestCSP > >::iterator it( guests_.begin() ); it != guests_.end(); ++it ) {
+			GuestSP new_guest( std::dynamic_pointer_cast< Guest >( it->second.second->clone() ) );
+			CHECK_OR_THROW_FOR_CLASS( new_guest != nullptr, "protected_make_independent", "Could not clone guest \"" + it->second.second->name() + "\"." );
+			new_guest->make_independent();
+			it->second.second = new_guest;
+		}
+	}
+	if( !tables_.empty() ) {
+		for( Size i(0); i<tables_.size(); ++i ) {
+			TableSP new_table( static_cast< Table >( tables_[i]->clone() ) );
+			CHECK_OR_THROW_FOR_CLASS( new_table != nullptr, "protected_make_independent", "Unable to clone table " + std::to_string(i) + "." );
+			new_table->make_independent();
+			tables_[i] = new_table;
+		}
+	}
 }
 
 /// @brief Assign src to this object.  Derived classes must override this, and the override must call
 /// the parent class implementation.
 void
 SeatingProblem::protected_assign(
-    SeatingProblem const & /*src*/
+    SeatingProblem const & src
 ) {
-    /* GNDN */
+	guests_ = src.guests_;
+	tables_ = src.tables_;
 }
 
 } // namespace seating_problem

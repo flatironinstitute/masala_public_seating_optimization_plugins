@@ -38,6 +38,7 @@
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_TwoInput.tmpl.hh>
 #include <base/api/getter/MasalaObjectAPIGetterDefinition_ZeroInput.tmpl.hh>
+#include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_ZeroInput.tmpl.hh>
 
 // STL headers:
 
@@ -128,6 +129,7 @@ Table::get_api_definition() {
 	using namespace masala::base::api;
 	using namespace masala::base::api::setter;
 	using namespace masala::base::api::getter;
+	using namespace masala::base::api::work_function;
 	using masala::base::Real;
 	using masala::base::Size;
 
@@ -146,6 +148,15 @@ Table::get_api_definition() {
 		ADD_PROTECTED_CONSTRUCTOR_DEFINITIONS( Table, api_def );
 
 		// Work functions:
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_ZeroInput< std::vector< std::pair< SeatCSP, SeatCSP > > > >(
+				"get_adjacent_seats", "Get a list of seats that are next to one another at this table.  Base class implementation "
+				"throws.  Must be implemented by derived classes.",
+				false, false, true, false,
+				"adjacent_seats", "A vector of pairs of const shared pointers to the seats at this table that are adjacent to each other.",
+				std::bind( &Table::get_adjacent_seats, this )
+			)
+		);
 
 		// Getters:
 		api_def->add_getter(
@@ -301,6 +312,15 @@ Table::set_angle(
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC WORK FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Get a list of seats that are next to one another at this table.
+/// @details Base class implementation throws.  Must be implemented by derived classes.
+/*virtual*/
+std::vector< std::pair< SeatCSP, SeatCSP > >
+Table::get_adjacent_seats() const {
+	MASALA_THROW( class_namespace() + "::" + class_name(), "get_adjacent_seats", "This function must be implemented." );
+	return std::vector< std::pair< SeatCSP, SeatCSP > >{};
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PROTECTED FUNCTIONS

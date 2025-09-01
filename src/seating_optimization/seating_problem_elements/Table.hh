@@ -165,6 +165,12 @@ public:
 // PUBLIC WORK FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
 
+	/// @brief Get a list of seats that are next to one another at this table.
+	/// @details Base class implementation throws.  Must be implemented by derived classes.
+	virtual
+	std::vector< std::pair< SeatCSP, SeatCSP > >
+	get_adjacent_seats() const;
+
 protected:
 
 ////////////////////////////////////////////////////////////////////////////////

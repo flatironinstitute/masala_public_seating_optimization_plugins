@@ -40,6 +40,7 @@
 // Base headers:
 #include <base/types.hh>
 #include <vector>
+#include <string>
 
 namespace seating_optimization_masala_plugins {
 namespace seating_optimization {

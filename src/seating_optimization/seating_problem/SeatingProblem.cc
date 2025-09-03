@@ -278,13 +278,13 @@ SeatingProblem::configure_from_problem_definition_file_lines(
 			write_to_tracer( "Configured a \"" + seating_element->class_name() + "\" object." );
 
 			// Determine the type of the object, and store it appropriately.
-			GuestCSP guest( std::dynamic_pointer_cast< Guest const >(seating_element);
+			GuestCSP guest( std::dynamic_pointer_cast< Guest const >(seating_element) );
 			if( guest != nullptr ) { protected_add_guest(guest); }
 			else {
 				constraints::ConstraintCSP constraint( std::dynamic_pointer_cast< constraints::Constraint const >(seating_element) );
 				if( constraint != nullptr ) { protected_add_constraint(constraint); }
 				else {			
-					TableCSP table( std::dynamic_pointer_cast< Table const >(seating_element);
+					TableCSP table( std::dynamic_pointer_cast< Table const >(seating_element) );
 					if( table != nullptr ) { protected_add_table(table); }
 					else {
 						SeatCSP seat( std::dynamic_pointer_cast< Seat const >(seating_element) );
@@ -362,6 +362,7 @@ SeatingProblem::protected_add_guest(
 	);
 	masala::base::Size nguests( guests_.size() );
 	guests_[uid] = std::make_pair( nguests, guest_in );
+	write_to_tracer( "Added guest \"" + guest_in->name() + "\" (index " + std::to_string(nguests) + ") with unique identifier \"" + guest_in->unique_identifier() + "\"." );
 }
 
 /// @brief Add a table.  Stored directly; not cloned.
@@ -376,6 +377,8 @@ SeatingProblem::protected_add_table(
 	tables_.push_back( table_in );
 	
 	regenerate_seat_indices();
+
+	write_to_tracer( "Added table " + std::to_string(tables_.size() - 1) + " of type \"" + table_in->class_name() + "\", with " + std::to_string( table_in->num_seats() ) + " seats." );
 }
 
 /// @brief Add a loose seat.  Stored directly; not cloned.  (NOT YET SUPPORTED -- THROWS.)

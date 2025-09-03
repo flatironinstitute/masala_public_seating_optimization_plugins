@@ -137,6 +137,10 @@ public:
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
+	/// @brief Configure this object from a line in a problem definition file.
+	/// @details This override expects a line of the format "Seat <xcoord> <ycoord> <angle_degrees>".
+	void configure_from_input_line( std::string const & file_line ) override;
+
 	/// @brief Set the seat's coordinates.  A seat has coordinates in R^2 (x and y).
 	void set_coordinates( Real const x_in, Real const y_in );
 

@@ -35,8 +35,10 @@
 #include <base/api/constructor/MasalaObjectAPIConstructorDefinition_ThreeInput.tmpl.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_TwoInput.tmpl.hh>
+#include <base/utility/string/string_manipulation.hh>
 
 // STL headers:
+#include <sstream>
 
 namespace seating_optimization_masala_plugins {
 namespace seating_optimization {
@@ -171,6 +173,16 @@ Seat::get_api_definition() {
 
 		// Setters:
 		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< std::string const & > >(
+				"configure_from_input_line",
+				"Configure this object from a line in a problem definition file.  This implementation expects "
+				"a line of the format 'Seat <xcoord> <ycoord> <angle_degrees>'.",
+				"file_line", "A line from a configuration file.  Should start with the class name.",
+				true, false,
+				std::bind( &Seat::configure_from_input_line, this, std::placeholders::_1 )
+			)
+		);
+		api_def->add_setter(
 			masala::make_shared< MasalaObjectAPISetterDefinition_TwoInput< Real const, Real const > >(
 				"set_coordinates",
 				"Set the seat's coordinates.  A seat has coordinates in R^2 (x and y).",
@@ -204,6 +216,23 @@ Seat::get_api_definition() {
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Configure this object from a line in a problem definition file.
+/// @details This override expects a line of the format "Seat <xcoord> <ycoord> <angle_degrees>".
+void
+Seat::configure_from_input_line(
+	std::string const & file_line
+) {
+	std::string const linetrimmed( masala::base::utility::string::trim( file_line ) );
+	std::istringstream ss( linetrimmed );
+	std::string firststring;
+	std::lock_guard< std::mutex > lock( mutex() );
+	ss >> firststring >> x_ >> y_ >> angle_degrees_;
+	CHECK_OR_THROW_FOR_CLASS( !(ss.bad() || ss.fail()), "configure_from_input_line", "Could not parse line \"" + linetrimmed + "\"." );
+	CHECK_OR_THROW_FOR_CLASS( ss.eof(), "configure_from_input_line", "Extra input in line \"" + linetrimmed + "\"." );
+	CHECK_OR_THROW_FOR_CLASS( firststring == "Seat", "configure_from_input_line", "Expected Seat configuration line to start with \"Seat\", but got \"" + linetrimmed + "\"." );
+	angle_degrees_ = masala::numeric_api::utility::angles::positive_angle_degrees( angle_degrees_ );
+}
 
 /// @brief Set the seat's coordinates.
 void

@@ -37,6 +37,7 @@
 #include <base/utility/string/string_manipulation.hh>
 
 // STL headers:
+#include <sstream>
 
 namespace seating_optimization_masala_plugins {
 namespace seating_optimization {
@@ -163,6 +164,17 @@ Guest::get_api_definition() {
 
 		// Setters:
 		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< std::string const & > >(
+				"configure_from_input_line",
+				"Configure this object from a line in a problem definition file.  This override expects a "
+				"line of the format 'Guest <unique_id> <names...>'.  There must be at least a surname, "
+				"but you can include as many given names as you like.",
+				"file_line", "A line from a configuration file.  Should start with the class name.",
+				false, true,
+				std::bind( &Guest::configure_from_input_line, this, std::placeholders::_1 )
+			)
+		);
+		api_def->add_setter(
 			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< std::string const & > > (
 				"set_name", "Set the full name of this guest.",
 				"name_in", "The full name of this guest.  Preceding and trailing whitespace will automatically be trimmed.  "
@@ -208,6 +220,35 @@ Guest::unique_identifier() const {
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Configure this object from a line in a problem definition file.
+/// @details This override expects a line of the format "Guest <unique_id> <names...>".  There must be at
+/// least a surname, but you can include as many given names as you like.
+void
+Guest::configure_from_input_line(
+	std::string const & file_line
+) {
+	std::string const linetrimmed( masala::base::utility::string::trim(file_line) );
+	std::istringstream ss(linetrimmed);
+	std::string tempname;
+	std::lock_guard< std::mutex > lock( mutex() );
+	ss >> tempname >> unique_identifier_ >> name_;
+	CHECK_OR_THROW_FOR_CLASS( !(ss.fail() || ss.bad()), "configure_from_input_line", "Could not parse line \""
+		+ linetrimmed + "\".  Expected: Guest <unique_identifier> <names...>"
+	);
+	CHECK_OR_THROW_FOR_CLASS( tempname == "Guest", "configure_from_input_line", "Expected line \"" + linetrimmed
+		+"\" to start with \"Guest\"."
+	);
+	while( !ss.eof() ) {
+		std::string temp;
+		ss >> temp;
+		std::string const temptrimmed( masala::base::utility::string::trim(temp) );
+		if( !temptrimmed.empty() ) {
+			if( !name_.empty() ) { name_ += " "; }
+			name_ += temptrimmed;
+		}
+	}
+}
 
 /// @brief Set the guest's full name.
 void

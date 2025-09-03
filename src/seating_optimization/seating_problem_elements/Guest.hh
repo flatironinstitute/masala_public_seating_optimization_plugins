@@ -138,6 +138,11 @@ public:
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
+	/// @brief Configure this object from a line in a problem definition file.
+	/// @details This override expects a line of the format "Guest <unique_id> <names...>".  There must be at
+	/// least a surname, but you can include as many given names as you like.
+	void configure_from_input_line( std::string const & file_line ) override;
+
 	/// @brief Set the guest's full name.
 	void set_name( std::string const & name_in );
 

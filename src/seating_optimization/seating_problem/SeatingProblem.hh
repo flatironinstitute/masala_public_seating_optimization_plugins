@@ -34,6 +34,7 @@
 #include <seating_optimization/seating_problem_elements/Guest.fwd.hh>
 #include <seating_optimization/seating_problem_elements/Table.fwd.hh>
 #include <seating_optimization/seating_problem_elements/Seat.fwd.hh>
+#include <seating_optimization/seating_problem_elements/constraints/Constraint.fwd.hh>
 
 // Base headers:
 #include <base/types.hh>
@@ -205,7 +206,14 @@ protected:
 	/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
 	void
 	protected_add_seat(
-		seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP const & table_in
+		seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP const & seat_in
+	);
+
+	/// @brief Add a constraint.  Stored directly; not cloned.  (NOT YET SUPPORTED -- THROWS.  MUST BE IMPLEMENTED.)
+	/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
+	void
+	protected_add_constraint(
+		seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::ConstraintCSP const & constraint_in
 	);
 
 	/// @brief Make this object fully indepdendent.  Derived classes must override this, and the override must call

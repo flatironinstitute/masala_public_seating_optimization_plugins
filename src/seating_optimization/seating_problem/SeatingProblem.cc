@@ -280,16 +280,20 @@ SeatingProblem::configure_from_problem_definition_file_lines(
 			// Determine the type of the object, and store it appropriately.
 			GuestCSP guest( std::dynamic_pointer_cast< Guest const >(seating_element);
 			if( guest != nullptr ) { protected_add_guest(guest); }
-			else {			
-				TableCSP table( std::dynamic_pointer_cast< Table const >(seating_element);
-				if( table != nullptr ) { protected_add_table(table); }
-				else {
-					SeatCSP seat( std::dynamic_pointer_cast< Seat const >(seating_element) );
-					if( seat != nullptr ) { protected_add_seat(seat); }
+			else {
+				constraints::ConstraintCSP constraint( std::dynamic_pointer_cast< constraints::Constraint const >(seating_element) );
+				if( constraint != nullptr ) { protected_add_constraint(constraint); }
+				else {			
+					TableCSP table( std::dynamic_pointer_cast< Table const >(seating_element);
+					if( table != nullptr ) { protected_add_table(table); }
 					else {
-						MASALA_THROW( class_namespace() + "::" + class_name(), "configure_from_problem_definition_file_lines",
-							"Could not interpret \"" + seating_element->class_name() + "\" object as a Guest, a Table, or a Seat."
-						);
+						SeatCSP seat( std::dynamic_pointer_cast< Seat const >(seating_element) );
+						if( seat != nullptr ) { protected_add_seat(seat); }
+						else {
+							MASALA_THROW( class_namespace() + "::" + class_name(), "configure_from_problem_definition_file_lines",
+								"Could not interpret \"" + seating_element->class_name() + "\" object as a Guest, a Table, a Seat, or a Constraint."
+							);
+						}
 					}
 				}
 			}
@@ -378,9 +382,18 @@ SeatingProblem::protected_add_table(
 /// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
 void
 SeatingProblem::protected_add_seat(
-	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP const & //table_in
+	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP const & //seat_in
 ) {
 	MASALA_THROW( class_namespace() + "::" + class_name(), "protected_add_seat", "Loose seats are not yet supported!" );
+}
+
+/// @brief Add a constraint.  Stored directly; not cloned.  (NOT YET SUPPORTED -- THROWS.  MUST BE IMPLEMENTED.)
+/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
+void
+SeatingProblem::protected_add_constraint(
+	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::ConstraintCSP const & //constraint_in
+) {
+	MASALA_THROW( class_namespace() + "::" + class_name(), "protected_add_constraint", "TODO TODO TODO! ADD CONSTRAINTS!" );
 }
 
 /// @brief Make this object fully indepdendent.  Derived classes must override this, and the override must call

@@ -178,7 +178,7 @@ Seat::get_api_definition() {
 				"Configure this object from a line in a problem definition file.  This implementation expects "
 				"a line of the format 'Seat <xcoord> <ycoord> <angle_degrees>'.",
 				"file_line", "A line from a configuration file.  Should start with the class name.",
-				true, false,
+				false, true,
 				std::bind( &Seat::configure_from_input_line, this, std::placeholders::_1 )
 			)
 		);

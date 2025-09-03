@@ -294,8 +294,7 @@ Table::set_coordinates(
 	Real const y_in
 ) {
 	std::lock_guard< std::mutex > lock( mutex() );
-	x_ = x_in;
-	y_ = y_in;
+	protected_set_coordinates( x_in, y_in );
 }
 
 /// @brief Set the table's angle.
@@ -306,7 +305,7 @@ Table::set_angle(
 	Real const angle_degrees_in
 ) {
 	std::lock_guard< std::mutex > lock( mutex() );
-	angle_degrees_ = masala::numeric_api::utility::angles::positive_angle_degrees( angle_degrees_in );
+	protected_set_angle( angle_degrees_in );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -385,6 +384,26 @@ Table::protected_update_seat_coordinates() {
 	MASALA_THROW( class_namespace() + "::" + class_name(), "protected_update_seat_coordinates", "This class has not implemented this function.  This is a "
 		"program error which ought not to occur.  Please consult a developer."
 	);
+}
+
+/// @brief Allow derived classes to set coordinates.  Performs no mutex-locking; should be called from
+/// a mutex-locked context only.
+void
+Table::protected_set_coordinates(
+	masala::base::Real const x_in,
+	masala::base::Real const y_in
+) {
+	x_ = x_in;
+	y_ = y_in;
+}
+
+/// @brief Allow derived classes to set the angle.  Performs no mutex-locking; should be called from
+/// a mutex-locked context only.  Angle is in degrees.
+void
+Table::protected_set_angle(
+	masala::base::Real const angle_degrees_in
+) {
+	angle_degrees_ = masala::numeric_api::utility::angles::positive_angle_degrees( angle_degrees_in );
 }
 
 } // namespace seating_problem_elements

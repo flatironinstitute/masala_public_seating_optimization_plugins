@@ -212,6 +212,14 @@ protected:
 	/// @note Performs no mutex-locking.  Should only be called in a mutex-locked context.
 	inline Real protected_angle_degrees() const { return angle_degrees_; }
 
+	/// @brief Allow derived classes to set coordinates.  Performs no mutex-locking; should be called from
+	/// a mutex-locked context only.
+	void protected_set_coordinates( masala::base::Real const x_in, masala::base::Real const y_in );
+
+	/// @brief Allow derived classes to set the angle.  Performs no mutex-locking; should be called from
+	/// a mutex-locked context only.  Angle is in degrees.
+	void protected_set_angle( masala::base::Real const angle_degrees_in );
+
 private:
 
 ////////////////////////////////////////////////////////////////////////////////

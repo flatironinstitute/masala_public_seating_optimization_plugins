@@ -359,6 +359,7 @@ load_options(
 	masala::base::Size & solutions_to_store_per_problem,
 	masala::base::Real & flattening_boltzmann_temperature,
 	bool & do_greedy,
+	std::string & probfile_name,
 	int & help_indicated,
 	int & masala_plugins_found,
 	int & optimizer_name_specified,
@@ -367,7 +368,8 @@ load_options(
 	int & classical_attempts_per_problem_specified,
 	int & solutions_to_store_per_problem_specified,
 	int & flattening_boltzmann_temperature_specified,
-	int & do_greedy_specified
+	int & do_greedy_specified,
+	int & problem_file_specified
 ) {
 	using namespace masala::base::utility::container;
 	using namespace masala::base::utility::string;
@@ -386,6 +388,7 @@ load_options(
 		{"solutions_to_store_per_problem", required_argument, &solutions_to_store_per_problem_specified, 1},
 		{"flattening_boltzmann_temperature", required_argument, &flattening_boltzmann_temperature_specified, 1},
 		{"do_greedy", required_argument, &do_greedy_specified, 1},
+		{"problem_file", required_argument, &problem_file_specified, 1}
 	};
 	std::map< std::string, std::string > const help_messages{
 		{"h", "Print a help message and exit."},
@@ -409,6 +412,9 @@ load_options(
 		},
 		{"do_greedy", "Should solutions be greedily refined?  This is an option for all optimizers; must be TRUE or "
 			"FALSE.  Defaults to TRUE."
+		},
+		{"problem_file", "The name (with absolute or relative path) of the file defining the seating optimization problem to "
+			"solve.  Required input."
 		}
 	};
 
@@ -472,6 +478,9 @@ load_options(
 			} else {
 				MASALA_THROW( appname, "load_options", "Could not parse \"" + std::string(optarg) + "\" as a Boolean.  Must be either TRUE or FALSE." );
 			}
+		} else if( curname == "problem_file" ) {
+			probfile_name = std::string( optarg );
+			CHECK_OR_THROW( !probfile_name.empty(), appname, "load_options", "The problem file name must not be empty." ); 
 		}
 	}
 
@@ -503,6 +512,7 @@ main(
 	int solutions_to_store_per_problem_specified(0);
 	int flattening_boltzmann_temperature_specified(0);
 	int do_greedy_specified(0);
+	int probfile_name_specified(0);
 
 	// Allowed optimizer names:
 	std::vector< std::string > const allowed_optimizer_names{
@@ -512,7 +522,7 @@ main(
 
     // Options that we will load:
     std::vector< std::string > masala_plugin_paths;
-    std::string optimizer_name;
+    std::string optimizer_name, probfile_name;
 	masala::base::Size classical_mc_steps( 1000000 );
 	masala::base::Size total_threads( 1 );
 	masala::base::Size classical_attempts_per_problem( 1 );
@@ -536,9 +546,11 @@ main(
 			allowed_optimizer_names, masala_plugin_paths, optimizer_name,
 			classical_mc_steps, total_threads, classical_attempts_per_problem,
 			solutions_to_store_per_problem, flattening_boltzmann_temperature, do_greedy,
+			probfile_name,
 			help_indicated, masala_plugins_found, optimizer_name_specified,
 			classical_mc_steps_specified, total_threads_specified, classical_attempts_per_problem_specified,
-			solutions_to_store_per_problem_specified, flattening_boltzmann_temperature_specified, do_greedy_specified
+			solutions_to_store_per_problem_specified, flattening_boltzmann_temperature_specified, do_greedy_specified,
+			probfile_name_specified
 		)
 	) {
 		return 0;

@@ -1,0 +1,26 @@
+# This defines the "creepy uncle" scenario: Vincent P. Amato is a bit of a jerk, who tends to
+# make himself unsufferable around young women.  The optimization problem is to seat him so that
+# he doesn't have anyone nearby to harass.
+
+# Defining some tables:
+CircularTable	-5	0	0	2	9
+CircularTable	5	0	0	2	9
+
+# Add some guests:
+Guest	bride				Ella Delangelo
+Guest	groom				James Patrick Josephson
+Guest	mother_of_bride		Lisa Delangelo
+Guest	father_of_bride		Georgio C. Delangelo
+Guest	mother_of_groom		Elaine P. Josephson
+Guest	father_of_groom		Fredrick Michael Josephson
+Guest	uncle_of_groom		Howard Josephson
+Guest	aunt_of_groom		Sarah Josephson
+Guest	uncle_of_bride1		Vincent P. Amato
+Guest	uncle_of_bride2		Alberto M. Amato
+Guest	aunt_of_bride		Jane S. Amato
+Guest	sister_of_groom1	Tina Marie Josephson
+Guest	sister_of_groom2	Louise Kay Josephson
+Guest	sister_of_groom3	Florence Jane Marple
+Guest	br_in_law_of_groom	Nigel Marple
+Guest	cousin_of_groom1	Clara Josephson
+Guest	cousin_of_groom2	Laura Josephson

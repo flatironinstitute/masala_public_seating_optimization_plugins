@@ -56,17 +56,6 @@
 using masala::base::Size;
 using masala::base::Real;
 
-// Help/usage message for program:
-
-void 
-print_help() {
-	std::stringstream ss;
-	ss << 
-		"Below are the options for this program.\n"
-		// TODO TODO TODO
-	;
-}
-
 /// @brief Load all Masala plugins.
 void
 load_masala_plugins(
@@ -78,8 +67,6 @@ load_masala_plugins(
         libman->load_and_register_plugin_libraries_in_subdirectories( plugin_path );
     }
 }
-
-/// @brief 
 
 /// @brief Unload all Masala plugins.
 void

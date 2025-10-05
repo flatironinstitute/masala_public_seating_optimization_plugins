@@ -162,10 +162,10 @@ SeatingProblem::get_api_definition() {
             masala::make_shared< MasalaObjectAPIDefinition >(
                 *this,
                 "The SeatingProblem describes a seating problem, including the tables, the seats, the guests, and the constraints.",
-                false, true
+                false, false
             )
         );
-        ADD_PROTECTED_CONSTRUCTOR_DEFINITIONS( SeatingProblem, api_def );
+        ADD_PUBLIC_CONSTRUCTOR_DEFINITIONS( SeatingProblem, api_def );
 
         // Work functions:
 		api_def->add_work_function(
@@ -192,6 +192,14 @@ SeatingProblem::get_api_definition() {
 		);
 
         // Setters:
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< std::vector< std::string > const & > >(
+				"configure_from_problem_definition_file_lines", "Configure from the lines of a file.",
+				"filelines", "The lines of the file, as a vector of strings.",
+				false, false,
+				std::bind( &SeatingProblem::configure_from_problem_definition_file_lines, this, std::placeholders::_1 )
+			)
+		);
 		api_def->add_setter(
 			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP const & > >(
 				"add_guest", "Add a guest.  Stored directly; not cloned.  Throws if the unique guest ID has already been taken.",

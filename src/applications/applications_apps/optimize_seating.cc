@@ -36,6 +36,7 @@
 #include <base/managers/engine/MasalaDataRepresentation.hh>
 #include <base/managers/engine/MasalaEngineAPI.hh>
 #include <base/managers/engine/MasalaDataRepresentationAPI.hh>
+#include <base/managers/disk/MasalaDiskManager.hh>
 #include <base/utility/container/container_util.tmpl.hh>
 #include <base/utility/string/string_manipulation.hh>
 #include <base/api/MasalaObjectAPIDefinition.hh>
@@ -502,8 +503,11 @@ load_problem_specification(
 	std::string const & probfile_name
 ) {
 	using namespace seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem;
-	SeatingProblem_APISP seating_problem( masala::make_shared< SeatingProblem_API >( probfile_name ) );
-	CHECK_OR_THROW( seating_problem != nullptr, appname, "load_problem_specification", "Failed to load seating problem definition file " + probfile_name + "." );
+	using namespace masala::base::managers::disk;
+	SeatingProblem_APISP seating_problem( masala::make_shared< SeatingProblem_API >() );
+	CHECK_OR_THROW( seating_problem != nullptr, appname, "load_problem_specification", "Failed to create seating problem definition." );
+	std::vector< std::string > const filelines( MasalaDiskManager::get_instance()->read_ascii_file_to_string_vector( probfile_name ) );
+	seating_problem->configure_from_problem_definition_file_lines( filelines );
 	return seating_problem;
 }
 

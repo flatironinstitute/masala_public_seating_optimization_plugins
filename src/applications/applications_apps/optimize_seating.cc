@@ -41,9 +41,12 @@
 #include <base/api/MasalaObjectAPIDefinition.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 
-// Masala numeric_api headers
+// Masala numeric_api headers:
 #include <numeric_api/base_classes/optimization/cost_function_network/PluginCostFunctionNetworkOptimizer.hh>
 #include <numeric_api/base_classes/optimization/cost_function_network/PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem.hh>
+
+// Seating problem API headers:
+#include <seating_optimization_api/auto_generated_api/seating_problem/SeatingProblem_API.hh>
 
 // STL headers:
 #include <sstream>
@@ -492,6 +495,19 @@ load_options(
 	return true;
 }
 
+/// @brief Load a seating problem from a file:
+seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_APISP
+load_problem_specification(
+	std::string const & appname,
+	std::string const & probfile_name
+) {
+	using namespace seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem;
+	SeatingProblem_APISP seating_problem( masala::make_shared< SeatingProblem_API >( probfile_name ) );
+	CHECK_OR_THROW( seating_problem != nullptr, appname, "load_problem_specification", "Failed to load seating problem definition file " + probfile_name + "." );
+	return seating_problem;
+}
+
+
 /// @brief Program entry point:
 int 
 main(
@@ -501,6 +517,7 @@ main(
     using namespace masala::base::managers::tracer;
     using namespace masala::base::managers::engine;
     using namespace masala::base::managers::threads;
+	using namespace seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem;
 
     // Were options loaded?
     int help_indicated(0);
@@ -579,7 +596,7 @@ main(
 	);
 
     // Load the problem specification:
-    //load_problem_specification();
+    SeatingProblem_APICSP seating_problem( load_problem_specification( appname, probfile_name ) );
     
     // Print a summary of the setup:
    // print_setup_sumamry();

@@ -600,6 +600,7 @@ main(
 	);
 
     // Load the problem specification:
+    CHECK_OR_THROW( probfile_name_specified == 1, appname, "main", "A problem definition file must be specified with the -problem_file flag." );
     SeatingProblem_APICSP seating_problem( load_problem_specification( appname, probfile_name ) );
     
     // Print a summary of the setup:

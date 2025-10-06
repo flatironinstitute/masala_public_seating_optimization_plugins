@@ -15,12 +15,12 @@ Guest	mother_of_groom		Elaine P. Josephson
 Guest	father_of_groom		Fredrick Michael Josephson
 Guest	uncle_of_groom		Howard Josephson
 Guest	aunt_of_groom		Sarah Josephson
-Guest	uncle_of_bride1		Vincent P. Amato
-Guest	uncle_of_bride2		Alberto M. Amato
+Guest	uncle1_of_bride		Vincent P. Amato # This fellow is the problem.
+Guest	uncle2_of_bride		Alberto M. Amato
 Guest	aunt_of_bride		Jane S. Amato
-Guest	sister_of_groom1	Tina Marie Josephson
-Guest	sister_of_groom2	Louise Kay Josephson
-Guest	sister_of_groom3	Florence Jane Marple
+Guest	sister1_of_groom	Tina Marie Josephson
+Guest	sister2_of_groom	Louise Kay Josephson
+Guest	sister3_of_groom	Florence Jane Marple
 Guest	br_in_law_of_groom	Nigel Marple
-Guest	cousin_of_groom1	Clara Josephson
-Guest	cousin_of_groom2	Laura Josephson
+Guest	cousin1_of_groom	Clara Josephson
+Guest	cousin2_of_groom	Laura Josephson

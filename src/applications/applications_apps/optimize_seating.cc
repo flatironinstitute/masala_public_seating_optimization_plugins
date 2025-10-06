@@ -42,9 +42,13 @@
 #include <base/api/MasalaObjectAPIDefinition.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 
+// Masala numeric headers:
+#include <numeric/optimization/cost_function_network/CFNProblemScratchSpace.hh>
+
 // Masala numeric_api headers:
 #include <numeric_api/base_classes/optimization/cost_function_network/PluginCostFunctionNetworkOptimizer.hh>
 #include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem_API.hh>
+#include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblems_API.hh>
 #include <numeric_api/base_classes/optimization/cost_function_network/PluginPairwisePrecomputedCFNProblemScratchSpace.hh>
 
 // Seating problem API headers:
@@ -522,7 +526,7 @@ set_up_cfn_problem(
 	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
 	masala::base::managers::engine::MasalaEngineAPI const & optimizer_api,
 	seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_API const & ,//seating_problem,
-	masala::numeric_api::base_classes::optimization::cost_function_network::PluginPairwisePrecomputedCFNProblemScratchSpaceSP & //scratchspace
+	masala::numeric_api::base_classes::optimization::cost_function_network::PluginPairwisePrecomputedCFNProblemScratchSpaceSP & scratchspace
 ) {
 	using namespace masala::numeric_api::base_classes::optimization::cost_function_network;
 	using namespace masala::numeric_api::auto_generated_api::optimization::cost_function_network;
@@ -538,9 +542,27 @@ set_up_cfn_problem(
 	CHECK_OR_THROW( problem != nullptr, appname, "set_up_cfn_problem", "Could not interpret an object of type \"" + problem_uncast->inner_class_name() + "\" as a CFN optimization problem." );
 	tracerman->write_to_tracer( appname, "Created a problem container of class \"" + problem->inner_class_name() + "\"." );
 
-	//TODO TODO TODO CONTINUE HERE;
+	// Configure here:
+	// TODO TODO TODO;
 
-	return nullptr;
+	// Finalize:
+	problem->finalize();
+	
+	// Generate the scratch space:
+	masala::numeric::optimization::cost_function_network::CFNProblemScratchSpaceSP scratchspace_uncast( problem->generate_cfn_problem_scratch_space() );
+	if( scratchspace_uncast != nullptr ) {
+		scratchspace = std::dynamic_pointer_cast< PluginPairwisePrecomputedCFNProblemScratchSpace >( scratchspace_uncast );
+		CHECK_OR_THROW( scratchspace != nullptr, appname, "set_up_cfn_problem", "Could not interpret a scratch space of type \""
+			+ scratchspace_uncast->class_name() + "\" as a PluginPairwisePrecomputedCFNProblemScratchSpace."
+		);
+		tracerman->write_to_tracer( appname, "Created a scratch space of class \"" + scratchspace->class_name() + "\"." );
+	}
+
+	// Package in a problems container:
+	CostFunctionNetworkOptimizationProblems_APISP problems( masala::make_shared< CostFunctionNetworkOptimizationProblems_API >() );
+	problems->add_optimization_problem(problem);
+
+	return problems;
 }
 
 /// @brief Program entry point:

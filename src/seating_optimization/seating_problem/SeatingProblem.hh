@@ -256,6 +256,9 @@ private:
 	/// @brief The zero-based absolute indices of the seats.
 	std::map< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP, masala::base::Size > seat_indices_;
 
+	/// @brief The constraints, sorted by index.
+	std::vector< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::ConstraintCSP > constraints_;
+
 }; // class SeatingProblem
 
 } // namespace seating_problem

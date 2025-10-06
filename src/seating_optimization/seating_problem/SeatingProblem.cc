@@ -402,9 +402,10 @@ SeatingProblem::protected_add_seat(
 /// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
 void
 SeatingProblem::protected_add_constraint(
-	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::ConstraintCSP const & //constraint_in
+	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::ConstraintCSP const & constraint_in
 ) {
-	MASALA_THROW( class_namespace() + "::" + class_name(), "protected_add_constraint", "TODO TODO TODO! ADD CONSTRAINTS!" );
+	constraints_.push_back( constraint_in );
+	write_to_tracer( "Added constraint " + std::to_string(constraints_.size() -1) + " of type \"" + constraint_in->class_name() + "\"." );
 }
 
 /// @brief Make this object fully indepdendent.  Derived classes must override this, and the override must call

@@ -519,15 +519,16 @@ load_problem_specification(
 masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblems_APISP
 set_up_cfn_problem(
 	std::string const & appname,
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
 	masala::base::managers::engine::MasalaEngineAPI const & optimizer_api,
-	seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_API const & seating_problem,
-	masala::numeric_api::base_classes::optimization::cost_function_network::PluginPairwisePrecomputedCFNProblemScratchSpaceSP & scratchspace
+	seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_API const & ,//seating_problem,
+	masala::numeric_api::base_classes::optimization::cost_function_network::PluginPairwisePrecomputedCFNProblemScratchSpaceSP & //scratchspace
 ) {
 	using namespace masala::numeric_api::base_classes::optimization::cost_function_network;
 	using namespace masala::numeric_api::auto_generated_api::optimization::cost_function_network;
 
 	PluginCostFunctionNetworkOptimizerCSP optimizer(
-		std::dynamic_pointer_cast< PluginCostFunctionNetworkOptimizer >( optimizer_api.get_inner_engine_object_const() )
+		std::dynamic_pointer_cast< PluginCostFunctionNetworkOptimizer const >( optimizer_api.get_inner_engine_object_const() )
 	);
 	CHECK_OR_THROW( optimizer != nullptr, appname, "set_up_cfn_problem", "Could not interpret an object of type \"" + optimizer_api.inner_class_name() + "\" as a CFN optimizer." );
 
@@ -535,8 +536,11 @@ set_up_cfn_problem(
 	CHECK_OR_THROW( problem_uncast != nullptr, appname, "set_up_cfn_problem", "Could not get a template-preferred data representation from the solver of type \"" + optimizer_api.inner_class_name() + "\"." );
 	CostFunctionNetworkOptimizationProblem_APISP problem( std::dynamic_pointer_cast< CostFunctionNetworkOptimizationProblem_API >( problem_uncast ) );
 	CHECK_OR_THROW( problem != nullptr, appname, "set_up_cfn_problem", "Could not interpret an object of type \"" + problem_uncast->inner_class_name() + "\" as a CFN optimization problem." );
+	tracerman->write_to_tracer( appname, "Created a problem container of class \"" + problem->inner_class_name() + "\"." );
 
-	TODO TODO TODO CONTINUE HERE;
+	//TODO TODO TODO CONTINUE HERE;
+
+	return nullptr;
 }
 
 /// @brief Program entry point:
@@ -634,7 +638,7 @@ main(
 
 	// Generate the CFN problem:
 	PluginPairwisePrecomputedCFNProblemScratchSpaceSP scratchspace;
-	CostFunctionNetworkOptimizationProblems_APICSP problems( set_up_cfn_problem( appname, *optimizer_api, *seating_problem, scratchspace ) );
+	CostFunctionNetworkOptimizationProblems_APICSP problems( set_up_cfn_problem( appname, tracerman, *optimizer_api, *seating_problem, scratchspace ) );
 
 	// Solve the problem:
 	//solve_problem();

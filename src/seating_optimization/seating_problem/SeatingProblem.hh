@@ -30,6 +30,9 @@
 // Parent header:
 #include <base/managers/plugin_module/MasalaPlugin.hh>
 
+// Numeric API headers:
+#include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem_API.fwd.hh>
+
 // Seating optimization headers:
 #include <seating_optimization/seating_problem_elements/Guest.fwd.hh>
 #include <seating_optimization/seating_problem_elements/Table.fwd.hh>
@@ -172,6 +175,13 @@ public:
 	/// at each table in the problem.
 	std::vector< std::pair< masala::base::Size, masala::base::Size > >
 	get_adjacent_seat_global_indices() const;
+
+	/// @brief Configure a cost function network optimization problem from this object.
+	/// @param[in] problem A shared pointer to an empty problem.  Filled and finalized by this operation.
+	void
+	set_up_cfn_problem(
+		masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & problem
+	) const;
 
 protected:
 

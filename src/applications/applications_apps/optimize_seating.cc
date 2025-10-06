@@ -542,11 +542,8 @@ set_up_cfn_problem(
 	CHECK_OR_THROW( problem != nullptr, appname, "set_up_cfn_problem", "Could not interpret an object of type \"" + problem_uncast->inner_class_name() + "\" as a CFN optimization problem." );
 	tracerman->write_to_tracer( appname, "Created a problem container of class \"" + problem->inner_class_name() + "\"." );
 
-	// Configure here:
+	// Configure and finalize here:
 	seating_problem.set_up_cfn_problem( *problem );
-
-	// Finalize:
-	problem->finalize();
 	
 	// Generate the scratch space:
 	masala::numeric::optimization::cost_function_network::CFNProblemScratchSpaceSP scratchspace_uncast( problem->generate_cfn_problem_scratch_space() );

@@ -42,6 +42,12 @@
 #include <base/managers/plugin_module/MasalaPluginAPI.hh>
 #include <base/managers/plugin_module/MasalaPluginModuleManager.hh>
 
+// Numeric headers:
+#include <numeric/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem.hh>
+
+// Numeric API headers:
+#include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem_API.hh>
+
 // STL headers:
 #include <sstream>
 
@@ -352,6 +358,26 @@ SeatingProblem::get_adjacent_seat_global_indices() const {
 
 	outvec.shrink_to_fit();
 	return outvec;
+}
+
+/// @brief Configure a cost function network optimization problem from this object.
+/// @param[in] problem A shared pointer to an empty problem.  Filled and finalized by this operation.
+void
+SeatingProblem::set_up_cfn_problem(
+	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & problem
+) const {
+	using namespace masala::numeric::optimization::cost_function_network;
+
+	CostFunctionNetworkOptimizationProblemSP inner_problem( std::dynamic_pointer_cast< CostFunctionNetworkOptimizationProblem >( problem.get_inner_data_representation_object() ) );
+	CHECK_OR_THROW_FOR_CLASS( inner_problem != nullptr, "set_up_cfn_problem", "Could not interpret inner object of \"" + problem.class_name() + "\" class as a CostFunctionNetworkOptimizationProblem." );
+	CHECK_OR_THROW_FOR_CLASS( inner_problem->empty(), "set_up_cfn_problem", "A non-empty \"" + inner_problem->class_name() + "\" problem instance was passed to this function." );
+
+	for( auto const & constraint : constraints_ ) {
+		constraint->add_constraint_to_cfn_problem( *this, *inner_problem, 1.0 );
+	}
+
+	// Finalize:
+	problem.finalize();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

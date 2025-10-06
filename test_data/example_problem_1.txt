@@ -43,7 +43,7 @@ GuestPairAdjacentSeatConstraint		uncle1_of_bride		br_in_law_of_groom	3.0		# The 
 
 # Add some more guest pair constraints: couples should sit together.
 
-GuestPairAdjacentSeatConstraint		bride				groom				-10.0
+GuestPairAdjacentSeatConstraint		bride				groom				-15.0
 GuestPairAdjacentSeatConstraint		mother_of_bride		father_of_bride		-10.0
 GuestPairAdjacentSeatConstraint		mother_of_groom		father_of_groom		-10.0
 GuestPairAdjacentSeatConstraint		uncle_of_groom		aunt_of_groom		-10.0

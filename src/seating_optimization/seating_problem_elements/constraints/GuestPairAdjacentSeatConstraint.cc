@@ -252,10 +252,10 @@ GuestPairAdjacentSeatConstraint::add_constraint_to_cfn_problem(
 	std::vector< std::pair< Size, Size > > const adjacent_seat_indices( seating_problem.get_adjacent_seat_global_indices() );
 	for( auto const & seat_pair : adjacent_seat_indices ) {
 		cfn_problem_cast->add_to_twobody_penalty( std::make_pair( guest1_index, guest2_index ), std::make_pair( seat_pair.first, seat_pair.second ), penalty_value );
+		write_to_tracer( "Constrained guests " + std::to_string(guest1_index) + " and " + std::to_string(guest2_index) + ", at seats " + std::to_string(seat_pair.first) + " and " + std::to_string(seat_pair.second) + ".  Penalty: " + std::to_string(penalty_value) + "." );
 		cfn_problem_cast->add_to_twobody_penalty( std::make_pair( guest1_index, guest2_index ), std::make_pair( seat_pair.second, seat_pair.first ), penalty_value );
+		write_to_tracer( "Constrained guests " + std::to_string(guest1_index) + " and " + std::to_string(guest2_index) + ", at seats " + std::to_string(seat_pair.second) + " and " + std::to_string(seat_pair.first) + ".  Penalty: " + std::to_string(penalty_value) + "." );
 	}
-
-	MASALA_THROW( class_namespace() + "::" + class_name(), "add_constraint_to_cfn_problem", "This class must override this function." );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

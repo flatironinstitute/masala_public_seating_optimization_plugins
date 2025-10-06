@@ -63,13 +63,16 @@ using masala::base::Real;
 /// @brief Load all Masala plugins.
 void
 load_masala_plugins(
-    std::vector< std::string > const & plugin_paths
+	std::vector< std::string > const & plugin_paths
 ) {
-    using namespace masala::base::managers::plugin_module;
-    MasalaPluginLibraryManagerHandle libman( MasalaPluginLibraryManager::get_instance() );
-    for( auto const & plugin_path : plugin_paths ) {
-        libman->load_and_register_plugin_libraries_in_subdirectories( plugin_path );
-    }
+	using namespace masala::base::managers::plugin_module;
+	using namespace seating_optimization_masala_plugins::registration_api;
+
+	register_library();
+	MasalaPluginLibraryManagerHandle libman( MasalaPluginLibraryManager::get_instance() );
+	for( auto const & plugin_path : plugin_paths ) {
+		libman->load_and_register_plugin_libraries_in_subdirectories( plugin_path );
+	}
 }
 
 /// @brief Unload all Masala plugins.

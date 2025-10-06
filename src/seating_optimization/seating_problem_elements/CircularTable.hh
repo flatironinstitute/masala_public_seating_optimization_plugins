@@ -132,6 +132,11 @@ public:
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
+	/// @brief Configure this object from a line in a problem definition file.
+	/// @details This override expects a line of the format "CircularTable <xcoord>
+	/// <ycoord> <angle_degrees> <radius> <seat_count> <optional local seat indices to omit>".
+	void configure_from_input_line( std::string const & file_line ) override;
+
 	/// @brief Set the radius of the table.
 	/// @param radius_in The radius of the table, in meters.  Note that this is the radius from
 	/// the centre at which seat centres are found, not the radius of the tabletop.  Defaults to 1.0.
@@ -142,6 +147,7 @@ public:
 	/// @param omitted_seats An optional set of seat indices (zero-based) to omit.  This can be useful if, for instance,
 	/// a table is against a wall, or one seat would be too close to a pillar, or whatnot.  Leave this as an empty vector
 	/// to have seats evenly spaced all the way around the table.
+	/// @note Calls protected_set_seat_count().
 	void set_seat_count( Size const seat_count_in, std::vector< Size > const & omitted_seats );
 
 public:
@@ -172,6 +178,13 @@ protected:
 	/// @brief Update the coordinates of seats on a change of table coordinates or dimensions.
 	/// @note Performs no mutex-locking.  Should only be called in a mutex-locked context.
 	void protected_update_seat_coordinates() override;
+
+	/// @brief Set the number of seats evenly spaced around the table.  Clears any existing seats.  Performs no mutex locking.
+	/// @param seat_count_in The number of seats to space around the table evenly.
+	/// @param omitted_seats An optional set of seat indices (zero-based) to omit.  This can be useful if, for instance,
+	/// a table is against a wall, or one seat would be too close to a pillar, or whatnot.  Leave this as an empty vector
+	/// to have seats evenly spaced all the way around the table.
+	void protected_set_seat_count( Size const seat_count_in, std::vector< Size > const & omitted_seats );
 
 private:
 

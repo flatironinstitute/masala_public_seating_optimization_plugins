@@ -36,14 +36,18 @@
 #include <base/managers/engine/MasalaDataRepresentation.hh>
 #include <base/managers/engine/MasalaEngineAPI.hh>
 #include <base/managers/engine/MasalaDataRepresentationAPI.hh>
+#include <base/managers/disk/MasalaDiskManager.hh>
 #include <base/utility/container/container_util.tmpl.hh>
 #include <base/utility/string/string_manipulation.hh>
 #include <base/api/MasalaObjectAPIDefinition.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 
-// Masala numeric_api headers
+// Masala numeric_api headers:
 #include <numeric_api/base_classes/optimization/cost_function_network/PluginCostFunctionNetworkOptimizer.hh>
 #include <numeric_api/base_classes/optimization/cost_function_network/PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem.hh>
+
+// Seating problem API headers:
+#include <seating_optimization_api/auto_generated_api/seating_problem/SeatingProblem_API.hh>
 
 // STL headers:
 #include <sstream>
@@ -56,53 +60,43 @@
 using masala::base::Size;
 using masala::base::Real;
 
-// Help/usage message for program:
-
-void 
-print_help() {
-	std::stringstream ss;
-	ss << 
-		"Below are the options for this program.\n"
-		// TODO TODO TODO
-	;
-}
-
 /// @brief Load all Masala plugins.
 void
 load_masala_plugins(
-    std::vector< std::string > const & plugin_paths
+	std::vector< std::string > const & plugin_paths
 ) {
-    using namespace masala::base::managers::plugin_module;
-    MasalaPluginLibraryManagerHandle libman( MasalaPluginLibraryManager::get_instance() );
-    for( auto const & plugin_path : plugin_paths ) {
-        libman->load_and_register_plugin_libraries_in_subdirectories( plugin_path );
-    }
-}
+	using namespace masala::base::managers::plugin_module;
+	using namespace seating_optimization_masala_plugins::registration_api;
 
-/// @brief 
+	register_library();
+	MasalaPluginLibraryManagerHandle libman( MasalaPluginLibraryManager::get_instance() );
+	for( auto const & plugin_path : plugin_paths ) {
+		libman->load_and_register_plugin_libraries_in_subdirectories( plugin_path );
+	}
+}
 
 /// @brief Unload all Masala plugins.
 void
 unload_masala_plugins() {
-    using namespace masala::base::managers::plugin_module;
-    MasalaPluginLibraryManager::get_instance()->reset();
+	using namespace masala::base::managers::plugin_module;
+	MasalaPluginLibraryManager::get_instance()->reset();
 }
 
 /// @brief Print help messages.
 void
 print_help_messages(
-    std::map< std::string, std::string > const & help_messages,
-    std::string const & appname
+	std::map< std::string, std::string > const & help_messages,
+	std::string const & appname
 ) {
-    using masala::base::Size;
-    std::ostringstream ss;
-    ss << "The following options may be set:" << std::endl;
+	using masala::base::Size;
+	std::ostringstream ss;
+	ss << "The following options may be set:" << std::endl;
 
-    for( std::map< std::string, std::string >::const_iterator it( help_messages.begin()); it!=help_messages.end(); ++it ) {
-        ss << "-" << it->first << "\t" << it->second << std::endl;
-    }
+	for( std::map< std::string, std::string >::const_iterator it( help_messages.begin()); it!=help_messages.end(); ++it ) {
+		ss << "-" << it->first << "\t" << it->second << std::endl;
+	}
 
-    masala::base::managers::tracer::MasalaTracerManager::get_instance()->write_to_tracer( appname, ss.str() );
+	masala::base::managers::tracer::MasalaTracerManager::get_instance()->write_to_tracer( appname, ss.str() );
 }
 
 /// @brief Set the number of classical Monte Carlo steps for a classical optimizer.
@@ -372,6 +366,7 @@ load_options(
 	masala::base::Size & solutions_to_store_per_problem,
 	masala::base::Real & flattening_boltzmann_temperature,
 	bool & do_greedy,
+	std::string & probfile_name,
 	int & help_indicated,
 	int & masala_plugins_found,
 	int & optimizer_name_specified,
@@ -380,7 +375,8 @@ load_options(
 	int & classical_attempts_per_problem_specified,
 	int & solutions_to_store_per_problem_specified,
 	int & flattening_boltzmann_temperature_specified,
-	int & do_greedy_specified
+	int & do_greedy_specified,
+	int & problem_file_specified
 ) {
 	using namespace masala::base::utility::container;
 	using namespace masala::base::utility::string;
@@ -399,6 +395,7 @@ load_options(
 		{"solutions_to_store_per_problem", required_argument, &solutions_to_store_per_problem_specified, 1},
 		{"flattening_boltzmann_temperature", required_argument, &flattening_boltzmann_temperature_specified, 1},
 		{"do_greedy", required_argument, &do_greedy_specified, 1},
+		{"problem_file", required_argument, &problem_file_specified, 1}
 	};
 	std::map< std::string, std::string > const help_messages{
 		{"h", "Print a help message and exit."},
@@ -422,6 +419,9 @@ load_options(
 		},
 		{"do_greedy", "Should solutions be greedily refined?  This is an option for all optimizers; must be TRUE or "
 			"FALSE.  Defaults to TRUE."
+		},
+		{"problem_file", "The name (with absolute or relative path) of the file defining the seating optimization problem to "
+			"solve.  Required input."
 		}
 	};
 
@@ -485,6 +485,9 @@ load_options(
 			} else {
 				MASALA_THROW( appname, "load_options", "Could not parse \"" + std::string(optarg) + "\" as a Boolean.  Must be either TRUE or FALSE." );
 			}
+		} else if( curname == "problem_file" ) {
+			probfile_name = std::string( optarg );
+			CHECK_OR_THROW( !probfile_name.empty(), appname, "load_options", "The problem file name must not be empty." ); 
 		}
 	}
 
@@ -496,26 +499,44 @@ load_options(
 	return true;
 }
 
+/// @brief Load a seating problem from a file:
+seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_APISP
+load_problem_specification(
+	std::string const & appname,
+	std::string const & probfile_name
+) {
+	using namespace seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem;
+	using namespace masala::base::managers::disk;
+	SeatingProblem_APISP seating_problem( masala::make_shared< SeatingProblem_API >() );
+	CHECK_OR_THROW( seating_problem != nullptr, appname, "load_problem_specification", "Failed to create seating problem definition." );
+	std::vector< std::string > const filelines( MasalaDiskManager::get_instance()->read_ascii_file_to_string_vector( probfile_name ) );
+	seating_problem->configure_from_problem_definition_file_lines( filelines );
+	return seating_problem;
+}
+
+
 /// @brief Program entry point:
 int 
 main(
 	int argc,
 	char * argv[]
 ) {
-    using namespace masala::base::managers::tracer;
-    using namespace masala::base::managers::engine;
-    using namespace masala::base::managers::threads;
+	using namespace masala::base::managers::tracer;
+	using namespace masala::base::managers::engine;
+	using namespace masala::base::managers::threads;
+	using namespace seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem;
 
-    // Were options loaded?
-    int help_indicated(0);
-    int masala_plugins_found(0);
-    int optimizer_name_specified(0);
+	// Were options loaded?
+	int help_indicated(0);
+	int masala_plugins_found(0);
+	int optimizer_name_specified(0);
 	int classical_mc_steps_specified(0);
 	int total_threads_specified(0);
 	int classical_attempts_per_problem_specified(0);
 	int solutions_to_store_per_problem_specified(0);
 	int flattening_boltzmann_temperature_specified(0);
 	int do_greedy_specified(0);
+	int probfile_name_specified(0);
 
 	// Allowed optimizer names:
 	std::vector< std::string > const allowed_optimizer_names{
@@ -523,9 +544,9 @@ main(
 		"MonteCarloCostFunctionNetworkOptimizer"
 	};
 
-    // Options that we will load:
-    std::vector< std::string > masala_plugin_paths;
-    std::string optimizer_name;
+	// Options that we will load:
+	std::vector< std::string > masala_plugin_paths;
+	std::string optimizer_name, probfile_name;
 	masala::base::Size classical_mc_steps( 1000000 );
 	masala::base::Size total_threads( 1 );
 	masala::base::Size classical_attempts_per_problem( 1 );
@@ -533,25 +554,27 @@ main(
 	masala::base::Real flattening_boltzmann_temperature( 10.0 );
 	bool do_greedy( true );
 
-    // Masala tracer manager:
-    MasalaTracerManagerHandle tracerman( MasalaTracerManager::get_instance() );
-    std::string const appname( "seating_optimization_masala_plugins::applications::applications_apps::optimize_seating" );
-    tracerman->write_to_tracer( appname, "Starting optimize_seating application." );
-    tracerman->write_to_tracer( appname, "Application created 15 August 2025 by Vikram K. Mulligan, Biomolecular Design Group, "
+	// Masala tracer manager:
+	MasalaTracerManagerHandle tracerman( MasalaTracerManager::get_instance() );
+	std::string const appname( "seating_optimization_masala_plugins::applications::applications_apps::optimize_seating" );
+	tracerman->write_to_tracer( appname, "Starting optimize_seating application." );
+	tracerman->write_to_tracer( appname, "Application created 15 August 2025 by Vikram K. Mulligan, Biomolecular Design Group, "
 		"Center for Computational Biology, Flatiron Institute, in collaboration with Karie A. Nicholas, Foundation for Health Care Quality."
 	);
-    tracerman->write_to_tracer( appname, "Please write to vmulligan@flatironinstitute.org for questions.");
+	tracerman->write_to_tracer( appname, "Please write to vmulligan@flatironinstitute.org for questions.");
 
-    // Load options:
-    if(
+	// Load options:
+	if(
 		!load_options(
 			argc, argv, tracerman, appname,
 			allowed_optimizer_names, masala_plugin_paths, optimizer_name,
 			classical_mc_steps, total_threads, classical_attempts_per_problem,
 			solutions_to_store_per_problem, flattening_boltzmann_temperature, do_greedy,
+			probfile_name,
 			help_indicated, masala_plugins_found, optimizer_name_specified,
 			classical_mc_steps_specified, total_threads_specified, classical_attempts_per_problem_specified,
-			solutions_to_store_per_problem_specified, flattening_boltzmann_temperature_specified, do_greedy_specified
+			solutions_to_store_per_problem_specified, flattening_boltzmann_temperature_specified, do_greedy_specified,
+			probfile_name_specified
 		)
 	) {
 		return 0;
@@ -560,12 +583,12 @@ main(
 	// Set threads:
 	MasalaThreadManager::get_instance()->set_total_threads( total_threads );
 
-    // Load masala plugins:
-    load_masala_plugins( masala_plugin_paths );
+	// Load masala plugins:
+	load_masala_plugins( masala_plugin_paths );
 
-    // Load the optimizer settings.  This fully configures the optimizer.
-    CHECK_OR_THROW( optimizer_name_specified == 1, appname, "main", "An optimizer must be specified with the -optimizer_name flag." );
-    MasalaEngineAPICSP optimizer_api(
+	// Load the optimizer settings.  This fully configures the optimizer.
+	CHECK_OR_THROW( optimizer_name_specified == 1, appname, "main", "An optimizer must be specified with the -optimizer_name flag." );
+	MasalaEngineAPICSP optimizer_api(
 		load_optimizer_settings(
 			tracerman,
 			appname,
@@ -579,19 +602,20 @@ main(
 		)
 	);
 
-    // Load the problem specification:
-    //load_problem_specification();
-    
-    // Print a summary of the setup:
-   // print_setup_sumamry();
+	// Load the problem specification:
+	CHECK_OR_THROW( probfile_name_specified == 1, appname, "main", "A problem definition file must be specified with the -problem_file flag." );
+	SeatingProblem_APICSP seating_problem( load_problem_specification( appname, probfile_name ) );
+	
+	// Print a summary of the setup:
+	// print_setup_sumamry();
 
-    // Solve the problem:
-    //solve_problem();
+	// Solve the problem:
+	//solve_problem();
 
-    // Print the solution(s):
-    //print_solutions();
+	// Print the solution(s):
+	//print_solutions();
 
-    unload_masala_plugins();
+	unload_masala_plugins();
 
 	return 0;
 

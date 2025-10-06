@@ -36,6 +36,7 @@
 
 // STL headers:
 #include <mutex>
+#include <string>
 
 namespace seating_optimization_masala_plugins {
 namespace seating_optimization {
@@ -136,6 +137,10 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
+
+	/// @brief Configure this object from a line in a problem definition file.
+	/// @details Must be implemented by derived classes.  Base class implementation throws.
+	virtual void configure_from_input_line( std::string const & file_line );
 
 public:
 

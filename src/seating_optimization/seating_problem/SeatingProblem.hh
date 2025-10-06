@@ -34,6 +34,7 @@
 #include <seating_optimization/seating_problem_elements/Guest.fwd.hh>
 #include <seating_optimization/seating_problem_elements/Table.fwd.hh>
 #include <seating_optimization/seating_problem_elements/Seat.fwd.hh>
+#include <seating_optimization/seating_problem_elements/constraints/Constraint.fwd.hh>
 
 // Base headers:
 #include <base/types.hh>
@@ -143,6 +144,12 @@ public:
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
+	/// @brief Configure from the lines of a file.
+	void
+	configure_from_problem_definition_file_lines(
+		std::vector< std::string > const & file_lines
+	);
+
 	/// @brief Add a guest.  Stored directly; not cloned.  Throws if the unique guest ID has already been taken.
 	void
 	add_guest(
@@ -180,6 +187,34 @@ protected:
 	api_definition() {
 		return api_definition_;
 	}
+
+	/// @brief Add a guest.  Stored directly; not cloned.  Throws if the unique guest ID has already been taken.
+	/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
+	void
+	protected_add_guest(
+		seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP const & guest_in
+	);
+
+	/// @brief Add a table.  Stored directly; not cloned.
+	/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
+	void
+	protected_add_table(
+		seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::TableCSP const & table_in
+	);
+
+	/// @brief Add a loose seat.  Stored directly; not cloned.  (NOT YET SUPPORTED -- THROWS.)
+	/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
+	void
+	protected_add_seat(
+		seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP const & seat_in
+	);
+
+	/// @brief Add a constraint.  Stored directly; not cloned.  (NOT YET SUPPORTED -- THROWS.  MUST BE IMPLEMENTED.)
+	/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
+	void
+	protected_add_constraint(
+		seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::ConstraintCSP const & constraint_in
+	);
 
 	/// @brief Make this object fully indepdendent.  Derived classes must override this, and the override must call
 	/// the parent class implementation.
@@ -220,6 +255,9 @@ private:
 
 	/// @brief The zero-based absolute indices of the seats.
 	std::map< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP, masala::base::Size > seat_indices_;
+
+	/// @brief The constraints, sorted by index.
+	std::vector< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::ConstraintCSP > constraints_;
 
 }; // class SeatingProblem
 

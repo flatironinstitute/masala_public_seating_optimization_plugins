@@ -31,6 +31,7 @@
 #include <base/error/ErrorHandling.hh>
 #include <base/api/MasalaObjectAPIDefinition.hh>
 #include <base/api/constructor/MasalaObjectAPIConstructorMacros.hh>
+#include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 
 // STL headers:
 
@@ -139,6 +140,7 @@ SeatingElementBase::class_namespace() const {
 masala::base::api::MasalaObjectAPIDefinitionCWP
 SeatingElementBase::get_api_definition() {
     using namespace masala::base::api;
+    using namespace masala::base::api::setter;
     using masala::base::Real;
     using masala::base::Size;
 
@@ -161,6 +163,16 @@ SeatingElementBase::get_api_definition() {
         // Getters:
 
         // Setters:
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< std::string const & > >(
+				"configure_from_input_line",
+				"Configure this object from a line in a problem definition file.  Must be "
+				"implemented by derived classes.  Base class implementation throws.",
+				"file_line", "A line from a configuration file.  Should start with the class name.",
+				true, false,
+				std::bind( &SeatingElementBase::configure_from_input_line, this, std::placeholders::_1 )
+			)
+		);
 
         api_definition() = api_def; //Make const.
     }
@@ -175,6 +187,19 @@ SeatingElementBase::get_api_definition() {
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Configure this object from a line in a problem definition file.
+/// @details Must be implemented by derived classes.  Base class implementation throws.
+void
+SeatingElementBase::configure_from_input_line(
+	std::string const & file_line
+) {
+	MASALA_THROW( class_namespace() + "::" + class_name(), "configure_from_input_line",
+		"Error parsing line \"" + file_line + "\".  This class has not overridden "
+		"this function.  Please consult a developer, as this is a program error that "
+		"ought not to happen."
+	);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC WORK FUNCTIONS

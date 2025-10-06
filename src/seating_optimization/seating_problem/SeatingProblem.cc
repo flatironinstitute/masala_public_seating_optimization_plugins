@@ -28,16 +28,22 @@
 #include <seating_optimization/seating_problem_elements/Guest.hh>
 #include <seating_optimization/seating_problem_elements/Table.hh>
 #include <seating_optimization/seating_problem_elements/Seat.hh>
+#include <seating_optimization/seating_problem_elements/SeatingElementBase.hh>
+#include <seating_optimization/seating_problem_elements/constraints/Constraint.hh>
 
 // Base headers:
+#include <base/utility/string/string_manipulation.hh>
 #include <base/error/ErrorHandling.hh>
 #include <base/api/MasalaObjectAPIDefinition.hh>
 #include <base/api/constructor/MasalaObjectAPIConstructorMacros.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 #include <base/api/getter/MasalaObjectAPIGetterDefinition_OneInput.tmpl.hh>
 #include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_ZeroInput.tmpl.hh>
+#include <base/managers/plugin_module/MasalaPluginAPI.hh>
+#include <base/managers/plugin_module/MasalaPluginModuleManager.hh>
 
 // STL headers:
+#include <sstream>
 
 namespace seating_optimization_masala_plugins {
 namespace seating_optimization {
@@ -156,10 +162,10 @@ SeatingProblem::get_api_definition() {
             masala::make_shared< MasalaObjectAPIDefinition >(
                 *this,
                 "The SeatingProblem describes a seating problem, including the tables, the seats, the guests, and the constraints.",
-                false, true
+                false, false
             )
         );
-        ADD_PROTECTED_CONSTRUCTOR_DEFINITIONS( SeatingProblem, api_def );
+        ADD_PUBLIC_CONSTRUCTOR_DEFINITIONS( SeatingProblem, api_def );
 
         // Work functions:
 		api_def->add_work_function(
@@ -186,6 +192,14 @@ SeatingProblem::get_api_definition() {
 		);
 
         // Setters:
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< std::vector< std::string > const & > >(
+				"configure_from_problem_definition_file_lines", "Configure from the lines of a file.",
+				"filelines", "The lines of the file, as a vector of strings.",
+				false, false,
+				std::bind( &SeatingProblem::configure_from_problem_definition_file_lines, this, std::placeholders::_1 )
+			)
+		);
 		api_def->add_setter(
 			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP const & > >(
 				"add_guest", "Add a guest.  Stored directly; not cloned.  Throws if the unique guest ID has already been taken.",
@@ -232,18 +246,76 @@ SeatingProblem::guest_index_from_uid(
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Configure from the lines of a file.
+void
+SeatingProblem::configure_from_problem_definition_file_lines(
+	std::vector< std::string > const & file_lines
+) {
+	using namespace masala::base::managers::plugin_module;
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
+	
+	MasalaPluginModuleManagerHandle plugman( MasalaPluginModuleManager::get_instance() );
+
+	std::lock_guard< std::mutex > lock(mutex_);
+
+	for( std::string const & line : file_lines ) {
+		std::string const line_sans_comments( line.substr(0, line.find_first_of('#') ) );
+		std::string const linestripped( masala::base::utility::string::trim( line_sans_comments ) );
+		if( !linestripped.empty() ) {
+			write_to_tracer( "=== Parsing \"" + linestripped + "\". ===" );
+			std::istringstream ss( linestripped );
+			std::string firstname;
+			ss >> firstname;
+			CHECK_OR_THROW_FOR_CLASS( !(ss.bad() || ss.fail()), "configure_from_problem_definition_file_lines", "Could not parse line \"" + linestripped + "\"." );
+			
+			MasalaPluginAPISP plugin_api(
+				plugman->create_plugin_object_instance_by_short_name(
+					{ "SeatingProblem", "SeatingProblemElement"}, firstname, true
+				)
+			);
+			CHECK_OR_THROW_FOR_CLASS( plugin_api != nullptr, "configure_from_problem_definition_file_lines",
+				"Could not create an object of type \"" + firstname + "\".  Check input for typos."
+			);
+			SeatingElementBaseSP seating_element( std::dynamic_pointer_cast< SeatingElementBase >( plugin_api->get_inner_plugin_object_nonconst() ) );
+			CHECK_OR_THROW_FOR_CLASS( seating_element != nullptr, "configure_from_problem_definition_file_lines",
+				"Could not create a SeatingElement of type \"" + plugin_api->inner_class_name() + "\".  Check input "
+				"for typos, and that the class in question is a SeatingElementBase derived class."
+			);
+
+			seating_element->configure_from_input_line( linestripped );
+			write_to_tracer( "Configured a \"" + seating_element->class_name() + "\" object." );
+
+			// Determine the type of the object, and store it appropriately.
+			GuestCSP guest( std::dynamic_pointer_cast< Guest const >(seating_element) );
+			if( guest != nullptr ) { protected_add_guest(guest); }
+			else {
+				constraints::ConstraintCSP constraint( std::dynamic_pointer_cast< constraints::Constraint const >(seating_element) );
+				if( constraint != nullptr ) { protected_add_constraint(constraint); }
+				else {			
+					TableCSP table( std::dynamic_pointer_cast< Table const >(seating_element) );
+					if( table != nullptr ) { protected_add_table(table); }
+					else {
+						SeatCSP seat( std::dynamic_pointer_cast< Seat const >(seating_element) );
+						if( seat != nullptr ) { protected_add_seat(seat); }
+						else {
+							MASALA_THROW( class_namespace() + "::" + class_name(), "configure_from_problem_definition_file_lines",
+								"Could not interpret \"" + seating_element->class_name() + "\" object as a Guest, a Table, a Seat, or a Constraint."
+							);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 /// @brief Add a guest.  Stored directly; not cloned.  Throws if the unique guest ID has already been taken.
 void
 SeatingProblem::add_guest(
 	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP const & guest_in
 ) {
-	std::string const uid( guest_in->unique_identifier() );
 	std::lock_guard< std::mutex > lock( mutex_ );
-	CHECK_OR_THROW_FOR_CLASS( guests_.count( uid ) == 0, "add_guest", "A guest with unique identifier \""
-		+ uid + "\" has already been added."
-	);
-	masala::base::Size nguests( guests_.size() );
-	guests_[uid] = std::make_pair( nguests, guest_in );
+	protected_add_guest(guest_in);
 }
 
 /// @brief Add a table.  Stored directly; not cloned.
@@ -252,12 +324,7 @@ SeatingProblem::add_table(
 	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::TableCSP const & table_in
 ) {
 	std::lock_guard< std::mutex > lock( mutex_ );
-	for( auto const & table : tables_ ) {
-		CHECK_OR_THROW_FOR_CLASS( table.get() != table_in.get(), "add_table", "A table was passed to this function that has already been added!" );
-	}
-	tables_.push_back( table_in );
-	
-	regenerate_seat_indices();
+	protected_add_table(table_in);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -290,6 +357,56 @@ SeatingProblem::get_adjacent_seat_global_indices() const {
 ////////////////////////////////////////////////////////////////////////////////
 // PROTECTED FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Add a guest.  Stored directly; not cloned.  Throws if the unique guest ID has already been taken.
+/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
+void
+SeatingProblem::protected_add_guest(
+	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP const & guest_in
+) {
+	std::string const uid( guest_in->unique_identifier() );
+	CHECK_OR_THROW_FOR_CLASS( guests_.count( uid ) == 0, "protected_add_guest", "A guest with unique identifier \""
+		+ uid + "\" has already been added."
+	);
+	masala::base::Size nguests( guests_.size() );
+	guests_[uid] = std::make_pair( nguests, guest_in );
+	write_to_tracer( "Added guest \"" + guest_in->name() + "\" (index " + std::to_string(nguests) + ") with unique identifier \"" + guest_in->unique_identifier() + "\"." );
+}
+
+/// @brief Add a table.  Stored directly; not cloned.
+/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
+void
+SeatingProblem::protected_add_table(
+	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::TableCSP const & table_in
+){
+	for( auto const & table : tables_ ) {
+		CHECK_OR_THROW_FOR_CLASS( table.get() != table_in.get(), "protected_add_table", "A table was passed to this function that has already been added!" );
+	}
+	tables_.push_back( table_in );
+	
+	regenerate_seat_indices();
+
+	write_to_tracer( "Added table " + std::to_string(tables_.size() - 1) + " of type \"" + table_in->class_name() + "\", with " + std::to_string( table_in->num_seats() ) + " seats." );
+}
+
+/// @brief Add a loose seat.  Stored directly; not cloned.  (NOT YET SUPPORTED -- THROWS.)
+/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
+void
+SeatingProblem::protected_add_seat(
+	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP const & //seat_in
+) {
+	MASALA_THROW( class_namespace() + "::" + class_name(), "protected_add_seat", "Loose seats are not yet supported!" );
+}
+
+/// @brief Add a constraint.  Stored directly; not cloned.  (NOT YET SUPPORTED -- THROWS.  MUST BE IMPLEMENTED.)
+/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
+void
+SeatingProblem::protected_add_constraint(
+	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::ConstraintCSP const & constraint_in
+) {
+	constraints_.push_back( constraint_in );
+	write_to_tracer( "Added constraint " + std::to_string(constraints_.size() -1) + " of type \"" + constraint_in->class_name() + "\"." );
+}
 
 /// @brief Make this object fully indepdendent.  Derived classes must override this, and the override must call
 /// the parent class implementation.

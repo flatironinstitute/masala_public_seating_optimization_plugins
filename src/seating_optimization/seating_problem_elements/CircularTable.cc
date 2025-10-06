@@ -36,11 +36,14 @@
 #include <base/api/getter/MasalaObjectAPIGetterDefinition_ZeroInput.tmpl.hh>
 #include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_ZeroInput.tmpl.hh>
 #include <base/utility/container/container_util.tmpl.hh>
+#include <base/utility/string/string_manipulation.hh>
 
 // Numeric API headers:
 #include <numeric_api/utility/constants/constants.hh>
+#include <numeric_api/utility/angles/angle_util.hh>
 
 // STL headers:
+#include <sstream>
 #include <cmath>
 
 namespace seating_optimization_masala_plugins {
@@ -213,6 +216,16 @@ CircularTable::get_api_definition() {
 
 		// Setters:
 		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< std::string const & > >(
+				"configure_from_input_line",
+				"Configure this object from a line in a problem definition file.  This implementation expects "
+				"a line of the format 'Seat <xcoord> <ycoord> <angle_degrees> <radius> <seat_count> <optional local seat indices to omit>'.",
+				"file_line", "A line from a configuration file.  Should start with the class name.",
+				false, true,
+				std::bind( &CircularTable::configure_from_input_line, this, std::placeholders::_1 )
+			)
+		);
+		api_def->add_setter(
 			masala::make_shared< MasalaObjectAPISetterDefinition_TwoInput< Real const, Real const > >(
 				"set_coordinates",
 				"Set the coordinates of the centre of the table.  A table has coordinates in R^2 (x and y).",
@@ -270,6 +283,39 @@ CircularTable::get_api_definition() {
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Configure this object from a line in a problem definition file.
+/// @details This override expects a line of the format "CircularTable <xcoord>
+/// <ycoord> <angle_degrees> <radius> <seat_count> <optional local seat indices to omit>".
+void
+CircularTable::configure_from_input_line(
+	std::string const & file_line
+) {
+	std::string const linetrimmed( masala::base::utility::string::trim( file_line ) );
+	std::istringstream ss( linetrimmed );
+	std::string firststring;
+	std::lock_guard< std::mutex > lock( mutex() );
+	masala::base::Real x, y, angle_degrees, radius;
+	masala::base::Size seatcount;
+	ss >> firststring >> x >> y >> angle_degrees >> radius >> seatcount;
+	CHECK_OR_THROW_FOR_CLASS( !(ss.bad() || ss.fail()), "configure_from_input_line", "Could not parse line \"" + linetrimmed + "\"." );
+	std::vector< masala::base::Size > seats_to_omit;
+	while( !ss.eof() ) {
+		masala::base::Size seatindex;
+		ss >> seatindex;
+		CHECK_OR_THROW_FOR_CLASS( !(ss.bad() || ss.fail()), "configure_from_input_line", "Could not parse additional input in line \"" + linetrimmed + "\".  Expected zero-based local indices of seats to omit." );
+		CHECK_OR_THROW_FOR_CLASS( seatindex < seatcount, "configure_from_input_line", "Error parsing line \"" + linetrimmed + "\": bad omitted seat index " + std::to_string(seatindex) + "."  );
+		CHECK_OR_THROW_FOR_CLASS( !masala::base::utility::container::has_value(seats_to_omit, seatindex), "configure_from_input_line", "Error parsing line \"" + linetrimmed + "\": omitted seat " + std::to_string(seatindex) + " appears more than once." );
+		seats_to_omit.push_back( seatindex );
+	}
+	CHECK_OR_THROW_FOR_CLASS( ss.eof(), "configure_from_input_line", "Extra input in line \"" + linetrimmed + "\"." );
+	CHECK_OR_THROW_FOR_CLASS( firststring == "CircularTable", "configure_from_input_line", "Expected CircularTable configuration line to start with \"CircularTable\", but got \"" + linetrimmed + "\"." );
+	CHECK_OR_THROW_FOR_CLASS( radius > 0, "configure_from_input_line", "Error parsing line \"" + linetrimmed + "\": expected a radius greater than zero." );
+	protected_set_angle( angle_degrees ); // Converts to range [0, 360).
+	protected_set_coordinates( x, y );
+	radius_ = radius;
+	protected_set_seat_count( seatcount, seats_to_omit );
+}
+
 /// @brief Set the radius of the table.
 /// @param radius_in The radius of the table, in meters.  Note that this is the radius from
 /// the centre at which seat centres are found, not the radius of the physical table.
@@ -294,27 +340,7 @@ CircularTable::set_seat_count(
 	std::vector< Size > const & omitted_seats
 ) {
 	std::lock_guard< std::mutex > lock( mutex() );
-	std::vector< SeatSP > & seats( protected_seats() );
-	seats.clear();
-	if( seat_count_in == 0 ) { return; }
-	seats.resize( seat_count_in, nullptr );
-	seats.shrink_to_fit();
-	std::vector< bool > omitted_seat_bools( seat_count_in, false );
-	for( Size const entry : omitted_seats ) {
-		CHECK_OR_THROW_FOR_CLASS( entry < seat_count_in, "set_seat_count", "Cannot omit seat " + std::to_string( entry ) + " given a table with "
-			"only " + std::to_string( seat_count_in ) + " seats."
-		);
-		omitted_seat_bools[entry] = true;
-	}
-	Size counter(0);
-	for( SeatSP & seat : seats ) {
-		if( !omitted_seat_bools[counter] ) {
-			seat = masala::make_shared< Seat >();
-		}
-		++counter;
-	}
-
-	protected_update_seat_coordinates();
+	protected_set_seat_count( seat_count_in, omitted_seats );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -385,6 +411,39 @@ CircularTable::protected_update_seat_coordinates() {
 			);
 		}
 	}
+}
+
+/// @brief Set the number of seats evenly spaced around the table.  Clears any existing seats.  Performs no mutex locking.
+/// @param seat_count_in The number of seats to space around the table evenly.
+/// @param omitted_seats An optional set of seat indices (zero-based) to omit.  This can be useful if, for instance,
+/// a table is against a wall, or one seat would be too close to a pillar, or whatnot.  Leave this as an empty vector
+/// to have seats evenly spaced all the way around the table.
+void
+CircularTable::protected_set_seat_count(
+	masala::base::Size const seat_count_in,
+	std::vector< masala::base::Size > const & omitted_seats
+) {
+	std::vector< SeatSP > & seats( protected_seats() );
+	seats.clear();
+	if( seat_count_in == 0 ) { return; }
+	seats.resize( seat_count_in, nullptr );
+	seats.shrink_to_fit();
+	std::vector< bool > omitted_seat_bools( seat_count_in, false );
+	for( Size const entry : omitted_seats ) {
+		CHECK_OR_THROW_FOR_CLASS( entry < seat_count_in, "set_seat_count", "Cannot omit seat " + std::to_string( entry ) + " given a table with "
+			"only " + std::to_string( seat_count_in ) + " seats."
+		);
+		omitted_seat_bools[entry] = true;
+	}
+	Size counter(0);
+	for( SeatSP & seat : seats ) {
+		if( !omitted_seat_bools[counter] ) {
+			seat = masala::make_shared< Seat >();
+		}
+		++counter;
+	}
+
+	protected_update_seat_coordinates();
 }
 
 } // namespace seating_problem_elements

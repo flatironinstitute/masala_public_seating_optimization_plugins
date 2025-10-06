@@ -525,7 +525,7 @@ set_up_cfn_problem(
 	std::string const & appname,
 	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
 	masala::base::managers::engine::MasalaEngineAPI const & optimizer_api,
-	seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_API const & ,//seating_problem,
+	seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_API const & seating_problem,
 	masala::numeric_api::base_classes::optimization::cost_function_network::PluginPairwisePrecomputedCFNProblemScratchSpaceSP & scratchspace
 ) {
 	using namespace masala::numeric_api::base_classes::optimization::cost_function_network;
@@ -543,7 +543,7 @@ set_up_cfn_problem(
 	tracerman->write_to_tracer( appname, "Created a problem container of class \"" + problem->inner_class_name() + "\"." );
 
 	// Configure here:
-	// TODO TODO TODO;
+	seating_problem.set_up_cfn_problem( *problem );
 
 	// Finalize:
 	problem->finalize();

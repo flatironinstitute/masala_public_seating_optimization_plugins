@@ -78,25 +78,25 @@ load_masala_plugins(
 /// @brief Unload all Masala plugins.
 void
 unload_masala_plugins() {
-    using namespace masala::base::managers::plugin_module;
-    MasalaPluginLibraryManager::get_instance()->reset();
+	using namespace masala::base::managers::plugin_module;
+	MasalaPluginLibraryManager::get_instance()->reset();
 }
 
 /// @brief Print help messages.
 void
 print_help_messages(
-    std::map< std::string, std::string > const & help_messages,
-    std::string const & appname
+	std::map< std::string, std::string > const & help_messages,
+	std::string const & appname
 ) {
-    using masala::base::Size;
-    std::ostringstream ss;
-    ss << "The following options may be set:" << std::endl;
+	using masala::base::Size;
+	std::ostringstream ss;
+	ss << "The following options may be set:" << std::endl;
 
-    for( std::map< std::string, std::string >::const_iterator it( help_messages.begin()); it!=help_messages.end(); ++it ) {
-        ss << "-" << it->first << "\t" << it->second << std::endl;
-    }
+	for( std::map< std::string, std::string >::const_iterator it( help_messages.begin()); it!=help_messages.end(); ++it ) {
+		ss << "-" << it->first << "\t" << it->second << std::endl;
+	}
 
-    masala::base::managers::tracer::MasalaTracerManager::get_instance()->write_to_tracer( appname, ss.str() );
+	masala::base::managers::tracer::MasalaTracerManager::get_instance()->write_to_tracer( appname, ss.str() );
 }
 
 /// @brief Set the number of classical Monte Carlo steps for a classical optimizer.
@@ -521,15 +521,15 @@ main(
 	int argc,
 	char * argv[]
 ) {
-    using namespace masala::base::managers::tracer;
-    using namespace masala::base::managers::engine;
-    using namespace masala::base::managers::threads;
+	using namespace masala::base::managers::tracer;
+	using namespace masala::base::managers::engine;
+	using namespace masala::base::managers::threads;
 	using namespace seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem;
 
-    // Were options loaded?
-    int help_indicated(0);
-    int masala_plugins_found(0);
-    int optimizer_name_specified(0);
+	// Were options loaded?
+	int help_indicated(0);
+	int masala_plugins_found(0);
+	int optimizer_name_specified(0);
 	int classical_mc_steps_specified(0);
 	int total_threads_specified(0);
 	int classical_attempts_per_problem_specified(0);
@@ -544,9 +544,9 @@ main(
 		"MonteCarloCostFunctionNetworkOptimizer"
 	};
 
-    // Options that we will load:
-    std::vector< std::string > masala_plugin_paths;
-    std::string optimizer_name, probfile_name;
+	// Options that we will load:
+	std::vector< std::string > masala_plugin_paths;
+	std::string optimizer_name, probfile_name;
 	masala::base::Size classical_mc_steps( 1000000 );
 	masala::base::Size total_threads( 1 );
 	masala::base::Size classical_attempts_per_problem( 1 );
@@ -554,17 +554,17 @@ main(
 	masala::base::Real flattening_boltzmann_temperature( 10.0 );
 	bool do_greedy( true );
 
-    // Masala tracer manager:
-    MasalaTracerManagerHandle tracerman( MasalaTracerManager::get_instance() );
-    std::string const appname( "seating_optimization_masala_plugins::applications::applications_apps::optimize_seating" );
-    tracerman->write_to_tracer( appname, "Starting optimize_seating application." );
-    tracerman->write_to_tracer( appname, "Application created 15 August 2025 by Vikram K. Mulligan, Biomolecular Design Group, "
+	// Masala tracer manager:
+	MasalaTracerManagerHandle tracerman( MasalaTracerManager::get_instance() );
+	std::string const appname( "seating_optimization_masala_plugins::applications::applications_apps::optimize_seating" );
+	tracerman->write_to_tracer( appname, "Starting optimize_seating application." );
+	tracerman->write_to_tracer( appname, "Application created 15 August 2025 by Vikram K. Mulligan, Biomolecular Design Group, "
 		"Center for Computational Biology, Flatiron Institute, in collaboration with Karie A. Nicholas, Foundation for Health Care Quality."
 	);
-    tracerman->write_to_tracer( appname, "Please write to vmulligan@flatironinstitute.org for questions.");
+	tracerman->write_to_tracer( appname, "Please write to vmulligan@flatironinstitute.org for questions.");
 
-    // Load options:
-    if(
+	// Load options:
+	if(
 		!load_options(
 			argc, argv, tracerman, appname,
 			allowed_optimizer_names, masala_plugin_paths, optimizer_name,
@@ -583,12 +583,12 @@ main(
 	// Set threads:
 	MasalaThreadManager::get_instance()->set_total_threads( total_threads );
 
-    // Load masala plugins:
-    load_masala_plugins( masala_plugin_paths );
+	// Load masala plugins:
+	load_masala_plugins( masala_plugin_paths );
 
-    // Load the optimizer settings.  This fully configures the optimizer.
-    CHECK_OR_THROW( optimizer_name_specified == 1, appname, "main", "An optimizer must be specified with the -optimizer_name flag." );
-    MasalaEngineAPICSP optimizer_api(
+	// Load the optimizer settings.  This fully configures the optimizer.
+	CHECK_OR_THROW( optimizer_name_specified == 1, appname, "main", "An optimizer must be specified with the -optimizer_name flag." );
+	MasalaEngineAPICSP optimizer_api(
 		load_optimizer_settings(
 			tracerman,
 			appname,
@@ -602,20 +602,20 @@ main(
 		)
 	);
 
-    // Load the problem specification:
-    CHECK_OR_THROW( probfile_name_specified == 1, appname, "main", "A problem definition file must be specified with the -problem_file flag." );
-    SeatingProblem_APICSP seating_problem( load_problem_specification( appname, probfile_name ) );
-    
-    // Print a summary of the setup:
-   // print_setup_sumamry();
+	// Load the problem specification:
+	CHECK_OR_THROW( probfile_name_specified == 1, appname, "main", "A problem definition file must be specified with the -problem_file flag." );
+	SeatingProblem_APICSP seating_problem( load_problem_specification( appname, probfile_name ) );
+	
+	// Print a summary of the setup:
+// print_setup_sumamry();
 
-    // Solve the problem:
-    //solve_problem();
+	// Solve the problem:
+	//solve_problem();
 
-    // Print the solution(s):
-    //print_solutions();
+	// Print the solution(s):
+	//print_solutions();
 
-    unload_masala_plugins();
+	unload_masala_plugins();
 
 	return 0;
 

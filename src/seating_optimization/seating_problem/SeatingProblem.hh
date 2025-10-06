@@ -176,7 +176,7 @@ public:
 	std::vector< std::pair< masala::base::Size, masala::base::Size > >
 	get_adjacent_seat_global_indices() const;
 
-	/// @brief Configure a cost function network optimization problem from this object.
+	/// @brief Configure and finalize a cost function network optimization problem from this object.
 	/// @param[in] problem A shared pointer to an empty problem.  Filled and finalized by this operation.
 	void
 	set_up_cfn_problem(

@@ -185,6 +185,15 @@ SeatingProblem::get_api_definition() {
 				std::bind( &SeatingProblem::get_adjacent_seat_global_indices, this )
 			)
 		);
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_OneInput< void, masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & > >(
+				"set_up_cfn_problem", "Configure and finalize a cost function network optimization problem from this object.",
+				true, false, false, false,
+				"problem", "A shared pointer to an empty CFN problem instance.  Filled and finalized by this operation.",
+				"void", "This function returns nothing.",
+				std::bind( &SeatingProblem::set_up_cfn_problem, this, std::placeholders::_1 )
+			)
+		);
 
         // Getters:
 		api_def->add_getter(

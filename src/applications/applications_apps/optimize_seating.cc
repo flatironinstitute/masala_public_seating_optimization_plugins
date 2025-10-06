@@ -607,7 +607,7 @@ main(
 	SeatingProblem_APICSP seating_problem( load_problem_specification( appname, probfile_name ) );
 	
 	// Print a summary of the setup:
-// print_setup_sumamry();
+	// print_setup_sumamry();
 
 	// Solve the problem:
 	//solve_problem();

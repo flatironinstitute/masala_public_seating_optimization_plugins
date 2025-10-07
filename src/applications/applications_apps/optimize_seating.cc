@@ -41,7 +41,6 @@
 #include <base/utility/string/string_manipulation.hh>
 #include <base/api/MasalaObjectAPIDefinition.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
-#include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_OneInput.tmpl.hh>
 
 
 // Masala numeric_api headers:
@@ -254,7 +253,7 @@ configure_hill_flattening_kbt(
 }
 
 /// @brief Load a Monte Carlo cost function network optimizer or a hill-flattening Monte Carlo cost function network optimizer.
-masala::base::managers::engine::MasalaEngineAPISP
+masala::base::managers::engine::MasalaEngineAPICSP
 load_mc_cfn_optimizer(
 	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
 	std::string const & appname,
@@ -306,7 +305,7 @@ load_mc_cfn_optimizer(
 }
 
 /// @brief Load optimizer.
-masala::base::managers::engine::MasalaEngineAPISP
+masala::base::managers::engine::MasalaEngineAPICSP
 load_optimizer_settings(
 	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
 	std::string const & appname,
@@ -523,49 +522,28 @@ void
 solve_problem(
 	std::string const & appname,
 	masala::base::managers::tracer::MasalaTracerManagerHandle ,//tracerman,
-	masala::base::managers::engine::MasalaEngineAPI & optimizer_api,
+	masala::base::managers::engine::MasalaEngineAPI const & optimizer_api,
 	seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_API const & ,//seating_problem,
 	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblems_API const & problems
 ) {
-	using namespace masala::base::api;
-	using namespace masala::base::api::work_function;
 	using namespace masala::numeric_api::base_classes::optimization::cost_function_network;
 	using namespace masala::numeric_api::auto_generated_api::optimization::cost_function_network;
 
 	CHECK_OR_THROW( problems.n_problems() == 1, appname, "solve_problem", "Expected 1 problem in the problems container, but got " + std::to_string(problems.n_problems()) + "." );
 
-	PluginCostFunctionNetworkOptimizerSP optimizer(
-		std::dynamic_pointer_cast< PluginCostFunctionNetworkOptimizer >( optimizer_api.get_inner_engine_object() )
+	PluginCostFunctionNetworkOptimizerCSP optimizer(
+		std::dynamic_pointer_cast< PluginCostFunctionNetworkOptimizer const >( optimizer_api.get_inner_engine_object_const() )
 	);
 	CHECK_OR_THROW( optimizer != nullptr, appname, "solve_problem", "Could not interpret an object of type \"" + optimizer_api.inner_class_name() + "\" as a CFN optimizer." );
 
-	// Get the run function:
-	MasalaObjectAPIDefinitionCSP api_def( optimizer->get_api_definition().lock() );
-	MasalaObjectAPIWorkFunctionDefinition_OneInputCSP<
-		std::vector< masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolutions_APICSP >,
-		masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblems_API const &
-	> run_fxn;
-	for( auto it( api_def->work_functions_non_deprecated_begin() ); it != api_def->work_functions_non_deprecated_end(); ++it ) {
-		if( (*it)->work_function_name() == "run_cost_function_network_optimizer" ) {
-			run_fxn = std::dynamic_pointer_cast<
-				MasalaObjectAPIWorkFunctionDefinition_OneInput<
-					std::vector< masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolutions_APICSP >,
-					masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblems_API const &
-				>
-			const >(*it);
-			CHECK_OR_THROW( run_fxn != nullptr, appname, "solve_problem", "Could not get \"run_cost_function_network_optimizer()\" function." );
-			break;
-		}
-	}
-
 	std::vector< masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolutions_APICSP > solutions_vec(
-		run_fxn->function( problems )
+		optimizer->run_cost_function_network_optimizer( problems )
 	);
 	CHECK_OR_THROW( solutions_vec.size() == 1, appname, "solve_problem", "Expected 1 solution set, but got " + std::to_string( solutions_vec.size() ) + "." );
 	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolutions_API const & solutions( *solutions_vec[0] );
 	CHECK_OR_THROW( solutions.n_solutions() > 0, appname, "solve_problem", "Expected at least one solution." );
 
-	//TODO TODO TODO CONTINUE HERE:
+	TODO TODO TODO CONTINUE HERE:
 
 }
 
@@ -676,7 +654,7 @@ main(
 
 	// Load the optimizer settings.  This fully configures the optimizer.
 	CHECK_OR_THROW( optimizer_name_specified == 1, appname, "main", "An optimizer must be specified with the -optimizer_name flag." );
-	MasalaEngineAPISP optimizer_api(
+	MasalaEngineAPICSP optimizer_api(
 		load_optimizer_settings(
 			tracerman,
 			appname,

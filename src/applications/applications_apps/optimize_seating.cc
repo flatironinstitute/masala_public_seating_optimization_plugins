@@ -521,9 +521,9 @@ load_problem_specification(
 void
 solve_problem(
 	std::string const & appname,
-	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	masala::base::managers::tracer::MasalaTracerManagerHandle ,//tracerman,
 	masala::base::managers::engine::MasalaEngineAPI const & optimizer_api,
-	seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_API const & seating_problem,
+	seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_API const & ,//seating_problem,
 	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblems_API const & problems
 ) {
 	using namespace masala::numeric_api::base_classes::optimization::cost_function_network;

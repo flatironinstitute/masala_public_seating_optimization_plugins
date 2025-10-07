@@ -205,6 +205,14 @@ SeatingProblem::get_api_definition() {
 				std::bind( &SeatingProblem::guest_index_from_uid, this, std::placeholders::_1 )
 			)
 		);
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< Size > >(
+				"n_guests", "Get the number of guests.",
+				"n_guests", "The number of guests.",
+				false, false,
+				std::bind( &SeatingProblem::n_guests, this )
+			)
+		);
 
         // Setters:
 		api_def->add_setter(
@@ -254,6 +262,13 @@ SeatingProblem::guest_index_from_uid(
 	std::map< std::string, std::pair< Size, GuestCSP > >::const_iterator it( guests_.find( guest_unique_identifier ) );
 	CHECK_OR_THROW_FOR_CLASS( it != guests_.end(), "guest_index_from_uid", "No unique guest ID \"" + guest_unique_identifier + "\" was found." );
 	return it->second.first;
+}
+
+/// @brief Get the number of guests.
+masala::base::Size
+SeatingProblem::n_guests() const {
+	std::lock_guard< std::mutex > lock( mutex_ );
+	return guests_.size();
 }
 
 

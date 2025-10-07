@@ -141,6 +141,9 @@ public:
 	/// @brief Given a unique guest identifier, get the guest index.  Throws if guest not found.  Indices are zero-based.
 	masala::base::Size guest_index_from_uid( std::string const & guest_unique_identifier ) const;
 
+	/// @brief Get the number of guests.
+	masala::base::Size n_guests() const;
+
 public:
 
 ////////////////////////////////////////////////////////////////////////////////

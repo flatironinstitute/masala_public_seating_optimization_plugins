@@ -51,6 +51,7 @@
 #include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem_API.hh>
 #include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblems_API.hh>
 #include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationSolutions_API.hh>
+#include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationSolution_API.hh>
 
 // Seating problem API headers:
 #include <seating_optimization_api/auto_generated_api/seating_problem/SeatingProblem_API.hh>
@@ -527,11 +528,12 @@ load_problem_specification(
 void
 solve_problem(
 	std::string const & appname,
-	masala::base::managers::tracer::MasalaTracerManagerHandle ,//tracerman,
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
 	masala::base::managers::engine::MasalaEngineAPI const & optimizer_api,
 	seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_API const & ,//seating_problem,
 	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblems_API const & problems
 ) {
+	using masala::base::Size;
 	using namespace masala::numeric_api::base_classes::optimization::cost_function_network;
 	using namespace masala::numeric_api::auto_generated_api::optimization::cost_function_network;
 
@@ -548,6 +550,18 @@ solve_problem(
 	CHECK_OR_THROW( solutions_vec.size() == 1, appname, "solve_problem", "Expected 1 solution set, but got " + std::to_string( solutions_vec.size() ) + "." );
 	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolutions_API const & solutions( *solutions_vec[0] );
 	CHECK_OR_THROW( solutions.n_solutions() > 0, appname, "solve_problem", "Expected at least one solution." );
+
+	tracerman->write_to_tracer(appname, "INDEX\tSOLUTION\tACTUAL_SCORE\tDR_APPROX_SCORE\tSOLVER_APPROX_SCORE");
+	for( Size i(0); i<solutions.n_solutions(); ++i ) {
+		CostFunctionNetworkOptimizationSolution_APICSP cursolution( std::dynamic_pointer_cast< CostFunctionNetworkOptimizationSolution_API const >(solutions.solution(i)) );
+		CHECK_OR_THROW( cursolution != nullptr, appname, "solve_problem", "Solution " + std::to_string(i) + " was not a CostFunctionNetworkOptimizationSolution." );
+		tracerman->write_to_tracer( appname, std::to_string(i) + "\t[" +
+			masala::base::utility::container::container_to_string(
+				 cursolution->solution_at_variable_positions(), ","
+			) + "]\t" + std::to_string(cursolution->solution_score()) + "\t" + std::to_string(cursolution->solution_score_data_representation_approximation())
+			+ "\t" + std::to_string(cursolution->solution_score_solver_approximation())
+		);
+	}
 
 	TODO TODO TODO CONTINUE HERE:
 

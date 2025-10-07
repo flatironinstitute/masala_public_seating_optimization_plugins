@@ -551,15 +551,15 @@ solve_problem(
 	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolutions_API const & solutions( *solutions_vec[0] );
 	CHECK_OR_THROW( solutions.n_solutions() > 0, appname, "solve_problem", "Expected at least one solution." );
 
-	tracerman->write_to_tracer(appname, "INDEX\tSOLUTION\tACTUAL_SCORE\tDR_APPROX_SCORE\tSOLVER_APPROX_SCORE");
+	tracerman->write_to_tracer(appname, "INDEX\tTIMES_SEEN\tSOLUTION\tACTUAL_SCORE\tDR_APPROX_SCORE\tSOLVER_APPROX_SCORE\tVALID");
 	for( Size i(0); i<solutions.n_solutions(); ++i ) {
 		CostFunctionNetworkOptimizationSolution_APICSP cursolution( std::dynamic_pointer_cast< CostFunctionNetworkOptimizationSolution_API const >(solutions.solution(i)) );
 		CHECK_OR_THROW( cursolution != nullptr, appname, "solve_problem", "Solution " + std::to_string(i) + " was not a CostFunctionNetworkOptimizationSolution." );
-		tracerman->write_to_tracer( appname, std::to_string(i) + "\t[" +
+		tracerman->write_to_tracer( appname, std::to_string(i) + "\t" + std::to_string(cursolution->n_times_solution_was_produced()) + "\t[" +
 			masala::base::utility::container::container_to_string(
 				 cursolution->solution_at_variable_positions(), ","
 			) + "]\t" + std::to_string(cursolution->solution_score()) + "\t" + std::to_string(cursolution->solution_score_data_representation_approximation())
-			+ "\t" + std::to_string(cursolution->solution_score_solver_approximation())
+			+ "\t" + std::to_string(cursolution->solution_score_solver_approximation()) + "\t" + ( cursolution->solution_is_valid() ? "TRUE" : "FALSE" )
 		);
 	}
 

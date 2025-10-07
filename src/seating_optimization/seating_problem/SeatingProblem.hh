@@ -144,6 +144,9 @@ public:
 	/// @brief Get the number of guests.
 	masala::base::Size n_guests() const;
 
+	/// @brief Get the number of seats.
+	masala::base::Size n_seats() const;
+
 public:
 
 ////////////////////////////////////////////////////////////////////////////////

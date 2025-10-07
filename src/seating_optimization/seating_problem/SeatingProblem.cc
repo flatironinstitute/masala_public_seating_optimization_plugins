@@ -213,6 +213,14 @@ SeatingProblem::get_api_definition() {
 				std::bind( &SeatingProblem::n_guests, this )
 			)
 		);
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< Size > >(
+				"n_seats", "Get the number of seats.",
+				"n_seats", "The number of seats.",
+				false, false,
+				std::bind( &SeatingProblem::n_seats, this )
+			)
+		);
 
         // Setters:
 		api_def->add_setter(
@@ -269,6 +277,13 @@ masala::base::Size
 SeatingProblem::n_guests() const {
 	std::lock_guard< std::mutex > lock( mutex_ );
 	return guests_.size();
+}
+
+/// @brief Get the number of seats.
+masala::base::Size
+SeatingProblem::n_seats() const {
+	std::lock_guard< std::mutex > lock( mutex_ );
+	return seat_indices_.size();
 }
 
 

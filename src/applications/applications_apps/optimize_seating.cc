@@ -42,8 +42,11 @@
 #include <base/api/MasalaObjectAPIDefinition.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 
+// Masala core_api headers:
+#include <core_api/auto_generated_api/registration/register_core.hh>
 
 // Masala numeric_api headers:
+#include <numeric_api/auto_generated_api/registration/register_numeric.hh>
 #include <numeric_api/base_classes/optimization/cost_function_network/PluginCostFunctionNetworkOptimizer.hh>
 #include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem_API.hh>
 #include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblems_API.hh>
@@ -70,6 +73,9 @@ load_masala_plugins(
 ) {
 	using namespace masala::base::managers::plugin_module;
 	using namespace seating_optimization_masala_plugins::registration_api;
+
+	masala::numeric_api::auto_generated_api::registration::register_numeric();
+	masala::core_api::auto_generated_api::registration::register_core();
 
 	register_library();
 	MasalaPluginLibraryManagerHandle libman( MasalaPluginLibraryManager::get_instance() );

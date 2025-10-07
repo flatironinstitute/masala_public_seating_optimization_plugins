@@ -27,9 +27,12 @@ Guest	br_in_law_of_groom	Nigel Marple
 Guest	cousin1_of_groom	Clara Josephson
 Guest	cousin2_of_groom	Laura Josephson
 
+# Ensure that no two guests can be assigned to the same seat.
+
+GuestOverlapConstraint  30.0
+
 # Add some guest pair constraints: it's unfavourable for the creepy uncle to sit next to
 # any of the young women to whom he is not related.
-
 
 GuestPairAdjacentSeatConstraint		uncle1_of_bride		cousin1_of_groom	10.0
 GuestPairAdjacentSeatConstraint		uncle1_of_bride		cousin2_of_groom	10.0

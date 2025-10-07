@@ -42,14 +42,12 @@
 #include <base/api/MasalaObjectAPIDefinition.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 
-// Masala numeric headers:
-#include <numeric/optimization/cost_function_network/CFNProblemScratchSpace.hh>
 
 // Masala numeric_api headers:
 #include <numeric_api/base_classes/optimization/cost_function_network/PluginCostFunctionNetworkOptimizer.hh>
 #include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem_API.hh>
 #include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblems_API.hh>
-#include <numeric_api/base_classes/optimization/cost_function_network/PluginPairwisePrecomputedCFNProblemScratchSpace.hh>
+#include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationSolutions_API.hh>
 
 // Seating problem API headers:
 #include <seating_optimization_api/auto_generated_api/seating_problem/SeatingProblem_API.hh>
@@ -519,14 +517,43 @@ load_problem_specification(
 	return seating_problem;
 }
 
+/// @brief Run the CFN problem and produce a solution.
+void
+solve_problem(
+	std::string const & appname,
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	masala::base::managers::engine::MasalaEngineAPI const & optimizer_api,
+	seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_API const & seating_problem,
+	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblems_API const & problems
+) {
+	using namespace masala::numeric_api::base_classes::optimization::cost_function_network;
+	using namespace masala::numeric_api::auto_generated_api::optimization::cost_function_network;
+
+	CHECK_OR_THROW( problems.n_problems() == 1, appname, "solve_problem", "Expected 1 problem in the problems container, but got " + std::to_string(problems.n_problems()) + "." );
+
+	PluginCostFunctionNetworkOptimizerCSP optimizer(
+		std::dynamic_pointer_cast< PluginCostFunctionNetworkOptimizer const >( optimizer_api.get_inner_engine_object_const() )
+	);
+	CHECK_OR_THROW( optimizer != nullptr, appname, "solve_problem", "Could not interpret an object of type \"" + optimizer_api.inner_class_name() + "\" as a CFN optimizer." );
+
+	std::vector< masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolutions_APICSP > solutions_vec(
+		optimizer->run_cost_function_network_optimizer( problems )
+	);
+	CHECK_OR_THROW( solutions_vec.size() == 1, appname, "solve_problem", "Expected 1 solution set, but got " + std::to_string( solutions_vec.size() ) + "." );
+	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolutions_API const & solutions( *solutions_vec[0] );
+	CHECK_OR_THROW( solutions.n_solutions() > 0, appname, "solve_problem", "Expected at least one solution." );
+
+	TODO TODO TODO CONTINUE HERE:
+
+}
+
 /// @brief Set up the CFN problem and package it in a problems container.
 masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblems_APISP
 set_up_cfn_problem(
 	std::string const & appname,
 	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
 	masala::base::managers::engine::MasalaEngineAPI const & optimizer_api,
-	seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_API const & seating_problem,
-	masala::numeric_api::base_classes::optimization::cost_function_network::PluginPairwisePrecomputedCFNProblemScratchSpaceSP & scratchspace
+	seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_API const & seating_problem
 ) {
 	using namespace masala::numeric_api::base_classes::optimization::cost_function_network;
 	using namespace masala::numeric_api::auto_generated_api::optimization::cost_function_network;
@@ -544,16 +571,6 @@ set_up_cfn_problem(
 
 	// Configure and finalize here:
 	seating_problem.set_up_cfn_problem( *problem );
-	
-	// Generate the scratch space:
-	masala::numeric::optimization::cost_function_network::CFNProblemScratchSpaceSP scratchspace_uncast( problem->generate_cfn_problem_scratch_space() );
-	if( scratchspace_uncast != nullptr ) {
-		scratchspace = std::dynamic_pointer_cast< PluginPairwisePrecomputedCFNProblemScratchSpace >( scratchspace_uncast );
-		CHECK_OR_THROW( scratchspace != nullptr, appname, "set_up_cfn_problem", "Could not interpret a scratch space of type \""
-			+ scratchspace_uncast->class_name() + "\" as a PluginPairwisePrecomputedCFNProblemScratchSpace."
-		);
-		tracerman->write_to_tracer( appname, "Created a scratch space of class \"" + scratchspace->class_name() + "\"." );
-	}
 
 	// Package in a problems container:
 	CostFunctionNetworkOptimizationProblems_APISP problems( masala::make_shared< CostFunctionNetworkOptimizationProblems_API >() );
@@ -656,11 +673,10 @@ main(
 	SeatingProblem_APICSP seating_problem( load_problem_specification( appname, probfile_name ) );
 
 	// Generate the CFN problem:
-	PluginPairwisePrecomputedCFNProblemScratchSpaceSP scratchspace;
-	CostFunctionNetworkOptimizationProblems_APICSP problems( set_up_cfn_problem( appname, tracerman, *optimizer_api, *seating_problem, scratchspace ) );
+	CostFunctionNetworkOptimizationProblems_APICSP problems( set_up_cfn_problem( appname, tracerman, *optimizer_api, *seating_problem ) );
 
 	// Solve the problem:
-	//solve_problem();
+	solve_problem( appname, tracerman, *optimizer_api, *seating_problem, *problems );
 
 	// Print the solution(s):
 	//print_solutions();

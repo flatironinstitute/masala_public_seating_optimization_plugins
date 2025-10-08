@@ -464,10 +464,24 @@ SeatingProblem::set_up_cfn_problem(
 /// @note The returned object is unfinalized, since it needs a shared pointer from this SeatingProblem object to be cached in it.
 SeatingSolutionSP
 SeatingProblem::seating_solution_from_cfn_solution(
-	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const & //cfn_solution
+	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const & cfn_solution
 ) const {
-	TODO TODO TODO;
-	return nullptr;
+	using namespace masala::numeric_api::auto_generated_api::optimization::cost_function_network;
+
+	std::lock_guard< std::mutex > lock( mutex_ );
+	CostFunctionNetworkOptimizationProblem_APICSP cfn_problem(
+		std::static_pointer_cast< CostFunctionNetworkOptimizationProblem_API const >( cfn_solution.problem() )
+	);
+	CHECK_OR_THROW_FOR_CLASS( cfn_problem != nullptr, "seating_solution_from_cfn_solution", "Could not get CFN problem description." );
+	CHECK_OR_THROW_FOR_CLASS( cfn_problem->total_nodes() == guests_.size(), "seating_solution_from_cfn_solution", "The number of guests ("
+		+ std::to_string(guests_.size()) + ") did not match the number of nodes in the CFN problem (" + std::to_string(cfn_problem->total_nodes()) + ")."
+	);
+
+	SeatingSolutionSP seating_soln( masala::make_shared< SeatingSolution >() );
+
+	//TODO TODO TODO;
+
+	return seating_soln;
 }
 
 /// @brief Indicate that this object is fully set up.

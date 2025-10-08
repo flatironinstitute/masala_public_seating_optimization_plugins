@@ -184,6 +184,14 @@ SeatingSolution::get_api_definition() {
 		);
 
         // Getters:
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< bool > >(
+				"finalized", "Has this object been finalized?",
+				"finalized", "True if this object has been finalized; false otherwise.",
+				false, false,
+				std::bind( &SeatingSolution::finalized, this )
+			)
+		);
 
         // Setters:
 
@@ -196,6 +204,13 @@ SeatingSolution::get_api_definition() {
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC GETTERS
 ////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Has this object been finalized?
+bool
+SeatingSolution::finalized() const {
+	std::lock_guard< std::mutex > lock( mutex_ );
+	return finalized_;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC SETTERS

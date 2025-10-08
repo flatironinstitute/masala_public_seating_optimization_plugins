@@ -42,9 +42,16 @@
 #include <base/api/MasalaObjectAPIDefinition.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 
+// Masala core_api headers:
+#include <core_api/auto_generated_api/registration/register_core.hh>
+
 // Masala numeric_api headers:
+#include <numeric_api/auto_generated_api/registration/register_numeric.hh>
 #include <numeric_api/base_classes/optimization/cost_function_network/PluginCostFunctionNetworkOptimizer.hh>
-#include <numeric_api/base_classes/optimization/cost_function_network/PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem.hh>
+#include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem_API.hh>
+#include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblems_API.hh>
+#include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationSolutions_API.hh>
+#include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationSolution_API.hh>
 
 // Seating problem API headers:
 #include <seating_optimization_api/auto_generated_api/seating_problem/SeatingProblem_API.hh>
@@ -67,6 +74,9 @@ load_masala_plugins(
 ) {
 	using namespace masala::base::managers::plugin_module;
 	using namespace seating_optimization_masala_plugins::registration_api;
+
+	masala::numeric_api::auto_generated_api::registration::register_numeric();
+	masala::core_api::auto_generated_api::registration::register_core();
 
 	register_library();
 	MasalaPluginLibraryManagerHandle libman( MasalaPluginLibraryManager::get_instance() );
@@ -514,6 +524,80 @@ load_problem_specification(
 	return seating_problem;
 }
 
+/// @brief Run the CFN problem and produce a solution.
+void
+solve_problem(
+	std::string const & appname,
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	masala::base::managers::engine::MasalaEngineAPI const & optimizer_api,
+	seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_API const & ,//seating_problem,
+	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblems_API const & problems
+) {
+	using masala::base::Size;
+	using namespace masala::numeric_api::base_classes::optimization::cost_function_network;
+	using namespace masala::numeric_api::auto_generated_api::optimization::cost_function_network;
+
+	CHECK_OR_THROW( problems.n_problems() == 1, appname, "solve_problem", "Expected 1 problem in the problems container, but got " + std::to_string(problems.n_problems()) + "." );
+
+	PluginCostFunctionNetworkOptimizerCSP optimizer(
+		std::dynamic_pointer_cast< PluginCostFunctionNetworkOptimizer const >( optimizer_api.get_inner_engine_object_const() )
+	);
+	CHECK_OR_THROW( optimizer != nullptr, appname, "solve_problem", "Could not interpret an object of type \"" + optimizer_api.inner_class_name() + "\" as a CFN optimizer." );
+
+	std::vector< masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolutions_APICSP > solutions_vec(
+		optimizer->run_cost_function_network_optimizer( problems )
+	);
+	CHECK_OR_THROW( solutions_vec.size() == 1, appname, "solve_problem", "Expected 1 solution set, but got " + std::to_string( solutions_vec.size() ) + "." );
+	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolutions_API const & solutions( *solutions_vec[0] );
+	CHECK_OR_THROW( solutions.n_solutions() > 0, appname, "solve_problem", "Expected at least one solution." );
+
+	tracerman->write_to_tracer(appname, "INDEX\tTIMES_SEEN\tSOLUTION\tACTUAL_SCORE\tDR_APPROX_SCORE\tSOLVER_APPROX_SCORE\tVALID");
+	for( Size i(0); i<solutions.n_solutions(); ++i ) {
+		CostFunctionNetworkOptimizationSolution_APICSP cursolution( std::dynamic_pointer_cast< CostFunctionNetworkOptimizationSolution_API const >(solutions.solution(i)) );
+		CHECK_OR_THROW( cursolution != nullptr, appname, "solve_problem", "Solution " + std::to_string(i) + " was not a CostFunctionNetworkOptimizationSolution." );
+		tracerman->write_to_tracer( appname, std::to_string(i) + "\t" + std::to_string(cursolution->n_times_solution_was_produced()) + "\t[" +
+			masala::base::utility::container::container_to_string(
+				 cursolution->solution_at_variable_positions(), ","
+			) + "]\t" + std::to_string(cursolution->solution_score()) + "\t" + std::to_string(cursolution->solution_score_data_representation_approximation())
+			+ "\t" + std::to_string(cursolution->solution_score_solver_approximation()) + "\t" + ( cursolution->solution_is_valid() ? "TRUE" : "FALSE" )
+		);
+	}
+
+	//TODO TODO TODO CONTINUE HERE:
+
+}
+
+/// @brief Set up the CFN problem and package it in a problems container.
+masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblems_APISP
+set_up_cfn_problem(
+	std::string const & appname,
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	masala::base::managers::engine::MasalaEngineAPI const & optimizer_api,
+	seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_API const & seating_problem
+) {
+	using namespace masala::numeric_api::base_classes::optimization::cost_function_network;
+	using namespace masala::numeric_api::auto_generated_api::optimization::cost_function_network;
+
+	PluginCostFunctionNetworkOptimizerCSP optimizer(
+		std::dynamic_pointer_cast< PluginCostFunctionNetworkOptimizer const >( optimizer_api.get_inner_engine_object_const() )
+	);
+	CHECK_OR_THROW( optimizer != nullptr, appname, "set_up_cfn_problem", "Could not interpret an object of type \"" + optimizer_api.inner_class_name() + "\" as a CFN optimizer." );
+
+	masala::base::managers::engine::MasalaDataRepresentationAPISP problem_uncast( optimizer->get_template_preferred_cfn_data_representation_copy() );
+	CHECK_OR_THROW( problem_uncast != nullptr, appname, "set_up_cfn_problem", "Could not get a template-preferred data representation from the solver of type \"" + optimizer_api.inner_class_name() + "\"." );
+	CostFunctionNetworkOptimizationProblem_APISP problem( std::dynamic_pointer_cast< CostFunctionNetworkOptimizationProblem_API >( problem_uncast ) );
+	CHECK_OR_THROW( problem != nullptr, appname, "set_up_cfn_problem", "Could not interpret an object of type \"" + problem_uncast->inner_class_name() + "\" as a CFN optimization problem." );
+	tracerman->write_to_tracer( appname, "Created a problem container of class \"" + problem->inner_class_name() + "\"." );
+
+	// Configure and finalize here:
+	seating_problem.set_up_cfn_problem( *problem );
+
+	// Package in a problems container:
+	CostFunctionNetworkOptimizationProblems_APISP problems( masala::make_shared< CostFunctionNetworkOptimizationProblems_API >() );
+	problems->add_optimization_problem(problem);
+
+	return problems;
+}
 
 /// @brief Program entry point:
 int 
@@ -524,6 +608,8 @@ main(
 	using namespace masala::base::managers::tracer;
 	using namespace masala::base::managers::engine;
 	using namespace masala::base::managers::threads;
+	using namespace masala::numeric_api::auto_generated_api::optimization::cost_function_network;
+	using namespace masala::numeric_api::base_classes::optimization::cost_function_network;
 	using namespace seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem;
 
 	// Were options loaded?
@@ -605,12 +691,12 @@ main(
 	// Load the problem specification:
 	CHECK_OR_THROW( probfile_name_specified == 1, appname, "main", "A problem definition file must be specified with the -problem_file flag." );
 	SeatingProblem_APICSP seating_problem( load_problem_specification( appname, probfile_name ) );
-	
-	// Print a summary of the setup:
-	// print_setup_sumamry();
+
+	// Generate the CFN problem:
+	CostFunctionNetworkOptimizationProblems_APICSP problems( set_up_cfn_problem( appname, tracerman, *optimizer_api, *seating_problem ) );
 
 	// Solve the problem:
-	//solve_problem();
+	solve_problem( appname, tracerman, *optimizer_api, *seating_problem, *problems );
 
 	// Print the solution(s):
 	//print_solutions();

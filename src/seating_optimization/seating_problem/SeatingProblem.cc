@@ -42,6 +42,12 @@
 #include <base/managers/plugin_module/MasalaPluginAPI.hh>
 #include <base/managers/plugin_module/MasalaPluginModuleManager.hh>
 
+// Numeric headers:
+#include <numeric/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem.hh>
+
+// Numeric API headers:
+#include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem_API.hh>
+
 // STL headers:
 #include <sstream>
 
@@ -179,6 +185,15 @@ SeatingProblem::get_api_definition() {
 				std::bind( &SeatingProblem::get_adjacent_seat_global_indices, this )
 			)
 		);
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_OneInput< void, masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & > >(
+				"set_up_cfn_problem", "Configure and finalize a cost function network optimization problem from this object.",
+				true, false, false, false,
+				"problem", "A shared pointer to an empty CFN problem instance.  Filled and finalized by this operation.",
+				"void", "This function returns nothing.",
+				std::bind( &SeatingProblem::set_up_cfn_problem, this, std::placeholders::_1 )
+			)
+		);
 
         // Getters:
 		api_def->add_getter(
@@ -188,6 +203,22 @@ SeatingProblem::get_api_definition() {
 				"guest_index", "The zero-based index (number) for the guest.",
 				false, false,
 				std::bind( &SeatingProblem::guest_index_from_uid, this, std::placeholders::_1 )
+			)
+		);
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< Size > >(
+				"n_guests", "Get the number of guests.",
+				"n_guests", "The number of guests.",
+				false, false,
+				std::bind( &SeatingProblem::n_guests, this )
+			)
+		);
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< Size > >(
+				"n_seats", "Get the number of seats.",
+				"n_seats", "The number of seats.",
+				false, false,
+				std::bind( &SeatingProblem::n_seats, this )
 			)
 		);
 
@@ -239,6 +270,20 @@ SeatingProblem::guest_index_from_uid(
 	std::map< std::string, std::pair< Size, GuestCSP > >::const_iterator it( guests_.find( guest_unique_identifier ) );
 	CHECK_OR_THROW_FOR_CLASS( it != guests_.end(), "guest_index_from_uid", "No unique guest ID \"" + guest_unique_identifier + "\" was found." );
 	return it->second.first;
+}
+
+/// @brief Get the number of guests.
+masala::base::Size
+SeatingProblem::n_guests() const {
+	std::lock_guard< std::mutex > lock( mutex_ );
+	return guests_.size();
+}
+
+/// @brief Get the number of seats.
+masala::base::Size
+SeatingProblem::n_seats() const {
+	std::lock_guard< std::mutex > lock( mutex_ );
+	return seat_indices_.size();
 }
 
 
@@ -352,6 +397,26 @@ SeatingProblem::get_adjacent_seat_global_indices() const {
 
 	outvec.shrink_to_fit();
 	return outvec;
+}
+
+/// @brief Configure a cost function network optimization problem from this object.
+/// @param[in] problem A shared pointer to an empty problem.  Filled and finalized by this operation.
+void
+SeatingProblem::set_up_cfn_problem(
+	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & problem
+) const {
+	using namespace masala::numeric::optimization::cost_function_network;
+
+	CostFunctionNetworkOptimizationProblemSP inner_problem( std::dynamic_pointer_cast< CostFunctionNetworkOptimizationProblem >( problem.get_inner_data_representation_object() ) );
+	CHECK_OR_THROW_FOR_CLASS( inner_problem != nullptr, "set_up_cfn_problem", "Could not interpret inner object of \"" + problem.class_name() + "\" class as a CostFunctionNetworkOptimizationProblem." );
+	CHECK_OR_THROW_FOR_CLASS( inner_problem->empty(), "set_up_cfn_problem", "A non-empty \"" + inner_problem->class_name() + "\" problem instance was passed to this function." );
+
+	for( auto const & constraint : constraints_ ) {
+		constraint->add_constraint_to_cfn_problem( *this, *inner_problem, 1.0 );
+	}
+
+	// Finalize:
+	problem.finalize();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -16,14 +16,13 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/// @file src/seating_optimization/seating_problem_elements/constraints/GuestPairAdjacentSeatConstraint.cc
-/// @brief Implementations for a GuestPairAdjacentSeatConstraint.
-/// @details The GuestPairAdjacentSeatConstraint class is used to indicate that two guests should be seated in adjacent seats,
-/// or should NOT be seated in adjacent seats.
+/// @file src/seating_optimization/seating_problem_elements/constraints/GuestOverlapConstraint.cc
+/// @brief Implementations for a GuestOverlapConstraint.
+/// @details The GuestOverlapConstraint class is used to indicate that two guests cannot be assigned to the same seat.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
 
 // Unit header:
-#include <seating_optimization/seating_problem_elements/constraints/GuestPairAdjacentSeatConstraint.hh>
+#include <seating_optimization/seating_problem_elements/constraints/GuestOverlapConstraint.hh>
 
 // Seating optimization headers:
 #include <seating_optimization/seating_problem/SeatingProblem.hh>
@@ -53,25 +52,25 @@ namespace constraints {
 ////////////////////////////////////////////////////////////////////////////////
 
 /// @brief Copy constructor.  Explicit due to mutex.
-GuestPairAdjacentSeatConstraint::GuestPairAdjacentSeatConstraint( GuestPairAdjacentSeatConstraint const & src ) :
+GuestOverlapConstraint::GuestOverlapConstraint( GuestOverlapConstraint const & src ) :
 	Parent( src )
 {
 	std::lock< std::mutex, std::mutex >( mutex(), src.mutex() );
 	std::lock_guard< std::mutex > lockthis( mutex(), std::adopt_lock );
 	std::lock_guard< std::mutex > lockthat( src.mutex(), std::adopt_lock );
-	GuestPairAdjacentSeatConstraint::protected_assign( src );
+	GuestOverlapConstraint::protected_assign( src );
 }
 
 /// @brief Make a copy of this object.
 seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBaseSP
-GuestPairAdjacentSeatConstraint::clone() const {
-	return masala::make_shared< GuestPairAdjacentSeatConstraint >( *this );
+GuestOverlapConstraint::clone() const {
+	return masala::make_shared< GuestOverlapConstraint >( *this );
 }
 
 /// @brief Make a fully independent copy of this object.
-GuestPairAdjacentSeatConstraintSP
-GuestPairAdjacentSeatConstraint::deep_clone() const {
-	GuestPairAdjacentSeatConstraintSP new_guest( std::static_pointer_cast< GuestPairAdjacentSeatConstraint >( this->clone() ) );
+GuestOverlapConstraintSP
+GuestOverlapConstraint::deep_clone() const {
+	GuestOverlapConstraintSP new_guest( std::static_pointer_cast< GuestOverlapConstraint >( this->clone() ) );
 	new_guest->make_independent();
 	return new_guest;
 }
@@ -89,7 +88,7 @@ GuestPairAdjacentSeatConstraint::deep_clone() const {
 /// entry in the outer vector), but must be in at least one.  The first one is used as
 /// the primary key.
 std::vector< std::vector< std::string > >
-GuestPairAdjacentSeatConstraint::get_categories() const {
+GuestOverlapConstraint::get_categories() const {
 	return std::vector< std::vector< std::string > > {
 		{ "SeatingProblem", "SeatingProblemElement", "Constraint" }
 	};
@@ -99,7 +98,7 @@ GuestPairAdjacentSeatConstraint::get_categories() const {
 /// optimization solutions; may be overridden by derived classes.
 /// @returns { "seating_problem", "seating_problem_element", "constraint" }
 std::vector< std::string >
-GuestPairAdjacentSeatConstraint::get_keywords() const {
+GuestOverlapConstraint::get_keywords() const {
 	return std::vector< std::string > {
 		"seating_problem",
 		"seating_problem_element",
@@ -108,16 +107,16 @@ GuestPairAdjacentSeatConstraint::get_keywords() const {
 }
 
 /// @brief Get the name of this class.
-/// @returns "GuestPairAdjacentSeatConstraint".
+/// @returns "GuestOverlapConstraint".
 std::string
-GuestPairAdjacentSeatConstraint::class_name() const {
-	return "GuestPairAdjacentSeatConstraint";
+GuestOverlapConstraint::class_name() const {
+	return "GuestOverlapConstraint";
 }
 
 /// @brief Get the namespace for this class.
 /// @returns "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints".
 std::string
-GuestPairAdjacentSeatConstraint::class_namespace() const {
+GuestOverlapConstraint::class_namespace() const {
 	return "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints";
 }
 
@@ -125,9 +124,9 @@ GuestPairAdjacentSeatConstraint::class_namespace() const {
 // PUBLIC INTERFACE DEFINITION
 ////////////////////////////////////////////////////////////////////////////////
 
-/// @brief Get a description of the API for the GuestPairAdjacentSeatConstraint class.
+/// @brief Get a description of the API for the GuestOverlapConstraint class.
 masala::base::api::MasalaObjectAPIDefinitionCWP
-GuestPairAdjacentSeatConstraint::get_api_definition() {
+GuestOverlapConstraint::get_api_definition() {
 	using namespace masala::base::api;
 	using namespace masala::base::api::setter;
 	using namespace masala::base::api::work_function;
@@ -141,12 +140,11 @@ GuestPairAdjacentSeatConstraint::get_api_definition() {
 		MasalaObjectAPIDefinitionSP api_def(
 			masala::make_shared< MasalaObjectAPIDefinition >(
 				*this,
-				"The GuestPairAdjacentSeatConstraint class is used to indicate that two guests should be seated in adjacent seats, or "
-				"should NOT be seated in adjacent seats.",
+				"The GuestOverlapConstraint class is used to indicate that two guests cannot be seated in the same seat.",
 				false, false
 			)
 		);
-		ADD_PUBLIC_CONSTRUCTOR_DEFINITIONS( GuestPairAdjacentSeatConstraint, api_def );
+		ADD_PUBLIC_CONSTRUCTOR_DEFINITIONS( GuestOverlapConstraint, api_def );
 
 		// Getters:
 
@@ -155,11 +153,11 @@ GuestPairAdjacentSeatConstraint::get_api_definition() {
 			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< std::string const & > >(
 				"configure_from_input_line", "Configure this object from a line in an input file.  "
 				"Base class implementation throws.  Must be overridden by derived classes.  This version expects "
-				"a line of the form 'GuestPairAdjacentSeatConstraint <guest1_uid> <guest2_uid> <constraint_strength>'.",
+				"a line of the form 'GuestOverlapConstraint <constraint_strength>'.",
 				"input_line", "The line from which we are configuring this object.  Syntax depends on "
 				"derived class.  Must start with an identifier for the constraint type.",
 				false, true,
-				std::bind( &GuestPairAdjacentSeatConstraint::configure_from_input_line, this, std::placeholders::_1 )
+				std::bind( &GuestOverlapConstraint::configure_from_input_line, this, std::placeholders::_1 )
 			)
 		);
 
@@ -180,7 +178,7 @@ GuestPairAdjacentSeatConstraint::get_api_definition() {
 				"cfn_problem", "The cost function network optimizaton problem, modified by this operation.",
 				"global_strength_multiplier", "A global multiplier for the strength of this constraint.",
 				"void", "This function returns nothing.",
-				std::bind( &GuestPairAdjacentSeatConstraint::add_constraint_to_cfn_problem, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 )
+				std::bind( &GuestOverlapConstraint::add_constraint_to_cfn_problem, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 )
 			)
 		);
 
@@ -201,18 +199,18 @@ GuestPairAdjacentSeatConstraint::get_api_definition() {
 
 /// @brief Configure this object from a line in an input file.
 /// @details Base class implementation throws.  Must be overridden by derived classes.  This version expects
-/// a line of the form "GuestPairAdjacentSeatConstraint <guest1_uid> <guest2_uid> <constraint_strength>".
+/// a line of the form "GuestOverlapConstraint <constraint_strength>".
 void
-GuestPairAdjacentSeatConstraint::configure_from_input_line(
+GuestOverlapConstraint::configure_from_input_line(
 	std::string const & input_line
 ) {
 	std::istringstream ss( input_line );
 	std::string linestart;
 	std::lock_guard< std::mutex > lock( mutex() );
-	ss >> linestart >> first_guest_uid_ >> second_guest_uid_ >> constraint_strength_;
+	ss >> linestart >> constraint_strength_;
 	CHECK_OR_THROW_FOR_CLASS( !(ss.bad() || ss.fail()), "configure_from_input_line", "Could not parse line \"" + input_line + "\"." );
 	CHECK_OR_THROW_FOR_CLASS( ss.eof(), "configure_from_input_line", "Extra input at end of line \"" + input_line + "\"." );
-	CHECK_OR_THROW_FOR_CLASS( linestart == "GuestPairAdjacentSeatConstraint", "configure_from_input_line", "Expected line to begin with class name (\"GuestPairAdjacentSeatConstraint\")." );
+	CHECK_OR_THROW_FOR_CLASS( linestart == "GuestOverlapConstraint", "configure_from_input_line", "Expected line to begin with class name (\"GuestOverlapConstraint\")." );
 }
 
 
@@ -225,7 +223,7 @@ GuestPairAdjacentSeatConstraint::configure_from_input_line(
 /// the constraint to it.
 /// @details Base class implementation throws.  Must be overridden by derived classes.
 void
-GuestPairAdjacentSeatConstraint::add_constraint_to_cfn_problem(
+GuestOverlapConstraint::add_constraint_to_cfn_problem(
 	seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const & seating_problem,
 	masala::numeric::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem & cfn_problem,
 	masala::base::Real const global_strength_multiplier
@@ -242,19 +240,17 @@ GuestPairAdjacentSeatConstraint::add_constraint_to_cfn_problem(
 	);
 
 	std::lock_guard< std::mutex > lock( mutex() );
-	Size guest1_index( seating_problem.guest_index_from_uid( first_guest_uid_ ) );
-	Size guest2_index( seating_problem.guest_index_from_uid( second_guest_uid_ ) );
-	if( guest2_index < guest1_index ) {
-		std::swap( guest1_index, guest2_index );
-	}
 	Real const penalty_value( global_strength_multiplier * constraint_strength_ );
+	Size const nguests( seating_problem.n_guests() );
+	Size const nseats( seating_problem.n_seats() );
 
-	std::vector< std::pair< Size, Size > > const adjacent_seat_indices( seating_problem.get_adjacent_seat_global_indices() );
-	for( auto const & seat_pair : adjacent_seat_indices ) {
-		cfn_problem_cast->add_to_twobody_penalty( std::make_pair( guest1_index, guest2_index ), std::make_pair( seat_pair.first, seat_pair.second ), penalty_value );
-		write_to_tracer( "Constrained guests " + std::to_string(guest1_index) + " and " + std::to_string(guest2_index) + ", at seats " + std::to_string(seat_pair.first) + " and " + std::to_string(seat_pair.second) + ".  Penalty: " + std::to_string(penalty_value) + "." );
-		cfn_problem_cast->add_to_twobody_penalty( std::make_pair( guest1_index, guest2_index ), std::make_pair( seat_pair.second, seat_pair.first ), penalty_value );
-		write_to_tracer( "Constrained guests " + std::to_string(guest1_index) + " and " + std::to_string(guest2_index) + ", at seats " + std::to_string(seat_pair.second) + " and " + std::to_string(seat_pair.first) + ".  Penalty: " + std::to_string(penalty_value) + "." );
+	for( Size guest1_index(0); guest1_index < nguests-1; ++guest1_index ) {
+		for( Size guest2_index(guest1_index+1); guest2_index < nguests; ++guest2_index ) {
+			for( Size iseat(0); iseat < nseats; ++iseat  ) {
+				cfn_problem_cast->add_to_twobody_penalty( std::make_pair( guest1_index, guest2_index ), std::make_pair( iseat, iseat ), penalty_value );
+				write_to_tracer( "Constrained guests " + std::to_string(guest1_index) + " and " + std::to_string(guest2_index) + ", at seats " + std::to_string(iseat) + " and " + std::to_string(iseat) + ".  Penalty: " + std::to_string(penalty_value) + "." );
+			}
+		}
 	}
 }
 
@@ -265,7 +261,7 @@ GuestPairAdjacentSeatConstraint::add_constraint_to_cfn_problem(
 /// @brief Make this object fully indepdendent.  Derived classes must override this, and the override must call
 /// the parent class implementation.
 void
-GuestPairAdjacentSeatConstraint::protected_make_independent() {
+GuestOverlapConstraint::protected_make_independent() {
 	// TODO DEEP CLONING
 	Parent::protected_make_independent();
 }
@@ -273,15 +269,13 @@ GuestPairAdjacentSeatConstraint::protected_make_independent() {
 /// @brief Assign src to this object.  Derived classes must override this, and the override must call
 /// the parent class implementation.
 void
-GuestPairAdjacentSeatConstraint::protected_assign( SeatingElementBase const & src ) {
-	GuestPairAdjacentSeatConstraint const * const src_ptr_cast( dynamic_cast< GuestPairAdjacentSeatConstraint const * >( &src ) );
+GuestOverlapConstraint::protected_assign( SeatingElementBase const & src ) {
+	GuestOverlapConstraint const * const src_ptr_cast( dynamic_cast< GuestOverlapConstraint const * >( &src ) );
 	CHECK_OR_THROW_FOR_CLASS( src_ptr_cast != nullptr, "protected_assign", "Cannot assign an object of type " + src.class_name()
-		+ " to a GuestPairAdjacentSeatConstraint object."
+		+ " to a GuestOverlapConstraint object."
 	);
 
 	// TODO TODO TODO
-	first_guest_uid_ = src_ptr_cast->first_guest_uid_;
-	second_guest_uid_ = src_ptr_cast->second_guest_uid_;
 	constraint_strength_ = src_ptr_cast->constraint_strength_;
 
 	Parent::protected_assign( src );

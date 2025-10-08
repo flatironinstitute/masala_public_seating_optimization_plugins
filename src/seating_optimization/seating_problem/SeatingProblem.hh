@@ -32,12 +32,14 @@
 
 // Numeric API headers:
 #include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem_API.fwd.hh>
+#include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationSolution_API.fwd.hh>
 
 // Seating optimization headers:
 #include <seating_optimization/seating_problem_elements/Guest.fwd.hh>
 #include <seating_optimization/seating_problem_elements/Table.fwd.hh>
 #include <seating_optimization/seating_problem_elements/Seat.fwd.hh>
 #include <seating_optimization/seating_problem_elements/constraints/Constraint.fwd.hh>
+#include <seating_optimization/seating_problem/SeatingSolution.fwd.hh>
 
 // Base headers:
 #include <base/types.hh>
@@ -190,6 +192,13 @@ public:
 	void
 	set_up_cfn_problem(
 		masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & problem
+	) const;
+
+	/// @brief Given a CFN solution, generate a SeatingSolution object from it.
+	/// @note The returned object is unfinalized, since it needs a shared pointer from this SeatingProblem object to be cached in it.
+	SeatingSolutionSP
+	seating_solution_from_cfn_solution(
+		masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const & cfn_solution
 	) const;
 
 	/// @brief Indicate that this object is fully set up.

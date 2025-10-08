@@ -30,6 +30,7 @@
 #include <seating_optimization/seating_problem_elements/Seat.hh>
 #include <seating_optimization/seating_problem_elements/SeatingElementBase.hh>
 #include <seating_optimization/seating_problem_elements/constraints/Constraint.hh>
+#include <seating_optimization/seating_problem/SeatingSolution.hh>
 
 // Base headers:
 #include <base/utility/string/string_manipulation.hh>
@@ -47,6 +48,7 @@
 
 // Numeric API headers:
 #include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem_API.hh>
+#include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationSolution_API.hh>
 
 // STL headers:
 #include <sstream>
@@ -192,6 +194,17 @@ SeatingProblem::get_api_definition() {
 				"problem", "A shared pointer to an empty CFN problem instance.  Filled and finalized by this operation.",
 				"void", "This function returns nothing.",
 				std::bind( &SeatingProblem::set_up_cfn_problem, this, std::placeholders::_1 )
+			)
+		);
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_OneInput< SeatingSolutionSP, masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const & > >(
+				"seating_solution_from_cfn_solution", "Given a CFN solution, generate a SeatingSolution object from it.  "
+				"The returned object is unfinalized, since it needs a shared pointer from this SeatingProblem object to be "
+				"cached in it.",
+				true, false, false, false,
+				"cfn_solution", "The solution to a cost function network optimization problem.",
+				"seating_solution", "A solution to this seating problem.",
+				std::bind( &SeatingProblem::seating_solution_from_cfn_solution, this, std::placeholders::_1 )
 			)
 		);
 		api_def->add_work_function(
@@ -445,6 +458,16 @@ SeatingProblem::set_up_cfn_problem(
 
 	// Finalize:
 	problem.finalize();
+}
+
+/// @brief Given a CFN solution, generate a SeatingSolution object from it.
+/// @note The returned object is unfinalized, since it needs a shared pointer from this SeatingProblem object to be cached in it.
+SeatingSolutionSP
+SeatingProblem::seating_solution_from_cfn_solution(
+	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const & //cfn_solution
+) const {
+	TODO TODO TODO;
+	return nullptr;
 }
 
 /// @brief Indicate that this object is fully set up.

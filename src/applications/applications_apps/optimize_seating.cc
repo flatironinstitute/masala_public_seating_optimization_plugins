@@ -537,6 +537,7 @@ solve_problem(
 	using masala::base::Size;
 	using namespace masala::numeric_api::base_classes::optimization::cost_function_network;
 	using namespace masala::numeric_api::auto_generated_api::optimization::cost_function_network;
+	using namespace seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem;
 
 	CHECK_OR_THROW( problems.n_problems() == 1, appname, "solve_problem", "Expected 1 problem in the problems container, but got " + std::to_string(problems.n_problems()) + "." );
 
@@ -567,7 +568,7 @@ solve_problem(
 			+ "\t" + std::to_string(cursolution->solution_score_solver_approximation()) + "\t" + ( cursolution->solution_is_valid() ? "TRUE" : "FALSE" )
 		);
 		if( cursolution->solution_is_valid() ) {
-			seating_solutions.push_back( seating_problem->seating_soluton_from_cfn_solution( cursolution ) );
+			seating_solutions.push_back( seating_problem.seating_soluton_from_cfn_solution( cursolution ) );
 		}
 	}
 	seating_solutions.shrink_to_fit();

@@ -522,6 +522,7 @@ load_problem_specification(
 	CHECK_OR_THROW( seating_problem != nullptr, appname, "load_problem_specification", "Failed to create seating problem definition." );
 	std::vector< std::string > const filelines( MasalaDiskManager::get_instance()->read_ascii_file_to_string_vector( probfile_name ) );
 	seating_problem->configure_from_problem_definition_file_lines( filelines );
+	seating_problem->finalize();
 	return seating_problem;
 }
 

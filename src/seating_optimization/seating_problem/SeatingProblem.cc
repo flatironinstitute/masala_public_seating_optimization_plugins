@@ -310,6 +310,7 @@ SeatingProblem::configure_from_problem_definition_file_lines(
 	MasalaPluginModuleManagerHandle plugman( MasalaPluginModuleManager::get_instance() );
 
 	std::lock_guard< std::mutex > lock(mutex_);
+	CHECK_OR_THROW_FOR_CLASS( !finalized_, "configure_from_problem_definition_file_lines", "This object must not be finalized before this function is called." );
 
 	for( std::string const & line : file_lines ) {
 		std::string const line_sans_comments( line.substr(0, line.find_first_of('#') ) );
@@ -392,6 +393,7 @@ SeatingProblem::get_adjacent_seat_global_indices() const {
 	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
 	std::vector< std::pair< Size, Size > > outvec;
 	std::lock_guard< std::mutex > lock( mutex_ );
+	CHECK_OR_THROW_FOR_CLASS( finalized_, "get_adjacent_seat_global_indices", "This object must be finalized before this function is called." );
 	
 	for( Size i(0); i<tables_.size(); ++i ) {
 		std::vector< std::pair< SeatCSP, SeatCSP > > const adjacent_seats_for_table( tables_[i]->get_adjacent_seats() );
@@ -416,6 +418,7 @@ SeatingProblem::set_up_cfn_problem(
 	using namespace masala::numeric::optimization::cost_function_network;
 
 	std::lock_guard< std::mutex > lock( mutex_ );
+	CHECK_OR_THROW_FOR_CLASS( finalized_, "set_up_cfn_problem", "This object must be finalized before this function is called." );
 
 	CostFunctionNetworkOptimizationProblemSP inner_problem( std::dynamic_pointer_cast< CostFunctionNetworkOptimizationProblem >( problem.get_inner_data_representation_object() ) );
 	CHECK_OR_THROW_FOR_CLASS( inner_problem != nullptr, "set_up_cfn_problem", "Could not interpret inner object of \"" + problem.class_name() + "\" class as a CostFunctionNetworkOptimizationProblem." );
@@ -434,7 +437,7 @@ void
 SeatingProblem::finalize() {
 	std::lock_guard< std::mutex > lock( mutex_ );
 
-	CHECK_OR_THROW_FOR_CLASS( !protected_finalized(), "finalize", "This object has already been finalized." );
+	CHECK_OR_THROW_FOR_CLASS( !finalized_, "finalize", "This object has already been finalized." );
 	finalized_ = true; 
 }
 
@@ -448,6 +451,7 @@ void
 SeatingProblem::protected_add_guest(
 	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP const & guest_in
 ) {
+	CHECK_OR_THROW_FOR_CLASS( !finalized_, "protected_add_guest", "This object must not be finalized before this function is called." );
 	std::string const uid( guest_in->unique_identifier() );
 	CHECK_OR_THROW_FOR_CLASS( guests_.count( uid ) == 0, "protected_add_guest", "A guest with unique identifier \""
 		+ uid + "\" has already been added."
@@ -463,6 +467,7 @@ void
 SeatingProblem::protected_add_table(
 	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::TableCSP const & table_in
 ){
+	CHECK_OR_THROW_FOR_CLASS( !finalized_, "protected_add_table", "This object must not be finalized before this function is called." );
 	for( auto const & table : tables_ ) {
 		CHECK_OR_THROW_FOR_CLASS( table.get() != table_in.get(), "protected_add_table", "A table was passed to this function that has already been added!" );
 	}
@@ -479,6 +484,7 @@ void
 SeatingProblem::protected_add_seat(
 	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP const & //seat_in
 ) {
+	CHECK_OR_THROW_FOR_CLASS( !finalized_, "protected_add_seat", "This object must not be finalized before this function is called." );
 	MASALA_THROW( class_namespace() + "::" + class_name(), "protected_add_seat", "Loose seats are not yet supported!" );
 }
 
@@ -488,6 +494,7 @@ void
 SeatingProblem::protected_add_constraint(
 	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::ConstraintCSP const & constraint_in
 ) {
+	CHECK_OR_THROW_FOR_CLASS( !finalized_, "protected_add_constraint", "This object must not be finalized before this function is called." );
 	constraints_.push_back( constraint_in );
 	write_to_tracer( "Added constraint " + std::to_string(constraints_.size() -1) + " of type \"" + constraint_in->class_name() + "\"." );
 }
@@ -498,6 +505,7 @@ void
 SeatingProblem::protected_make_independent() {
 	using masala::base::Size;
 	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints;
 
 	api_definition_ = nullptr;
 	if( !guests_.empty() ) {
@@ -516,6 +524,14 @@ SeatingProblem::protected_make_independent() {
 			tables_[i] = new_table;
 		}
 	}
+	if( !constraints_.empty() ) {
+		for( Size i(0); i<constraints_.size(); ++i ) {
+			ConstraintSP new_constraint( std::dynamic_pointer_cast< Constraint >( constraints_[i]->clone() ) );
+			CHECK_OR_THROW_FOR_CLASS( new_constraint != nullptr, "protected_make_independent", "Unable to clone constraint " + std::to_string(i) + "." );
+			new_constraint->make_independent();
+			constraints_[i] = new_constraint;
+		}
+	}
 	regenerate_seat_indices();
 }
 
@@ -525,9 +541,11 @@ void
 SeatingProblem::protected_assign(
     SeatingProblem const & src
 ) {
+	finalized_ = src.finalized_;
 	guests_ = src.guests_;
 	tables_ = src.tables_;
 	seat_indices_ = src.seat_indices_;
+	constraints_ = src.constraints_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

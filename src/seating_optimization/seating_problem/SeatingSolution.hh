@@ -34,10 +34,7 @@
 #include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem_API.fwd.hh>
 
 // Seating optimization headers:
-#include <seating_optimization/seating_problem_elements/Guest.fwd.hh>
-#include <seating_optimization/seating_problem_elements/Table.fwd.hh>
-#include <seating_optimization/seating_problem_elements/Seat.fwd.hh>
-#include <seating_optimization/seating_problem_elements/constraints/Constraint.fwd.hh>
+#include <seating_optimization/seating_problem/SeatingProblem.fwd.hh>
 
 // Base headers:
 #include <base/types.hh>
@@ -147,6 +144,9 @@ public:
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
+	/// @brief Set the problem for which this is a solutuion.  Problem is used directly, not deep-cloned.
+	void set_problem( SeatingProblemCSP problem );
+
 public:
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -199,6 +199,9 @@ private:
 
 	/// @brief Has this object been finalized?
 	bool finalized_ = false;
+
+	/// @brief The problem for which we are storing a solution.
+	SeatingProblemCSP seating_problem_;
 
 }; // class SeatingSolution
 

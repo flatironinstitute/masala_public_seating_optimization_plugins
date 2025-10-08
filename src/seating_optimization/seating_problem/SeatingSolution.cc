@@ -25,11 +25,7 @@
 #include <seating_optimization/seating_problem/SeatingSolution.hh>
 
 // Seating optimization headers:
-#include <seating_optimization/seating_problem_elements/Guest.hh>
-#include <seating_optimization/seating_problem_elements/Table.hh>
-#include <seating_optimization/seating_problem_elements/Seat.hh>
-#include <seating_optimization/seating_problem_elements/SeatingElementBase.hh>
-#include <seating_optimization/seating_problem_elements/constraints/Constraint.hh>
+#include <seating_optimization/seating_problem/SeatingProblem.hh>
 
 // Base headers:
 #include <base/utility/string/string_manipulation.hh>
@@ -40,13 +36,6 @@
 #include <base/api/getter/MasalaObjectAPIGetterDefinition_OneInput.tmpl.hh>
 #include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_ZeroInput.tmpl.hh>
 #include <base/managers/plugin_module/MasalaPluginAPI.hh>
-#include <base/managers/plugin_module/MasalaPluginModuleManager.hh>
-
-// Numeric headers:
-#include <numeric/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem.hh>
-
-// Numeric API headers:
-#include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem_API.hh>
 
 // STL headers:
 #include <sstream>
@@ -194,6 +183,14 @@ SeatingSolution::get_api_definition() {
 		);
 
         // Setters:
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< SeatingProblemCSP > >(
+				"set_problem", "Set the problem for which this is a solutuion.  Problem is used directly, not deep-cloned.",
+				"problem_in", "The problem for which this is a solution.",
+				false, false,
+				std::bind( &SeatingSolution::set_problem, this, std::placeholders::_1 )
+			)
+		);
 
         api_definition() = api_def; //Make const.
     }
@@ -215,6 +212,16 @@ SeatingSolution::finalized() const {
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Set the problem for which this is a solutuion.  Problem is used directly, not deep-cloned.
+void
+SeatingSolution::set_problem(
+	SeatingProblemCSP problem
+) {
+	std::lock_guard< std::mutex > lock( mutex_ );
+	CHECK_OR_THROW_FOR_CLASS( !finalized_, "set_problem", "This object must not be finalized before this function is called." );
+	seating_problem_ = problem;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC WORK FUNCTIONS
@@ -240,15 +247,21 @@ SeatingSolution::protected_make_independent() {
 	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
 
 	api_definition_ = nullptr;
+	if( seating_problem_ != nullptr ) {
+		SeatingProblemSP problem_copy( seating_problem_->clone() );
+		problem_copy->make_independent();
+		seating_problem_ = problem_copy;
+	}
 }
 
 /// @brief Assign src to this object.  Derived classes must override this, and the override must call
 /// the parent class implementation.
 void
 SeatingSolution::protected_assign(
-    SeatingSolution const & //src
+    SeatingSolution const & src
 ) {
-
+	finalized_ = src.finalized_;
+	seating_problem_ = src.seating_problem_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

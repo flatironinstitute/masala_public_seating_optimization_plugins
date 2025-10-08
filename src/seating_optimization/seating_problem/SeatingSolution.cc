@@ -174,6 +174,14 @@ SeatingSolution::get_api_definition() {
         ADD_PUBLIC_CONSTRUCTOR_DEFINITIONS( SeatingSolution, api_def );
 
         // Work functions:
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_ZeroInput< void > >(
+				"finalize", "Mark this object as having been fully configured.",
+				false, false, false, false,
+				"void", "This function returns nothing.",
+				std::bind( &SeatingSolution::finalize, this )
+			)
+		);
 
         // Getters:
 
@@ -196,6 +204,14 @@ SeatingSolution::get_api_definition() {
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC WORK FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Mark this object as having been finalized.
+void
+SeatingSolution::finalize() {
+	std::lock_guard< std::mutex > lock( mutex_ );
+	CHECK_OR_THROW_FOR_CLASS( !finalized_, "finalize", "This object has already been finalized." );
+	finalized_ = true;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PROTECTED FUNCTIONS

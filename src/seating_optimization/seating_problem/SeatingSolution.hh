@@ -150,6 +150,9 @@ public:
 // PUBLIC WORK FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
 
+	/// @brief Mark this object as having been finalized.
+	void finalize();
+
 protected:
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -190,6 +193,9 @@ private:
 
 	/// @brief The API definition for this object.s
 	masala::base::api::MasalaObjectAPIDefinitionCSP api_definition_;
+
+	/// @brief Has this object been finalized?
+	bool finalized_ = false;
 
 }; // class SeatingSolution
 

@@ -444,15 +444,20 @@ SeatingProblem::set_up_cfn_problem(
 	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & problem
 ) const {
 	using namespace masala::numeric::optimization::cost_function_network;
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints;
 
-	std::lock_guard< std::mutex > lock( mutex_ );
-	CHECK_OR_THROW_FOR_CLASS( finalized_, "set_up_cfn_problem", "This object must be finalized before this function is called." );
+	std::vector< ConstraintCSP > constraints_copy;
+	{
+		std::lock_guard< std::mutex > lock( mutex_ );
+		CHECK_OR_THROW_FOR_CLASS( finalized_, "set_up_cfn_problem", "This object must be finalized before this function is called." );
+		constraints_copy = constraints_ ;
+	}
 
 	CostFunctionNetworkOptimizationProblemSP inner_problem( std::dynamic_pointer_cast< CostFunctionNetworkOptimizationProblem >( problem.get_inner_data_representation_object() ) );
 	CHECK_OR_THROW_FOR_CLASS( inner_problem != nullptr, "set_up_cfn_problem", "Could not interpret inner object of \"" + problem.class_name() + "\" class as a CostFunctionNetworkOptimizationProblem." );
 	CHECK_OR_THROW_FOR_CLASS( inner_problem->empty(), "set_up_cfn_problem", "A non-empty \"" + inner_problem->class_name() + "\" problem instance was passed to this function." );
 
-	for( auto const & constraint : constraints_ ) {
+	for( auto const & constraint : constraints_copy ) {
 		constraint->add_constraint_to_cfn_problem( *this, *inner_problem, 1.0 );
 	}
 

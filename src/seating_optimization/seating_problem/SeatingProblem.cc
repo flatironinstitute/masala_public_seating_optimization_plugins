@@ -229,6 +229,14 @@ SeatingProblem::get_api_definition() {
 				std::bind( &SeatingProblem::n_seats, this )
 			)
 		);
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< bool > >(
+				"finalized", "Has this object been finalized?",
+				"finalized", "True if this object has been finalized; false otherwise.",
+				false, false,
+				std::bind( &SeatingProblem::finalized, this )
+			)
+		);
 
         // Setters:
 		api_def->add_setter(
@@ -292,6 +300,13 @@ masala::base::Size
 SeatingProblem::n_seats() const {
 	std::lock_guard< std::mutex > lock( mutex_ );
 	return seat_indices_.size();
+}
+
+/// @brief Has this object been finalized?
+bool
+SeatingProblem::finalized() const {
+	std::lock_guard< std::mutex > lock( mutex_ );
+	return finalized_;
 }
 
 

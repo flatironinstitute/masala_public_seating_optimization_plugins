@@ -147,6 +147,9 @@ public:
 	/// @brief Get the number of seats.
 	masala::base::Size n_seats() const;
 
+	/// @brief Has this object been finalized?
+	bool finalized() const;
+
 public:
 
 ////////////////////////////////////////////////////////////////////////////////

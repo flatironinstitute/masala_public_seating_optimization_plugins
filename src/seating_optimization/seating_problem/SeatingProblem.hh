@@ -189,6 +189,9 @@ public:
 		masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & problem
 	) const;
 
+	/// @brief Indicate that this object is fully set up.
+	void finalize();
+
 protected:
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -261,6 +264,9 @@ private:
 
 	/// @brief The API definition for this object.s
 	masala::base::api::MasalaObjectAPIDefinitionCSP api_definition_;
+
+	/// @brief Has this object been finalized?
+	bool finalized_ = false;
 
 	/// @brief The guests that we are storing, stored by unique identifier.
 	/// @details The UID string points to a pair of guest index, guest object.

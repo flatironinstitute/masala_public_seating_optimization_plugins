@@ -194,6 +194,14 @@ SeatingProblem::get_api_definition() {
 				std::bind( &SeatingProblem::set_up_cfn_problem, this, std::placeholders::_1 )
 			)
 		);
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_ZeroInput< void > >(
+				"finalize", "Indicate that this object is fully set up.",
+				false, false, false, false,
+				"void", "This function returns nothing.",
+				std::bind( &SeatingProblem::finalize, this )
+			)
+		);
 
         // Getters:
 		api_def->add_getter(
@@ -407,6 +415,8 @@ SeatingProblem::set_up_cfn_problem(
 ) const {
 	using namespace masala::numeric::optimization::cost_function_network;
 
+	std::lock_guard< std::mutex > lock( mutex_ );
+
 	CostFunctionNetworkOptimizationProblemSP inner_problem( std::dynamic_pointer_cast< CostFunctionNetworkOptimizationProblem >( problem.get_inner_data_representation_object() ) );
 	CHECK_OR_THROW_FOR_CLASS( inner_problem != nullptr, "set_up_cfn_problem", "Could not interpret inner object of \"" + problem.class_name() + "\" class as a CostFunctionNetworkOptimizationProblem." );
 	CHECK_OR_THROW_FOR_CLASS( inner_problem->empty(), "set_up_cfn_problem", "A non-empty \"" + inner_problem->class_name() + "\" problem instance was passed to this function." );
@@ -417,6 +427,15 @@ SeatingProblem::set_up_cfn_problem(
 
 	// Finalize:
 	problem.finalize();
+}
+
+/// @brief Indicate that this object is fully set up.
+void
+SeatingProblem::finalize() {
+	std::lock_guard< std::mutex > lock( mutex_ );
+
+	CHECK_OR_THROW_FOR_CLASS( !protected_finalized(), "finalize", "This object has already been finalized." );
+	finalized_ = true; 
 }
 
 ////////////////////////////////////////////////////////////////////////////////

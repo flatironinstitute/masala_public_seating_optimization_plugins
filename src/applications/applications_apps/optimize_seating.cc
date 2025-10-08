@@ -569,7 +569,7 @@ solve_problem(
 			+ "\t" + std::to_string(cursolution->solution_score_solver_approximation()) + "\t" + ( cursolution->solution_is_valid() ? "TRUE" : "FALSE" )
 		);
 		if( cursolution->solution_is_valid() ) {
-			SeatingSolution_APISP seating_solution( seating_problem.seating_soluton_from_cfn_solution( cursolution ) );
+			SeatingSolution_APISP seating_solution( seating_problem->seating_solution_from_cfn_solution( *cursolution ) );
 			seating_solution->set_problem( seating_problem );
 			seating_solution->finalize();
 			seating_solutions.push_back( seating_solution );

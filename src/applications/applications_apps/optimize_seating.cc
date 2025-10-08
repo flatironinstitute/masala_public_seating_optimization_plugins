@@ -55,6 +55,7 @@
 
 // Seating problem API headers:
 #include <seating_optimization_api/auto_generated_api/seating_problem/SeatingProblem_API.hh>
+#include <seating_optimization_api/auto_generated_api/seating_problem/SeatingSolution_API.hh>
 
 // STL headers:
 #include <sstream>
@@ -525,12 +526,12 @@ load_problem_specification(
 }
 
 /// @brief Run the CFN problem and produce a solution.
-void
+std::vector< seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingSolution_APICSP >
 solve_problem(
 	std::string const & appname,
 	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
 	masala::base::managers::engine::MasalaEngineAPI const & optimizer_api,
-	seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_API const & ,//seating_problem,
+	seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_API const & seating_problem,
 	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblems_API const & problems
 ) {
 	using masala::base::Size;
@@ -551,6 +552,10 @@ solve_problem(
 	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolutions_API const & solutions( *solutions_vec[0] );
 	CHECK_OR_THROW( solutions.n_solutions() > 0, appname, "solve_problem", "Expected at least one solution." );
 
+	// Make a container for the solutions:
+	std::vector< SeatingSolution_APICSP > seating_solutions;
+	seating_solutions.reserve(solutions.n_solutions());
+
 	tracerman->write_to_tracer(appname, "INDEX\tTIMES_SEEN\tSOLUTION\tACTUAL_SCORE\tDR_APPROX_SCORE\tSOLVER_APPROX_SCORE\tVALID");
 	for( Size i(0); i<solutions.n_solutions(); ++i ) {
 		CostFunctionNetworkOptimizationSolution_APICSP cursolution( std::dynamic_pointer_cast< CostFunctionNetworkOptimizationSolution_API const >(solutions.solution(i)) );
@@ -561,10 +566,13 @@ solve_problem(
 			) + "]\t" + std::to_string(cursolution->solution_score()) + "\t" + std::to_string(cursolution->solution_score_data_representation_approximation())
 			+ "\t" + std::to_string(cursolution->solution_score_solver_approximation()) + "\t" + ( cursolution->solution_is_valid() ? "TRUE" : "FALSE" )
 		);
+		if( cursolution->solution_is_valid() ) {
+			seating_solutions.push_back( seating_problem->seating_soluton_from_cfn_solution( cursolution ) );
+		}
 	}
+	seating_solutions.shrink_to_fit();
 
-	TODO TODO TODO CONTINUE HERE:
-
+	return seating_solutions;
 }
 
 /// @brief Set up the CFN problem and package it in a problems container.
@@ -696,7 +704,9 @@ main(
 	CostFunctionNetworkOptimizationProblems_APICSP problems( set_up_cfn_problem( appname, tracerman, *optimizer_api, *seating_problem ) );
 
 	// Solve the problem:
-	solve_problem( appname, tracerman, *optimizer_api, *seating_problem, *problems );
+	std::vector< SeatingSolution_APICSP > solutions(
+		solve_problem( appname, tracerman, *optimizer_api, *seating_problem, *problems )
+	);
 
 	// Print the solution(s):
 	//print_solutions();

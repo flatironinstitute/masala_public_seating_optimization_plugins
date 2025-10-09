@@ -202,6 +202,16 @@ Seat::get_api_definition() {
 				std::bind( &Seat::set_angle, this, std::placeholders::_1 )
 			)
 		);
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_TwoInput< Size const, Size const > >(
+				"set_table_index_and_local_seat_index",
+				"Indicate that this seat is associated with a table, and has a local index at that table.",
+				"table_index", "The zero-based index of hte table which which this seat is associated.",
+				"local_seat_index_at_table", "The zero-based local index of this seat at that table.",
+				false, false,
+				std::bind( &Seat::set_table_index_and_local_seat_index, this, std::placeholders::_1, std::placeholders::_2 )
+			)
+		);
 
 		api_definition() = api_def; //Make const.
 	}
@@ -254,6 +264,18 @@ Seat::set_angle(
 ) {
 	std::lock_guard< std::mutex > lock( mutex() );
 	angle_degrees_ = masala::numeric_api::utility::angles::positive_angle_degrees( angle_degrees_in );
+}
+
+/// @brief Indicate that this seat is associated with a table, and has a local index at that table.
+void
+Seat::set_table_index_and_local_seat_index(
+	masala::base::Size const table_index,
+	masala::base::Size const local_seat_index_at_table
+) {
+	std::lock_guard< std::mutex > lock( mutex() );
+	at_a_table_ = true;
+	table_index_ = table_index;
+	local_index_at_table_ = local_seat_index_at_table;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -612,6 +612,27 @@ set_up_cfn_problem(
 	return problems;
 }
 
+/// @brief Print out the solutions:
+void
+print_solutions(
+	std::string const & appname,
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	std::vector< seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingSolution_APICSP > const & solutions
+) {
+	using masala::base::Size;
+
+	tracerman->write_to_tracer( appname, "Produced " + std::to_string( solutions.size() ) + " solutions." );
+
+	std::string const separator( "========================================" );
+	tracerman->write_to_tracer( appname, separator );
+	for( Size i(0); i<solutions.size(); ++i ) {
+		tracerman->write_to_tracer( appname, "SOLUTION " + std::to_string(i) );
+		tracerman->write_to_tracer( appname, separator );
+		solutions[i]->print_solution();
+		tracerman->write_to_tracer( appname, separator );
+	}
+}
+
 /// @brief Program entry point:
 int 
 main(
@@ -714,8 +735,9 @@ main(
 	);
 
 	// Print the solution(s):
-	//print_solutions();
+	print_solutions( appname, tracerman, solutions );
 
+	// Shutdown and cleanup:
 	unload_masala_plugins();
 
 	return 0;

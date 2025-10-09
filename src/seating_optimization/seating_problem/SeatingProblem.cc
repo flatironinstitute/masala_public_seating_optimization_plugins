@@ -542,6 +542,7 @@ SeatingProblem::finalize() {
 		CHECK_OR_THROW_FOR_CLASS( seats_by_index_.count(curindex) == 0, "finalize", "Seat " + std::to_string(curindex) + " was added more than once.");
 		seats_by_index_[curindex] = entry.first;
 	}
+	Fix above.  Bidirectional maps can be added on the fly, not with finalization function;
 	finalized_ = true; 
 }
 

@@ -310,14 +310,18 @@ SeatingSolution::print_solution( bool const include_problem ) const {
 	for( auto const & entry : guest_to_seat_ ) {
 		Guest const & guest( *entry.first );
 		Seat const & seat( *entry.second );
+		Size const seat_index( guest_index_to_seat_index_.at(counter) );
+
+		bool const seat_is_at_a_table( seating_problem_->seat_is_at_a_table() );
+		std::pair< Size, Size > table_and_local_seat_index( seating_problem_->table_and_local_seat_index_from_global_seat_index( seat_index ) );
 
 		write_to_tracer(
 			std::to_string(counter)
 			+ "\t" + guest.unique_identifier()
 			+ "\t\"" + guest.name() + "\""
-			+ "\t" + std::to_string( guest_index_to_seat_index_.at(counter) )
-			+ "\t" + ( seat->has_table() ? std::to_string( seat->table_index() ) : "N/A" )
-			+ "\t" + ( seat->has_table() ? std::to_string( seat->seat_index_at_table() ) : "N/A" )
+			+ "\t" + std::to_string( seat_index )
+			+ "\t" + ( seat_is_at_a_table ? std::to_string( table_and_local_seat_index.first ) : "N/A" )
+			+ "\t" + ( seat_is_at_a_table ? std::to_string( table_and_local_seat_index.second ) : "N/A" )
 		);
 		++counter;
 	}

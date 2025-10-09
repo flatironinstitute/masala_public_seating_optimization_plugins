@@ -27,6 +27,7 @@
 // Seating optimization headers:
 #include <seating_optimization/seating_problem/SeatingProblem.hh>
 #include <seating_optimization/seating_problem_elements/Guest.hh>
+#include <seating_optimization/seating_problem_elements/Seat.hh>
 
 // Base headers:
 #include <base/utility/string/string_manipulation.hh>
@@ -270,6 +271,18 @@ SeatingSolution::protected_make_independent() {
 		problem_copy->make_independent();
 		seating_problem_ = problem_copy;
 	}
+    auto const guest_to_seat_copy(guest_to_seat_);
+    guest_to_seat_.clear();
+    for( auto const & entry : guest_to_seat_copy ) {
+        CHECK_OR_THROW_FOR_CLASS( entry.first != nullptr && entry.second != nullptr, "protected_make_independent", "Invalid entry in guest_to_seat_ map." );
+        GuestSP guest_clone( std::dynamic_pointer_cast< Guest >( entry.first->clone() ) );
+        CHECK_OR_THROW_FOR_CLASS( guest_clone != nullptr, "protected_make_independent", "Failed to clone guest." );
+        guest_clone->make_independent();
+        SeatSP seat_clone( std::dynamic_pointer_cast< Seat >( entry.second->clone() ) );
+        CHECK_OR_THROW_FOR_CLASS( seat_clone != nullptr, "protected_make_independent", "Failed to clone seat." );
+        seat_clone->make_independent();
+        guest_to_seat_[guest_clone] = seat_clone;
+    }
 }
 
 /// @brief Assign src to this object.  Derived classes must override this, and the override must call
@@ -280,6 +293,8 @@ SeatingSolution::protected_assign(
 ) {
 	finalized_ = src.finalized_;
 	seating_problem_ = src.seating_problem_;
+    guest_index_to_seat_index_ = src.guest_index_to_seat_index_;
+    guest_to_seat_ = src.guest_to_seat_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

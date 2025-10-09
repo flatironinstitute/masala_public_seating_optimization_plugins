@@ -528,21 +528,21 @@ SeatingProblem::finalize() {
 	std::lock_guard< std::mutex > lock( mutex_ );
 
 	CHECK_OR_THROW_FOR_CLASS( !finalized_, "finalize", "This object has already been finalized." );
-	CHECK_OR_THROW_FOR_CLASS( guests_by_index_.empty(), "finalize", "The guests by index map was not empty." );
-	CHECK_OR_THROW_FOR_CLASS( seats_by_index_.empty(), "finalize", "The seats by index map was not empty." );
-	for( auto const & entry : guests_ ) {
-		Size const curindex( entry.second.first );
-		CHECK_OR_THROW_FOR_CLASS( guests_by_index_.count(curindex) == 0, "finalize", "The guest index " + std::to_string(curindex)
-			+ " was present more than once."
-		);
-		guests_by_index_[curindex] = entry.second.second;
-	}
-	for( auto const & entry : seat_indices_ ) {
-		Size const curindex( entry.second );
-		CHECK_OR_THROW_FOR_CLASS( seats_by_index_.count(curindex) == 0, "finalize", "Seat " + std::to_string(curindex) + " was added more than once.");
-		seats_by_index_[curindex] = entry.first;
-	}
-	Fix above.  Bidirectional maps can be added on the fly, not with finalization function;
+	// CHECK_OR_THROW_FOR_CLASS( guests_by_index_.empty(), "finalize", "The guests by index map was not empty." );
+	// CHECK_OR_THROW_FOR_CLASS( seats_by_index_.empty(), "finalize", "The seats by index map was not empty." );
+	// for( auto const & entry : guests_ ) {
+	// 	Size const curindex( entry.second.first );
+	// 	CHECK_OR_THROW_FOR_CLASS( guests_by_index_.count(curindex) == 0, "finalize", "The guest index " + std::to_string(curindex)
+	// 		+ " was present more than once."
+	// 	);
+	// 	guests_by_index_[curindex] = entry.second.second;
+	// }
+	// for( auto const & entry : seat_indices_ ) {
+	// 	Size const curindex( entry.second );
+	// 	CHECK_OR_THROW_FOR_CLASS( seats_by_index_.count(curindex) == 0, "finalize", "Seat " + std::to_string(curindex) + " was added more than once.");
+	// 	seats_by_index_[curindex] = entry.first;
+	// }
+	// Fix above.  Bidirectional maps can be added on the fly, not with finalization function;
 	finalized_ = true; 
 }
 
@@ -563,6 +563,8 @@ SeatingProblem::protected_add_guest(
 	);
 	masala::base::Size nguests( guests_.size() );
 	guests_[uid] = std::make_pair( nguests, guest_in );
+	CHECK_OR_THROW_FOR_CLASS( guests_by_index_.count(nguests) == 0, "protected_add_guest", "Guest number " + std::to_string(nguests) + " has already been added." );
+	guests_by_index_[nguests] = guest_in;
 	write_to_tracer( "Added guest \"" + guest_in->name() + "\" (index " + std::to_string(nguests) + ") with unique identifier \"" + guest_in->unique_identifier() + "\"." );
 }
 
@@ -619,6 +621,7 @@ SeatingProblem::protected_make_independent() {
 			CHECK_OR_THROW_FOR_CLASS( new_guest != nullptr, "protected_make_independent", "Could not clone guest \"" + it->second.second->name() + "\"." );
 			new_guest->make_independent();
 			it->second.second = new_guest;
+			guests_by_index_[ it->second.first ] = new_guest;
 		}
 	}
 	if( !tables_.empty() ) {
@@ -637,7 +640,7 @@ SeatingProblem::protected_make_independent() {
 			constraints_[i] = new_constraint;
 		}
 	}
-	TODO UPDATE seats_by_index_ and guests_by_index_;
+
 	regenerate_seat_indices();
 }
 
@@ -668,12 +671,14 @@ SeatingProblem::regenerate_seat_indices() {
 	using masala::base::Size;
 
 	seat_indices_.clear();
+	seats_by_index_.clear();
 	Size counter(0);
 	for( Size i(0); i<tables_.size(); ++i ) {
 		for( Size j(0); j<tables_[i]->num_seats(); ++j ) {
 			SeatCSP curseat(  tables_[i]->seat(j) );
 			CHECK_OR_THROW_FOR_CLASS( seat_indices_.count(curseat) == 0, "regenerate_seat_indices", "A seat was already added to the seat_indices_ map." );
 			seat_indices_[curseat] = counter;
+			seats_by_index_[counter] = curseat;
 			++counter;
 		}
 	}

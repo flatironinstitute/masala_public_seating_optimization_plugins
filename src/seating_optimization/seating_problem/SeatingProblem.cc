@@ -315,6 +315,32 @@ SeatingProblem::n_seats() const {
 	return seat_indices_.size();
 }
 
+/// @brief Access a guest, by guest index.
+seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP
+SeatingProblem::guest(
+	masala::base::Size const guest_index
+) const {
+	std::lock_guard< std::mutex > lock( mutex_ );
+	CHECK_OR_THROW_FOR_CLASS( finalized_, "guest", "This object must be finalized before calling this function." );
+	CHECK_OR_THROW_FOR_CLASS( guest_index < guests_by_index_.size(), "guest", "The guest index " + std::to_string(guest_index)
+		+ " is out of range.  Only " + std::to_string(guests_by_index_.size()) + " guests have been defined."
+	);
+	return guests_by_index_.at(guest_index);
+}
+
+/// @brief Access a seat, by seat index.
+seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP
+SeatingProblem::seat(
+	masala::base::Size const seat_index
+) const {
+	std::lock_guard< std::mutex > lock( mutex_ );
+	CHECK_OR_THROW_FOR_CLASS( finalized_, "seat", "This object must be finalized before calling this function." )
+	CHECK_OR_THROW_FOR_CLASS( seat_index < seats_by_index_.size(), "guest", "The seat index " + std::to_string(seat_index)
+		+ " is out of range.  Only " + std::to_string(seats_by_index_.size()) + " seats have been defined."
+	);
+	return seats_by_index_.at(seat_index);
+}
+
 /// @brief Has this object been finalized?
 bool
 SeatingProblem::finalized() const {
@@ -498,9 +524,24 @@ SeatingProblem::seating_solution_from_cfn_solution(
 /// @brief Indicate that this object is fully set up.
 void
 SeatingProblem::finalize() {
+	using masala::base::Size;
 	std::lock_guard< std::mutex > lock( mutex_ );
 
 	CHECK_OR_THROW_FOR_CLASS( !finalized_, "finalize", "This object has already been finalized." );
+	CHECK_OR_THROW_FOR_CLASS( guests_by_index_.empty(), "finalize", "The guests by index map was not empty." );
+	CHECK_OR_THROW_FOR_CLASS( seats_by_index_.empty(), "finalize", "The seats by index map was not empty." );
+	for( auto const & entry : guests_ ) {
+		Size const curindex( entry.second.first );
+		CHECK_OR_THROW_FOR_CLASS( guests_by_index_.count(curindex) == 0, "finalize", "The guest index " + std::to_string(curindex)
+			+ " was present more than once."
+		);
+		guests_by_index_[curindex] = entry.second.second;
+	}
+	for( auto const & entry : seat_indices_ ) {
+		Size const curindex( entry.second );
+		CHECK_OR_THROW_FOR_CLASS( seats_by_index_.count(curindex) == 0, "finalize", "Seat " + std::to_string(curindex) + " was added more than once.");
+		seats_by_index_[curindex] = entry.first;
+	}
 	finalized_ = true; 
 }
 
@@ -595,6 +636,7 @@ SeatingProblem::protected_make_independent() {
 			constraints_[i] = new_constraint;
 		}
 	}
+	TODO UPDATE seats_by_index_ and guests_by_index_;
 	regenerate_seat_indices();
 }
 
@@ -606,8 +648,10 @@ SeatingProblem::protected_assign(
 ) {
 	finalized_ = src.finalized_;
 	guests_ = src.guests_;
+	guests_by_index_ = src.guests_by_index_;
 	tables_ = src.tables_;
 	seat_indices_ = src.seat_indices_;
+	seats_by_index_ = src.seats_by_index_;
 	constraints_ = src.constraints_;
 }
 

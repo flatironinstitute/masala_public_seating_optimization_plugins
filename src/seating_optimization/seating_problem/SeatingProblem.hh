@@ -149,6 +149,18 @@ public:
 	/// @brief Get the number of seats.
 	masala::base::Size n_seats() const;
 
+	/// @brief Access a guest, by guest index.
+	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP
+	guest(
+		masala::base::Size const guest_index
+	) const;
+
+	/// @brief Access a seat, by seat index.
+	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP
+	seat(
+		masala::base::Size const seat_index
+	) const;
+
 	/// @brief Has this object been finalized?
 	bool finalized() const;
 
@@ -284,11 +296,17 @@ private:
 	/// @details The UID string points to a pair of guest index, guest object.
 	std::map< std::string, std::pair< masala::base::Size, seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP > > guests_;
 
+	/// @brief The guests, stored by guest index.  Populated at finalization time.
+	std::map< masala::base::Size, seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP > guests_by_index_;
+
 	/// @brief The tables, stored by index.
 	std::vector< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::TableCSP > tables_;
 
 	/// @brief The zero-based absolute indices of the seats.
 	std::map< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP, masala::base::Size > seat_indices_;
+
+	/// @brief The seats indexed by their zero-based absolute indices.  Populated at finalization time.
+	std::map< masala::base::Size, seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP > seats_by_index_;
 
 	/// @brief The constraints, sorted by index.
 	std::vector< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::ConstraintCSP > constraints_;

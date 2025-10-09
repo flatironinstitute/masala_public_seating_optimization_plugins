@@ -472,6 +472,7 @@ SeatingProblem::seating_solution_from_cfn_solution(
 	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const & cfn_solution
 ) const {
 	using namespace masala::numeric_api::auto_generated_api::optimization::cost_function_network;
+	using masala::base::Size;
 
 	std::lock_guard< std::mutex > lock( mutex_ );
 	CostFunctionNetworkOptimizationProblem_APICSP cfn_problem(
@@ -484,7 +485,12 @@ SeatingProblem::seating_solution_from_cfn_solution(
 
 	SeatingSolutionSP seating_soln( masala::make_shared< SeatingSolution >() );
 
-	//TODO TODO TODO;
+	std::vector< Size > const cfn_soln_all_positions( cfn_solution.solution_at_all_positions() );
+	CHECK_OR_THROW_FOR_CLASS( cfn_soln_all_positions.size() == guests_.size(), "seating_solution_from_cfn_solution", "Size mismatch between CFN solution at all positions and guest count." );
+	
+	for( Size absnode_index(0), n_abs_nodes(cfn_soln_all_positions.size()); absnode_index < n_abs_nodes; ++absnode_index ) {
+		seating_soln->add_guest_seat_assignment( absnode_index, cfn_soln_all_positions[absnode_index] );
+	}
 
 	return seating_soln;
 }

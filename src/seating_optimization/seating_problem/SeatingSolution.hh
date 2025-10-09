@@ -29,12 +29,15 @@
 
 // Parent header:
 #include <base/managers/plugin_module/MasalaPlugin.hh>
+#include <base/types.hh>
 
 // Numeric API headers:
 #include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem_API.fwd.hh>
 
 // Seating optimization headers:
 #include <seating_optimization/seating_problem/SeatingProblem.fwd.hh>
+#include <seating_optimization/seating_problem_elements/Guest.fwd.hh>
+#include <seating_optimization/seating_problem_elements/Seat.fwd.hh>
 
 // Base headers:
 #include <base/types.hh>
@@ -202,6 +205,15 @@ private:
 
 	/// @brief The problem for which we are storing a solution.
 	SeatingProblemCSP seating_problem_;
+
+	/// @brief Used for setup prior to finalization only: a map of guest index to seat index.
+	std::map< masala::base::Size, masala::base::Size > guest_index_to_seat_index_;
+
+	/// @brief Used after finalization: a map of guest to seat.  Populated during finalization.
+	std::map<
+		seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP,
+		seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP
+	> guest_to_seat_;
 
 }; // class SeatingSolution
 

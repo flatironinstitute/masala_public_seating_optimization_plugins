@@ -26,6 +26,7 @@
 
 // Seating optimization headers:
 #include <seating_optimization/seating_problem/SeatingProblem.hh>
+#include <seating_optimization/seating_problem_elements/Guest.hh>
 
 // Base headers:
 #include <base/utility/string/string_manipulation.hh>
@@ -230,8 +231,25 @@ SeatingSolution::set_problem(
 /// @brief Mark this object as having been finalized.
 void
 SeatingSolution::finalize() {
+    using masala::base::Size;
+    using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
+
 	std::lock_guard< std::mutex > lock( mutex_ );
 	CHECK_OR_THROW_FOR_CLASS( !finalized_, "finalize", "This object has already been finalized." );
+	CHECK_OR_THROW_FOR_CLASS( seating_problem_ != nullptr, "finalize", "A seating problem definition must be provided before this object is finalized." );
+    Size const nguest( seating_problem_->n_guests() );
+    CHECK_OR_THROW_FOR_CLASS( nguest == guest_index_to_seat_index_.size(), "finalize", "Expected seat assignments for all guests to be loaded into this object prior to finalization." );
+
+    for( auto const & entry : guest_index_to_seat_index_ ) {
+        CHECK_OR_THROW_FOR_CLASS( entry.first < nguest, "finalize", "Expected guest indices to be less than " + std::to_string(nguest) +
+            ", but got " + std::to_string(entry.first) + "."
+        );
+        GuestCSP curguest( seating_problem_->guest(entry.first));
+        SeatCSP curseat( seating_problem_->seat(entry.second) );
+        CHECK_OR_THROW_FOR_CLASS( guest_to_seat_.count( curguest ) == 0, "finalize", "Guest \"" + curguest->name() + "\" (UID \"" + curguest->unique_identifier() + "\") was added more than once." );
+        guest_to_seat_[curguest] = curseat;
+    }
+
 	finalized_ = true;
 }
 

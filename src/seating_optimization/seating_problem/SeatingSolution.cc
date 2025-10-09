@@ -312,7 +312,7 @@ SeatingSolution::print_solution( bool const include_problem ) const {
 		Seat const & seat( *entry.second );
 		Size const seat_index( guest_index_to_seat_index_.at(counter) );
 
-		bool const seat_is_at_a_table( seating_problem_->seat_is_at_a_table() );
+		bool const seat_is_at_a_table( seating_problem_->seat_is_at_a_table( seat_index ) );
 		std::pair< Size, Size > table_and_local_seat_index( seating_problem_->table_and_local_seat_index_from_global_seat_index( seat_index ) );
 
 		write_to_tracer(

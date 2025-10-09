@@ -149,13 +149,6 @@ public:
 	/// north (the (0,1) direction in x-y space).	
 	void set_angle( Real const angle_degrees_in );
 
-	/// @brief Indicate that this seat is associated with a table, and has a local index at that table.
-	void
-	set_table_index_and_local_seat_index(
-		masala::base::Size const table_index,
-		masala::base::Size const local_seat_index_at_table
-	);
-
 public:
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -191,15 +184,6 @@ private:
 	/// @brief A seat has an orientation, defined as the clockwise angle, in degrees, from facing
 	/// north (the (0,1) direction in x-y space).
 	Real angle_degrees_ = 0.0;
-
-	/// @brief Is this seat associated with a table?
-	bool at_a_table_ = false;
-
-	/// @brief The index of the table with which this seat is associated.
-	masala::base::Size table_index_ = 0;
-
-	/// @brief This seat's local index at its table.
-	masala::base::Size local_index_at_table_ = 0;
 
 
 }; // class Seat

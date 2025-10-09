@@ -306,9 +306,6 @@ Seat::protected_assign( SeatingElementBase const & src ) {
 	x_ = src_ptr_cast->x_;
 	y_ = src_ptr_cast->y_;
 	angle_degrees_ = src_ptr_cast->angle_degrees_;
-	at_a_table_ = src_ptr_cast->at_a_table_;
-	table_index_ = src_ptr_cast->table_index_;
-	local_index_at_table_ = src_ptr_cast->local_index_at_table_;
 
 	Parent::protected_assign( src );
 }

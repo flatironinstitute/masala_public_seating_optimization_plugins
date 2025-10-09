@@ -167,6 +167,11 @@ public:
 	/// @brief Mark this object as having been finalized.
 	void finalize();
 
+	/// @brief Print the solution to the tracer.  Must be finalized first.  If include_problem is true,
+	/// all information needed to visualize the solution (including coordinates of chairs and tables) is
+	/// printed.
+	void print_solution( bool const include_problem ) const;
+
 protected:
 
 ////////////////////////////////////////////////////////////////////////////////

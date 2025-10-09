@@ -173,6 +173,16 @@ SeatingSolution::get_api_definition() {
 				std::bind( &SeatingSolution::finalize, this )
 			)
 		);
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_OneInput< void, bool const > >(
+				"print_solution", "Print the solution to the tracer.  Must be finalized first.  If include_problem is true, "
+				"all information needed to visualize the solution (including coordinates of chairs and tables) is printed.",
+				true, false, false, false,
+				"include_problem", "If true, a description of the problem is printed.",
+				"void", "This function returns nothing.",
+				std::bind( &SeatingSolution::print_solution, this, std::placeholders::_1 )
+			)
+		);
 
         // Getters:
 		api_def->add_getter(
@@ -275,6 +285,42 @@ SeatingSolution::finalize() {
     }
 
 	finalized_ = true;
+}
+
+/// @brief Print the solution to the tracer.  Must be finalized first.  If include_problem is true,
+/// all information needed to visualize the solution (including coordinates of chairs and tables) is
+/// printed.
+void
+SeatingSolution::print_solution( bool const include_problem ) const {
+	using masala::base::Size;
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
+
+	std::lock_guard< std::mutex > lock( mutex_ );
+	CHECK_OR_THROW_FOR_CLASS( finalized_, "print_solution", "This object must be finalized before this function is called." );
+	CHECK_OR_THROW_FOR_CLASS( seating_problem_ != nullptr, "print_solution", "A seating problem definition must be provided before this function is called." );
+	if( include_problem ) {
+		write_to_tracer("PROBLEM:");
+		seating_problem_->print_problem();
+		write_to_tracer("");
+		write_to_tracer( "SOLUTION:" );
+	}
+	write_to_tracer( "Guest_index\tGuest_UID\tGuest_name\tSeat_global_index\tTable_index\tSeat_index_at_table" );
+
+	masala::base::Size counter(0);
+	for( auto const & entry : guest_to_seat_ ) {
+		Guest const & guest( *entry.first );
+		Seat const & seat( *entry.second );
+
+		write_to_tracer(
+			std::to_string(counter)
+			+ "\t" + guest.unique_identifier()
+			+ "\t\"" + guest.name() + "\""
+			+ "\t" + std::to_string( guest_index_to_seat_index_.at(counter) )
+			+ "\t" + ( seat->has_table() ? std::to_string( seat->table_index() ) : "N/A" )
+			+ "\t" + ( seat->has_table() ? std::to_string( seat->seat_index_at_table() ) : "N/A" )
+		);
+		++counter;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////

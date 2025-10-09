@@ -193,6 +193,16 @@ SeatingSolution::get_api_definition() {
 				std::bind( &SeatingSolution::set_problem, this, std::placeholders::_1 )
 			)
 		);
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_TwoInput< Size, Size > >(
+				"add_guest_seat_assignment", "Mark that a particular guest is assigned a particular seat.  Solution must not "
+                "yet be finalized.",
+				"guest_index", "The zero-based index of the guest to be assigned a seat.",
+                "seat_index", "The zero-based index of the seat that this guest has been assigned.",
+				false, false,
+				std::bind( &SeatingSolution::add_guest_seat_assignment, this, std::placeholders::_1, std::placeholders::_2 )
+			)
+		);
 
         api_definition() = api_def; //Make const.
     }
@@ -223,6 +233,19 @@ SeatingSolution::set_problem(
 	std::lock_guard< std::mutex > lock( mutex_ );
 	CHECK_OR_THROW_FOR_CLASS( !finalized_, "set_problem", "This object must not be finalized before this function is called." );
 	seating_problem_ = problem;
+}
+
+/// @brief Mark that a particular guest is assigned a particular seat.  Solution must not
+/// yet be finalized.
+void
+SeatingSolution::add_guest_seat_assignment(
+    masala::base::Size const guest_index,
+    masala::base::Size const seat_index
+) {
+    std::lock_guard< std::mutex > lock( mutex_ );
+	CHECK_OR_THROW_FOR_CLASS( !finalized_, "add_guest_seat_assignment", "This object must not be finalized before this function is called." );
+    CHECK_OR_THROW_FOR_CLASS( guest_index_to_seat_index_.count(guest_index) == 0, "add_guest_seat_assignment", "Guest with index " + std::to_string(guest_index) + " has already been assigned a seat." );
+    guest_index_to_seat_index_[guest_index] = seat_index;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

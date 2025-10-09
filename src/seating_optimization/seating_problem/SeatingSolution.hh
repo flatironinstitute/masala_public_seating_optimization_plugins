@@ -150,6 +150,14 @@ public:
 	/// @brief Set the problem for which this is a solutuion.  Problem is used directly, not deep-cloned.
 	void set_problem( SeatingProblemCSP problem );
 
+	/// @brief Mark that a particular guest is assigned a particular seat.  Solution must not
+	/// yet be finalized.
+	void
+	add_guest_seat_assignment(
+		masala::base::Size const guest_index,
+		masala::base::Size const seat_index
+	);
+
 public:
 
 ////////////////////////////////////////////////////////////////////////////////

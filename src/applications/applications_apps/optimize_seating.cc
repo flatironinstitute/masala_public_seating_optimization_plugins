@@ -617,6 +617,7 @@ void
 print_solutions(
 	std::string const & appname,
 	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_API const & problem,
 	std::vector< seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingSolution_APICSP > const & solutions
 ) {
 	using masala::base::Size;
@@ -625,10 +626,13 @@ print_solutions(
 
 	std::string const separator( "========================================" );
 	tracerman->write_to_tracer( appname, separator );
+	tracerman->write_to_tracer( appname, "PROBLEM:" );
+	problem.print_solution();
+	tracerman->write_to_tracer( appname, separator );
 	for( Size i(0); i<solutions.size(); ++i ) {
-		tracerman->write_to_tracer( appname, "SOLUTION " + std::to_string(i) );
+		tracerman->write_to_tracer( appname, "SOLUTION " + std::to_string(i) + ":" );
 		tracerman->write_to_tracer( appname, separator );
-		solutions[i]->print_solution();
+		solutions[i]->print_solution( false );
 		tracerman->write_to_tracer( appname, separator );
 	}
 }
@@ -735,7 +739,7 @@ main(
 	);
 
 	// Print the solution(s):
-	print_solutions( appname, tracerman, solutions );
+	print_solutions( appname, tracerman, *seating_problem, solutions );
 
 	// Shutdown and cleanup:
 	unload_masala_plugins();

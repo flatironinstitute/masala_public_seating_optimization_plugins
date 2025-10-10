@@ -32,6 +32,7 @@
 #include <seating_optimization/seating_problem_elements/Seat.hh>
 
 // Base headers:
+#include <base/utility/container/container_util.tmpl.hh>
 #include <base/error/ErrorHandling.hh>
 #include <base/api/MasalaObjectAPIDefinition.hh>
 #include <base/api/constructor/MasalaObjectAPIConstructorMacros.hh>
@@ -208,6 +209,16 @@ Table::get_api_definition() {
 				std::bind( &Table::seat, this, std::placeholders::_1 )
 			)
 		);
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_OneInput< bool, SeatCSP const & > >(
+				"has_seat",
+				"Determine whether a given seat is at this table.",
+				"seat", "A shared pointer to the seat that may or may not be at this table.",
+				"has_seat", "True if this seat is at this table; false otherwise.",
+				false, false,
+				std::bind( &Table::has_seat, this, std::placeholders::_1 )
+			)
+		);
 
 		// Setters:
 		api_def->add_setter(
@@ -281,6 +292,15 @@ Table::seat(
 		+ std::to_string( seats_.size() ) + "-element seats_ vector."
 	);
 	return seats_[seat_index];
+}
+
+/// @brief Determine whether a given seat is at this table.
+bool
+Table::has_seat(
+	SeatCSP const & seat
+) const {
+	std::lock_guard< std::mutex > lock( mutex() );
+	return masala::base::utility::container::has_value( seats_, seat );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

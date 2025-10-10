@@ -144,6 +144,9 @@ public:
 	/// @brief Access a particular seat, by local index (staring at 0 with the first seat around this table).  Throws if seat out of range.
 	SeatCSP seat( Size const seat_index ) const;
 
+	/// @brief Determine whether a given seat is at this table.
+	bool has_seat( SeatCSP const & seat ) const;
+
 public:
 
 ////////////////////////////////////////////////////////////////////////////////

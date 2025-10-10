@@ -335,6 +335,8 @@ load_dwave_cfn_optimizer(
 	tracerman->write_to_tracer( appname + "::load_mc_cfn_optimizer", "Created a " + optimizer->inner_class_name() + "." );
 
 	TODO TODO TODO CONFIGURE HERE;
+
+	return optimizer;
 }
 
 /// @brief Load optimizer.

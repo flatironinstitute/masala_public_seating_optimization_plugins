@@ -346,24 +346,24 @@ SeatingSolution::protected_print_solution_to_string(
 	}
 	out_ss << "Guest_index\tGuest_UID\tGuest_name\tSeat_global_index\tTable_index\tSeat_index_at_table\n";
 
-	masala::base::Size counter(0);
-	for( auto const & entry : guest_to_seat_ ) {
-		Guest const & guest( *entry.first );
-		Size const seat_index( guest_index_to_seat_index_.at(counter) );
+	Size const nguest( seating_problem_->n_guests() );
+
+	for( Size iguest(0); iguest < nguest; ++iguest ) {
+		Guest const & guest( *seating_problem_->guest(iguest) );
+		Size const seat_index( guest_index_to_seat_index_.at(iguest) );
 
 		bool const seat_is_at_a_table( seating_problem_->seat_is_at_a_table( seat_index ) );
 		std::pair< Size, Size > table_and_local_seat_index( seating_problem_->table_and_local_seat_index_from_global_seat_index( seat_index ) );
 
-		out_ss << counter
+		out_ss << iguest
 			<< "\t" << guest.unique_identifier()
 			<< "\t\"" << guest.name() << "\""
 			<< "\t" << std::to_string( seat_index )
 			<< "\t" << ( seat_is_at_a_table ? std::to_string( table_and_local_seat_index.first ) : "N/A" )
 			<< "\t" << ( seat_is_at_a_table ? std::to_string( table_and_local_seat_index.second ) : "N/A" );
-		if( counter < guest_to_seat_.size()-1 ) {
+		if( iguest < nguest-1 ) {
 			out_ss << "\n";
 		}
-		++counter;
 	}
 	return out_ss.str();
 }

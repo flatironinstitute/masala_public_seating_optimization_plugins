@@ -137,6 +137,31 @@ set_setter(
 }
 
 /// @brief Set the number of classical Monte Carlo steps for a classical optimizer.
+template<>
+void
+set_setter(
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	std::string const & appname,
+	masala::base::api::MasalaObjectAPIDefinition const & api_def,
+	std::string const & setter_name,
+	masala::base::managers::engine::MasalaDataRepresentationAPICSP const & setting
+) {
+	using namespace masala::base::api;
+	using namespace masala::base::api::setter;
+
+	MasalaObjectAPISetterDefinition_OneInputCSP< masala::base::managers::engine::MasalaDataRepresentationAPICSP const & > setter(
+		api_def.get_oneinput_setter_function< masala::base::managers::engine::MasalaDataRepresentationAPICSP const & >( setter_name ).lock()
+	);
+	CHECK_OR_THROW( setter != nullptr, appname, "set_setter", "The " + api_def.api_class_name() + " did not have a "
+		+ setter_name + "() function."
+	);
+	setter->function(setting);
+	tracerman->write_to_tracer( appname + "::set_setter", "Set " + api_def.api_class_name() + "."
+		+ setter_name + "(" + setting->inner_class_name() + ")."
+	);
+}
+
+/// @brief Set the number of classical Monte Carlo steps for a classical optimizer.
 /// @details Specialization for bools.
 template<>
 void
@@ -185,6 +210,32 @@ set_setter(
 	setter->function(setting);
 	tracerman->write_to_tracer( appname + "::set_setter", "Set " + api_def.api_class_name() + "."
 		+ setter_name + "(\"" + setting + "\")."
+	);
+}
+
+/// @brief Set the number of classical Monte Carlo steps for a classical optimizer.
+/// @details Specialization for bools.
+template<bool>
+void
+set_setter(
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	std::string const & appname,
+	masala::base::api::MasalaObjectAPIDefinition const & api_def,
+	std::string const & setter_name,
+	bool setting
+) {
+	using namespace masala::base::api;
+	using namespace masala::base::api::setter;
+
+	MasalaObjectAPISetterDefinition_OneInputCSP< bool > setter(
+		api_def.get_oneinput_setter_function< bool >( setter_name ).lock()
+	);
+	CHECK_OR_THROW( setter != nullptr, appname, "set_setter", "The " + api_def.api_class_name() + " did not have a "
+		+ setter_name + "() function."
+	);
+	setter->function(setting);
+	tracerman->write_to_tracer( appname + "::set_setter", "Set " + api_def.api_class_name() + "."
+		+ setter_name + "(" + (setting ? "true" : "false" ) + ")."
 	);
 }
 
@@ -318,7 +369,7 @@ masala::base::managers::engine::MasalaEngineAPICSP
 load_dwave_cfn_optimizer(
 	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
 	std::string const & appname,
-	masala::base::Size const dwave_samples,
+	masala::base::Size const ,//dwave_samples,
 	bool const do_greedy
 ) {
 	using namespace masala::base::managers::engine;
@@ -335,11 +386,13 @@ load_dwave_cfn_optimizer(
 		"been passed to the -masala_plugins commandling option?"
 	);
 	tracerman->write_to_tracer( appname + "::load_mc_cfn_optimizer", "Created a " + optimizer->inner_class_name() + "." );
+	MasalaObjectAPIDefinitionCSP opt_api_def( optimizer->get_api_definition_for_inner_class().lock() );
+	CHECK_OR_THROW( opt_api_def != nullptr, appname, "load_dwave_cfn_optimizer", "Could not get an API definition for the " + optimizer->inner_class_name() + " optimizer." );
 
 	{
 		// Set the preferred data representation:
 		MasalaDataRepresentationAPISP template_dr(
-			MasalaDataRepresentationManager::get_instance()->create_data_representation_by_short_name( "ApproximateBinaryQUBOProblem", false );
+			MasalaDataRepresentationManager::get_instance()->create_data_representation_by_short_name( "ApproximateBinaryQUBOProblem", false )
 		);
 		CHECK_OR_THROW( template_dr != nullptr && template_dr->inner_class_name() == "ApproximateBinaryQUBOProblem",
 			appname,"load_dwave_cfn_optimizer", "Could not create an ApproximateBinaryQUBOProblem "
@@ -349,15 +402,14 @@ load_dwave_cfn_optimizer(
 		tracerman->write_to_tracer( appname + "::load_mc_cfn_optimizer", "Created a " + template_dr->inner_class_name() + " template data representation." );
 
 		// Configure:
-		MasalaObjectAPIDefinitionCSP abqp_api_def( optimizer->get_api_definition_for_inner_class().lock() );
-		CHECK_OR_THROW( abqp_api_def != nullptr, appname, "load_dwave_cfn_optimizer", "Could not get an API definition for the " + optimizer->inner_class_name() + " optimizer." );
+		MasalaObjectAPIDefinitionCSP abqp_api_def( template_dr->get_api_definition_for_inner_class().lock() );
+		CHECK_OR_THROW( abqp_api_def != nullptr, appname, "load_dwave_cfn_optimizer", "Could not get an API definition for the " + template_dr->inner_class_name() + " optimizer." );
 
-		set_setter<bool>( tracerman, appname, *abqp_api_def, "set_do_greedy_refinement", do_greedy );
 		set_setter<Real>( tracerman, appname, *abqp_api_def, "set_onenode_penalty_cap", 30.0 );
 		set_setter<Real>( tracerman, appname, *abqp_api_def, "set_twonode_penalty_cap", 30.0 );
 		set_setter<bool const>( tracerman, appname, *abqp_api_def, "set_optimize_onenode_penalties", true );
 		set_setter<bool const>( tracerman, appname, *abqp_api_def, "set_optimize_twonode_penalties", true );
-		set_setter<Real>( tracerman, appname, *abqp_api_def, "set_local_optimizer_kbt", 12.0 );
+		set_setter<Real const>( tracerman, appname, *abqp_api_def, "set_local_optimizer_kbt", 12.0 );
 		set_setter<Real>( tracerman, appname, *abqp_api_def, "set_weighted_linear_algebra_kbt", 12.0 );
 		set_setter<bool>( tracerman, appname, *abqp_api_def, "set_exclude_duplicate_bitstrings_from_initial_linear_algebra", true );
 		set_setter<bool>( tracerman, appname, *abqp_api_def, "set_use_weighted_linear_algebra", true );
@@ -366,16 +418,16 @@ load_dwave_cfn_optimizer(
 		set_setter<bool>( tracerman, appname, *abqp_api_def, "set_compute_qubit_effective_fields", true );
 		
 
-		TODO SET CHOICE ORDER;
-		TODO SET LOCAL OPTIMIZER;
-		TODO CONFIGURE OTHER OPTIONS;
+		// TODO SET CHOICE ORDER;
+		// TODO SET LOCAL OPTIMIZER;
+		// TODO CONFIGURE OTHER OPTIONS;
 
-		TODO TODO TODO PASS TO OPTIMIZER HERE;
+		set_setter<masala::base::managers::engine::MasalaDataRepresentationAPICSP const &>( tracerman, appname, *abqp_api_def, "set_template_preferred_cfn_data_representation", template_dr );
 	}
 
-
-	TODO TURN ON INHOMOGENEOUS DRIVING;
-	TODO TODO TODO CONFIGURE HERE;
+	set_setter<bool>( tracerman, appname, *opt_api_def, "set_do_greedy_refinement", do_greedy );
+	// TODO TURN ON INHOMOGENEOUS DRIVING;
+	// TODO TODO TODO CONFIGURE HERE;
 
 	return optimizer;
 }
@@ -422,7 +474,7 @@ load_optimizer_settings(
 			solutions_to_store_per_problem, flattening_boltzmann_temperature, do_greedy, false
 		);
 	} else if( optimizer_name == "DWaveQuantumQUBOProblemOptimizer" ) {
-		return load_dwave_cfn_optimizer( tracerman, appname, dwave_samples, do_greedy );
+		return load_dwave_cfn_optimizer( tracerman, appname, 100, do_greedy );
 	} else {
 		MASALA_THROW( appname, "load_optimizer_settings", "Did not recognize \"" + optimizer_name + "\" as an allowed optimizer.  "
 			"Supported optimizers are: " + masala::base::utility::container::container_to_string( allowed_optimizer_names, ", " ) + "."

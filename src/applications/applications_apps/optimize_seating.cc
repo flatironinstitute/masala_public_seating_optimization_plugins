@@ -741,6 +741,9 @@ main(
 	// Print the solution(s):
 	print_solutions( appname, tracerman, *seating_problem, solutions );
 
+	// Write the solution(s) to disk:
+	write_solutions_to_disk( appname, tracerman, *seating_problem, solutions );
+
 	// Shutdown and cleanup:
 	unload_masala_plugins();
 

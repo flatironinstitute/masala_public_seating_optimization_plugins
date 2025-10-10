@@ -552,7 +552,7 @@ SeatingProblem::table_and_local_seat_index_from_global_seat_index(
 	Size table_counter(0);
 	for( auto const & table : tables_ ) {
 		if( table->has_seat( it->second ) ) {
-			return std::pair< Size, Size >( table_counter, table->seat_index( seat ) );
+			return std::pair< Size, Size >( table_counter, table->seat_local_index( it->second ) );
 		}
 		++table_counter;
 	}

@@ -158,6 +158,15 @@ Table::get_api_definition() {
 		// 		std::bind( &Table::get_adjacent_seats, this )
 		// 	)
 		// );
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_ZeroInput< std::string > >(
+				"type_specific_details_string", "Get a string describing the subclass-specific details of this table.  Base class "
+				"implementation doesn't do anything; must be implemented by derived classes.",
+				true, false, true, false,
+				"type_specific_details_string", "A string describing the subclass-specific details of this table.",
+				std::bind( &Table::type_specific_details_string, this )
+			)
+		);
 
 		// Getters:
 		api_def->add_getter(
@@ -360,6 +369,14 @@ std::vector< std::pair< SeatCSP, SeatCSP > >
 Table::get_adjacent_seats() const {
 	MASALA_THROW( class_namespace() + "::" + class_name(), "get_adjacent_seats", "This function must be implemented." );
 	return std::vector< std::pair< SeatCSP, SeatCSP > >{};
+}
+
+/// @brief Get a string describing the subclass-specific details of this table.  Base class
+/// implementation doesn't do anything; must be implemented by derived classes.
+/*virtual*/
+std::string
+Table::type_specific_details_string() const {
+	return "";
 }
 
 ////////////////////////////////////////////////////////////////////////////////

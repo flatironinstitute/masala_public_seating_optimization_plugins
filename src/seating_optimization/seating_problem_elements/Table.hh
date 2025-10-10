@@ -177,6 +177,10 @@ public:
 	std::vector< std::pair< SeatCSP, SeatCSP > >
 	get_adjacent_seats() const;
 
+	/// @brief Get a string describing the subclass-specific details of this table.  Base class
+	/// implementation doesn't do anything; must be implemented by derived classes.
+	virtual std::string type_specific_details_string() const;
+
 protected:
 
 ////////////////////////////////////////////////////////////////////////////////

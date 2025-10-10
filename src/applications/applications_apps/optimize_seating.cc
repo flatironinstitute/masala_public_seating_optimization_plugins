@@ -312,6 +312,31 @@ load_mc_cfn_optimizer(
 	return optimizer;
 }
 
+/// @brief Load a D-Wave optimizer.
+masala::base::managers::engine::MasalaEngineAPICSP
+load_dwave_cfn_optimizer(
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	std::string const & appname,
+	masala::base::Size const dwave_samples,
+	bool const do_greedy
+) {
+	using namespace masala::base::managers::engine;
+	using namespace masala::base::api;
+	using masala::base::Size;
+	using masala::base::Real;
+
+	MasalaEngineAPISP optimizer(
+		MasalaEngineManager::get_instance()->create_engine_by_short_name( "DWaveQuantumQUBOProblemOptimizer", false )
+	);
+	CHECK_OR_THROW( optimizer != nullptr && optimizer->inner_class_name() == "DWaveQuantumQUBOProblemOptimizer",
+		appname,"load_mc_cfn_optimizer", "Could not load a DWaveQuantumQUBOProblemOptimizer "
+		"from the Masala engine manager.  Has the Quantum Computing Masala Plugins library path been passed to the -masala_plugins commandling option?"
+	);
+	tracerman->write_to_tracer( appname + "::load_mc_cfn_optimizer", "Created a " + optimizer->inner_class_name() + "." );
+
+	TODO TODO TODO CONFIGURE HERE;
+}
+
 /// @brief Load optimizer.
 masala::base::managers::engine::MasalaEngineAPICSP
 load_optimizer_settings(
@@ -353,6 +378,8 @@ load_optimizer_settings(
 		return load_mc_cfn_optimizer( tracerman, appname, classical_mc_steps, classical_attempts_per_problem,
 			solutions_to_store_per_problem, flattening_boltzmann_temperature, do_greedy, false
 		);
+	} else if( optimizer_name == "DWaveQuantumQUBOProblemOptimizer" ) {
+		return load_dwave_cfn_optimizer( tracerman, appname, dwave_samples, do_greedy );
 	} else {
 		MASALA_THROW( appname, "load_optimizer_settings", "Did not recognize \"" + optimizer_name + "\" as an allowed optimizer.  "
 			"Supported optimizers are: " + masala::base::utility::container::container_to_string( allowed_optimizer_names, ", " ) + "."
@@ -691,7 +718,8 @@ main(
 	// Allowed optimizer names:
 	std::vector< std::string > const allowed_optimizer_names{
 		"HillFlatteningMonteCarloCostFunctionNetworkOptimizer",
-		"MonteCarloCostFunctionNetworkOptimizer"
+		"MonteCarloCostFunctionNetworkOptimizer",
+		"DWaveQuantumQUBOProblemOptimizer"
 	};
 
 	// Options that we will load:

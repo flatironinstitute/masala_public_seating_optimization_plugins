@@ -187,6 +187,31 @@ set_setter(
 }
 
 /// @brief Set the number of classical Monte Carlo steps for a classical optimizer.
+template<>
+void
+set_setter(
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	std::string const & appname,
+	masala::base::api::MasalaObjectAPIDefinition const & api_def,
+	std::string const & setter_name,
+	masala::base::managers::engine::MasalaEngineAPICSP setting
+) {
+	using namespace masala::base::api;
+	using namespace masala::base::api::setter;
+
+	MasalaObjectAPISetterDefinition_OneInputCSP< masala::base::managers::engine::MasalaEngineAPICSP > setter(
+		api_def.get_oneinput_setter_function< masala::base::managers::engine::MasalaEngineAPICSP >( setter_name ).lock()
+	);
+	CHECK_OR_THROW( setter != nullptr, appname, "set_setter", "The " + api_def.api_class_name() + " did not have a "
+		+ setter_name + "() function."
+	);
+	setter->function(setting);
+	tracerman->write_to_tracer( appname + "::set_setter", "Set " + api_def.api_class_name() + "."
+		+ setter_name + "(" + setting->inner_class_name() + ")."
+	);
+}
+
+/// @brief Set the number of classical Monte Carlo steps for a classical optimizer.
 /// @details Specialization for strings.
 template<>
 void
@@ -457,6 +482,25 @@ load_dwave_cfn_optimizer(
 			set_setter<Size>( tracerman, appname, *minimizer_api_def, "set_max_iterations", 1000 );
 			set_setter<Size>( tracerman, appname, *minimizer_api_def, "set_threads_to_request", 0 );
 			set_setter<bool>( tracerman, appname, *minimizer_api_def, "set_throw_if_iterations_exceeded", false );
+
+			{
+				// Configure line minimizer:
+				MasalaEngineAPISP lineminimizer(
+					MasalaEngineManager::get_instance()->create_engine_by_short_name( "BrentAlgorithmLineOptimizer", false )
+				);
+				CHECK_OR_THROW( lineminimizer != nullptr && lineminimizer->inner_class_name() == "BrentAlgorithmLineOptimizer",
+					appname,"load_dwave_cfn_optimizer", "Could not load a BrentAlgorithmLineOptimizer "
+					"from the Masala engine manager.  Has the Standard Masala Plugins library path "
+					"been passed to the -masala_plugins commandling option?"
+				);
+				MasalaObjectAPIDefinitionCSP lineminimizer_api_def( lineminimizer->get_api_definition_for_inner_class().lock() );
+				CHECK_OR_THROW( lineminimizer_api_def != nullptr, appname, "load_dwave_cfn_optimizer", "Could not get an API definition for the " + lineminimizer->inner_class_name() + " optimizer." );
+				set_setter<Real>( tracerman, appname, *lineminimizer_api_def, "set_initial_stepsize", 0.05 );
+				set_setter<Size>( tracerman, appname, *lineminimizer_api_def, "set_max_iters", 20 );
+				set_setter<bool>( tracerman, appname, *lineminimizer_api_def, "set_throw_if_iterations_exceeded", false );
+
+				set_setter<MasalaEngineAPICSP>( tracerman, appname, *minimizer_api_def, "set_line_optimizer", lineminimizer );
+			}
 
 
 

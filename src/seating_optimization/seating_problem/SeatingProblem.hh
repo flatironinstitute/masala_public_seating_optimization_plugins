@@ -213,6 +213,12 @@ public:
 		masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const & cfn_solution
 	) const;
 
+	/// @brief Given a global seat index, determine whether this seat is at a table.
+	bool seat_is_at_a_table( masala::base::Size const seat_index ) const;
+
+	/// @brief Given a global seat index, determine the table index and local index of the seat at the table.  Throws if the seat isn't at a table.
+	std::pair< masala::base::Size, masala::base::Size > table_and_local_seat_index_from_global_seat_index( masala::base::Size const seat_index ) const;
+
 	/// @brief Indicate that this object is fully set up.
 	void finalize();
 

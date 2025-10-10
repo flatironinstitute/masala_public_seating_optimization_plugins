@@ -521,6 +521,44 @@ SeatingProblem::seating_solution_from_cfn_solution(
 	return seating_soln;
 }
 
+/// @brief Given a global seat index, determine whether this seat is at a table.
+bool
+SeatingProblem::seat_is_at_a_table(
+	masala::base::Size const seat_index
+) const {
+	using masala::base::Size;
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
+	std::lock_guard< std::mutex > lock( mutex_ );
+	std::map< Size, SeatCSP >::const_iterator it( seats_by_index_.find(seat_index) );
+	CHECK_OR_THROW_FOR_CLASS( it != seats_by_index_.end(), "seat_is_at_a_table", "Seat index was out of range." );
+	for( auto const & table : tables_ ) {
+		if( table->has_seat( it->second ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/// @brief Given a global seat index, determine the table index and local index of the seat at the table.  Throws if the seat isn't at a table.
+std::pair< masala::base::Size, masala::base::Size >
+SeatingProblem::table_and_local_seat_index_from_global_seat_index(
+	masala::base::Size const seat_index
+) const {
+	using masala::base::Size;
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
+	std::lock_guard< std::mutex > lock( mutex_ );
+	std::map< Size, SeatCSP >::const_iterator it( seats_by_index_.find(seat_index) );
+	CHECK_OR_THROW_FOR_CLASS( it != seats_by_index_.end(), "seat_is_at_a_table", "Seat index was out of range." );
+	Size table_counter(0);
+	for( auto const & table : tables_ ) {
+		if( table->has_seat( it->second ) ) {
+			return std::pair< Size, Size >( table_counter, table->seat_index( seat ) );
+		}
+		++table_counter;
+	}
+	MASALA_THROW( class_namespace() + "::" + class_name(), "table_and_local_seat_index_from_global_seat_index", "Seat does not appear to be associated with a table." );
+}
+
 /// @brief Indicate that this object is fully set up.
 void
 SeatingProblem::finalize() {

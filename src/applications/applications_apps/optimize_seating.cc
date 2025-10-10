@@ -32,6 +32,7 @@
 #include <base/managers/plugin_module/MasalaPluginModuleManager.hh>
 #include <base/managers/threads/MasalaThreadManager.hh>
 #include <base/managers/engine/MasalaEngineManager.hh>
+#include <base/managers/engine/MasalaDataRepresentationManager.hh>
 #include <base/managers/engine/MasalaEngine.hh>
 #include <base/managers/engine/MasalaDataRepresentation.hh>
 #include <base/managers/engine/MasalaEngineAPI.hh>
@@ -329,11 +330,51 @@ load_dwave_cfn_optimizer(
 		MasalaEngineManager::get_instance()->create_engine_by_short_name( "DWaveQuantumQUBOProblemOptimizer", false )
 	);
 	CHECK_OR_THROW( optimizer != nullptr && optimizer->inner_class_name() == "DWaveQuantumQUBOProblemOptimizer",
-		appname,"load_mc_cfn_optimizer", "Could not load a DWaveQuantumQUBOProblemOptimizer "
-		"from the Masala engine manager.  Has the Quantum Computing Masala Plugins library path been passed to the -masala_plugins commandling option?"
+		appname,"load_dwave_cfn_optimizer", "Could not load a DWaveQuantumQUBOProblemOptimizer "
+		"from the Masala engine manager.  Has the Quantum Computing Masala Plugins library path "
+		"been passed to the -masala_plugins commandling option?"
 	);
 	tracerman->write_to_tracer( appname + "::load_mc_cfn_optimizer", "Created a " + optimizer->inner_class_name() + "." );
 
+	{
+		// Set the preferred data representation:
+		MasalaDataRepresentationAPISP template_dr(
+			MasalaDataRepresentationManager::get_instance()->create_data_representation_by_short_name( "ApproximateBinaryQUBOProblem", false );
+		);
+		CHECK_OR_THROW( template_dr != nullptr && template_dr->inner_class_name() == "ApproximateBinaryQUBOProblem",
+			appname,"load_dwave_cfn_optimizer", "Could not create an ApproximateBinaryQUBOProblem "
+			"from the Masala data representation manager.  Has the Quantum Computing Masala Plugins "
+			"library path been passed to the -masala_plugins commandling option?"
+		);
+		tracerman->write_to_tracer( appname + "::load_mc_cfn_optimizer", "Created a " + template_dr->inner_class_name() + " template data representation." );
+
+		// Configure:
+		MasalaObjectAPIDefinitionCSP abqp_api_def( optimizer->get_api_definition_for_inner_class().lock() );
+		CHECK_OR_THROW( abqp_api_def != nullptr, appname, "load_dwave_cfn_optimizer", "Could not get an API definition for the " + optimizer->inner_class_name() + " optimizer." );
+
+		set_setter<bool>( tracerman, appname, *abqp_api_def, "set_do_greedy_refinement", do_greedy );
+		set_setter<Real>( tracerman, appname, *abqp_api_def, "set_onenode_penalty_cap", 30.0 );
+		set_setter<Real>( tracerman, appname, *abqp_api_def, "set_twonode_penalty_cap", 30.0 );
+		set_setter<bool const>( tracerman, appname, *abqp_api_def, "set_optimize_onenode_penalties", true );
+		set_setter<bool const>( tracerman, appname, *abqp_api_def, "set_optimize_twonode_penalties", true );
+		set_setter<Real>( tracerman, appname, *abqp_api_def, "set_local_optimizer_kbt", 12.0 );
+		set_setter<Real>( tracerman, appname, *abqp_api_def, "set_weighted_linear_algebra_kbt", 12.0 );
+		set_setter<bool>( tracerman, appname, *abqp_api_def, "set_exclude_duplicate_bitstrings_from_initial_linear_algebra", true );
+		set_setter<bool>( tracerman, appname, *abqp_api_def, "set_use_weighted_linear_algebra", true );
+		set_setter<std::string const &>( tracerman, appname, *abqp_api_def, "set_linear_algebra_approach", "col_pivoting_householder_qr_decomp" );
+		set_setter<Size>( tracerman, appname, *abqp_api_def, "set_cpu_threads_to_request", 0 );
+		set_setter<bool>( tracerman, appname, *abqp_api_def, "set_compute_qubit_effective_fields", true );
+		
+
+		TODO SET CHOICE ORDER;
+		TODO SET LOCAL OPTIMIZER;
+		TODO CONFIGURE OTHER OPTIONS;
+
+		TODO TODO TODO PASS TO OPTIMIZER HERE;
+	}
+
+
+	TODO TURN ON INHOMOGENEOUS DRIVING;
 	TODO TODO TODO CONFIGURE HERE;
 
 	return optimizer;

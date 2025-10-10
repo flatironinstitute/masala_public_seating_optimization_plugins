@@ -550,16 +550,13 @@ load_dwave_cfn_optimizer(
 			set_setter<MasalaPluginAPISP const &>( tracerman, appname, *abqp_api_def, "set_choice_order", choiceorder );
 		}
 
-		// TODO SET CHOICE ORDER;
-		// TODO CONFIGURE OTHER OPTIONS;
-
 		set_setter<MasalaDataRepresentationAPICSP const &>( tracerman, appname, *opt_api_def, "set_template_preferred_cfn_data_representation", template_dr );
 	}
 
 	set_const_bool_setter( tracerman, appname, *opt_api_def, "set_greedy", do_greedy );
 	set_const_bool_setter( tracerman, appname, *opt_api_def, "set_inhomog_trans_field", true );
-	// TODO TODO TODO SET SOLVER;
-	// TODO TODO TODO CONFIGURE HERE;
+	
+	TODO CONFIGURE OTHER DWAVE SETTINGS;
 
 	return optimizer;
 }

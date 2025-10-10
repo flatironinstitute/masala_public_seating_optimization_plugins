@@ -309,7 +309,6 @@ SeatingSolution::print_solution( bool const include_problem ) const {
 	masala::base::Size counter(0);
 	for( auto const & entry : guest_to_seat_ ) {
 		Guest const & guest( *entry.first );
-		Seat const & seat( *entry.second );
 		Size const seat_index( guest_index_to_seat_index_.at(counter) );
 
 		bool const seat_is_at_a_table( seating_problem_->seat_is_at_a_table( seat_index ) );

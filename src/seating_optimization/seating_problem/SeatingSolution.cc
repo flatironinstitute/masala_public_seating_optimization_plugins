@@ -291,7 +291,9 @@ SeatingSolution::finalize() {
 /// all information needed to visualize the solution (including coordinates of chairs and tables) is
 /// printed.
 void
-SeatingSolution::print_solution( bool const include_problem ) const {
+SeatingSolution::print_solution(
+	bool const include_problem
+) const {
 	using masala::base::Size;
 	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
 

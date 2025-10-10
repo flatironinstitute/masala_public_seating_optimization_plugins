@@ -627,7 +627,7 @@ print_solutions(
 	std::string const separator( "========================================" );
 	tracerman->write_to_tracer( appname, separator );
 	tracerman->write_to_tracer( appname, "PROBLEM:" );
-	problem.print_solution();
+	problem.print_problem();
 	tracerman->write_to_tracer( appname, separator );
 	for( Size i(0); i<solutions.size(); ++i ) {
 		tracerman->write_to_tracer( appname, "SOLUTION " + std::to_string(i) + ":" );

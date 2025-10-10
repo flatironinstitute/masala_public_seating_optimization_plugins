@@ -169,6 +169,31 @@ set_setter(
 	std::string const & appname,
 	masala::base::api::MasalaObjectAPIDefinition const & api_def,
 	std::string const & setter_name,
+	masala::base::managers::plugin_module::MasalaPluginAPISP const & setting
+) {
+	using namespace masala::base::api;
+	using namespace masala::base::api::setter;
+
+	MasalaObjectAPISetterDefinition_OneInputCSP< masala::base::managers::plugin_module::MasalaPluginAPISP const & > setter(
+		api_def.get_oneinput_setter_function< masala::base::managers::plugin_module::MasalaPluginAPISP const & >( setter_name ).lock()
+	);
+	CHECK_OR_THROW( setter != nullptr, appname, "set_setter", "The " + api_def.api_class_name() + " did not have a "
+		+ setter_name + "() function."
+	);
+	setter->function(setting);
+	tracerman->write_to_tracer( appname + "::set_setter", "Set " + api_def.api_class_name() + "."
+		+ setter_name + "(" + setting->inner_class_name() + ")."
+	);
+}
+
+/// @brief Set the number of classical Monte Carlo steps for a classical optimizer.
+template<>
+void
+set_setter(
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	std::string const & appname,
+	masala::base::api::MasalaObjectAPIDefinition const & api_def,
+	std::string const & setter_name,
 	masala::base::managers::engine::MasalaEngineAPICSP const & setting
 ) {
 	using namespace masala::base::api;
@@ -507,9 +532,23 @@ load_dwave_cfn_optimizer(
 
 
 		// Configure choice order:
-		
-		set_setter<MasalaPluginAPISP const &>( tracerman, appname, *abqp_api_def, "set_choice_order", choiceorder );
-		
+		{
+			MasalaPluginAPISP choiceorder(
+				MasalaPluginModuleManager::get_instance()->create_plugin_object_instance_by_short_name( { "ChoiceOrder" }, "BoltzmannAverageEnergyChoiceOrder", false )
+			);
+			CHECK_OR_THROW( choiceorder != nullptr && choiceorder->inner_class_name() == "BoltzmannAverageEnergyChoiceOrder",
+				appname,"load_dwave_cfn_optimizer", "Could not load a BoltzmannAverageEnergyChoiceOrder "
+				"from the Masala plugin manager.  Has the Quantum Computing Masala Plugins library path "
+				"been passed to the -masala_plugins commandling option?"
+			);
+			MasalaObjectAPIDefinitionCSP choiceorder_api_def( choiceorder->get_api_definition_for_inner_class().lock() );
+			CHECK_OR_THROW( choiceorder_api_def != nullptr, appname, "load_dwave_cfn_optimizer", "Could not get an API definition for the " + choiceorder->inner_class_name() + " class." );
+			set_setter<std::string const &>( tracerman, appname, *choiceorder_api_def, "set_bitstring_assignment_order", "normal_with_lin_indep_priority" );
+			set_setter<Real>( tracerman, appname, *choiceorder_api_def, "set_kbt", 12.0 );
+			set_setter<Size>( tracerman, appname, *choiceorder_api_def, "set_n_threads", 0 );
+
+			set_setter<MasalaPluginAPISP const &>( tracerman, appname, *abqp_api_def, "set_choice_order", choiceorder );
+		}
 
 		// TODO SET CHOICE ORDER;
 		// TODO CONFIGURE OTHER OPTIONS;

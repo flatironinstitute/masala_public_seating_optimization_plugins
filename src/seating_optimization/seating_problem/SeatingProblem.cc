@@ -215,6 +215,26 @@ SeatingProblem::get_api_definition() {
 				std::bind( &SeatingProblem::finalize, this )
 			)
 		);
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_OneInput< bool, Size const > >(
+				"seat_is_at_a_table", "Given a global seat index, determine whether this seat is at a table.",
+				true, false, false, false,
+				"seat_index", "The global index of the seat.",
+				"seat_is_at_a_table", "True if this seat is at a table; false if it is free-floating.",
+				std::bind( &SeatingProblem::seat_is_at_a_table, this, std::placeholders::_1 )
+			)
+		);
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_OneInput< std::pair< Size, Size >, Size const > >(
+				"table_and_local_seat_index_from_global_seat_index", "Given a global seat index, determine the table index "
+				"and local index of the seat at the table.  Throws if the seat isn't at a table.",
+				true, false, false, false,
+				"seat_index", "The global index of the seat.",
+				"table_and_local_seat_index", "A pair, where the first entry is the table index, and the second is the local "
+				"index of the seat at the table.",
+				std::bind( &SeatingProblem::table_and_local_seat_index_from_global_seat_index, this, std::placeholders::_1 )
+			)
+		);
 
         // Getters:
 		api_def->add_getter(

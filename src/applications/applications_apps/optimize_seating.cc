@@ -502,19 +502,16 @@ load_dwave_cfn_optimizer(
 				set_setter<MasalaEngineAPICSP>( tracerman, appname, *minimizer_api_def, "set_line_optimizer", lineminimizer );
 			}
 
-
-
 			set_setter<MasalaEngineAPICSP const &>( tracerman, appname, *abqp_api_def, "set_realvalued_local_function_optimizer", minimizer );
 		}
 
 
 		// Configure choice order:
 		
-		//set_setter<MasalaPluginAPISP const &>( tracerman, appname, *abqp_api_def, "set_choice_order", choiceorder );
+		set_setter<MasalaPluginAPISP const &>( tracerman, appname, *abqp_api_def, "set_choice_order", choiceorder );
 		
 
 		// TODO SET CHOICE ORDER;
-		// TODO SET LOCAL OPTIMIZER;
 		// TODO CONFIGURE OTHER OPTIONS;
 
 		set_setter<MasalaDataRepresentationAPICSP const &>( tracerman, appname, *opt_api_def, "set_template_preferred_cfn_data_representation", template_dr );

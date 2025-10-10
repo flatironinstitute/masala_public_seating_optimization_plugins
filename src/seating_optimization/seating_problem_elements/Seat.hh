@@ -130,6 +130,14 @@ public:
 // PUBLIC GETTERS
 ////////////////////////////////////////////////////////////////////////////////
 
+	/// @brief Get the x-coordinate.
+	masala::base::Real x() const;
+
+	/// @brief Get the y-coordinate.
+	masala::base::Real y() const;
+
+	/// @brief Get the angle, in degrees.
+	masala::base::Real angle_degrees() const;
 
 public:
 

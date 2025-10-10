@@ -625,7 +625,7 @@ SeatingProblem::print_problem() const {
 		} else {
 			ss << "\tN/A\tN/A";
 		}
-		ss << seat->x() << "\t" << seat->y() << "\t" << seat->angle();
+		ss << seat->x() << "\t" << seat->y() << "\t" << seat->angle_degrees();
 		write_to_tracer( ss.str() );
 	}
 }

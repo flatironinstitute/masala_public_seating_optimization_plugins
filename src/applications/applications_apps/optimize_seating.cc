@@ -590,7 +590,15 @@ load_optimizer_settings(
 	int const flattening_boltzmann_temperature_specified,
 	masala::base::Real const flattening_boltzmann_temperature,
 	int const /*do_greedy_specified*/, // Used for all optimizers, so no checks here.
-	bool const do_greedy
+	bool const do_greedy,
+	int const dwave_samples_specified,
+	masala::base::Size dwave_samples,
+	int const dwave_annealing_time_specified,
+	masala::base::Real dwave_annealing_time,
+	int const dwave_use_layout_embedding_specified,
+	bool const dwave_use_layout_embedding,
+	int const dwave_solver_name_specified,
+	std::string const & dwave_solver_name
 ) {
 	// Initial checks:
 	if( !( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" || optimizer_name == "MonteCarloCostFunctionNetworkOptimizer" ) ) {
@@ -606,6 +614,12 @@ load_optimizer_settings(
 			appname, "load_optimizer_settings", "A flattening Boltzmann temperature was specified, but the optimizer is not the HillFlatteningMonteCarloCostFunctionNetworkOptimizer."
 		);
 	}
+	if( !(optimizer_name == "DWaveQuantumQUBOProblemOptimizer") ) {
+		CHECK_OR_THROW( !dwave_samples_specified, appname, "load_optimizer_settings", "A D-Wave sample count was specified, but the optimizer is not the DWaveQuantumQUBOProblemOptimizer." );
+		CHECK_OR_THROW( !dwave_annealing_time_specified, appname, "load_optimizer_settings", "A D-Wave annealing time was specified, but the optimizer is not the DWaveQuantumQUBOProblemOptimizer." );
+		CHECK_OR_THROW( !dwave_use_layout_embedding_specified, appname, "load_optimizer_settings", "A D-Wave embedding type was specified, but the optimizer is not the DWaveQuantumQUBOProblemOptimizer." );
+		CHECK_OR_THROW( !dwave_solver_name_specified, appname, "load_optimizer_settings", "A D-Wave solver name was specified, but the optimizer is not the DWaveQuantumQUBOProblemOptimizer." );
+	}
 
 	if( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" ) {
 		return load_mc_cfn_optimizer( tracerman, appname, classical_mc_steps, classical_attempts_per_problem,
@@ -616,7 +630,7 @@ load_optimizer_settings(
 			solutions_to_store_per_problem, flattening_boltzmann_temperature, do_greedy, false
 		);
 	} else if( optimizer_name == "DWaveQuantumQUBOProblemOptimizer" ) {
-		return load_dwave_cfn_optimizer( tracerman, appname, 100, do_greedy );
+		return load_dwave_cfn_optimizer( tracerman, appname, dwave_samples, solutions_to_store_per_problem, dwave_annealing_time, do_greedy, dwave_use_layout_embedding, dwave_solver_name );
 	} else {
 		MASALA_THROW( appname, "load_optimizer_settings", "Did not recognize \"" + optimizer_name + "\" as an allowed optimizer.  "
 			"Supported optimizers are: " + masala::base::utility::container::container_to_string( allowed_optimizer_names, ", " ) + "."
@@ -1013,7 +1027,9 @@ main(
 			classical_attempts_per_problem_specified, classical_attempts_per_problem,
 			solutions_to_store_per_problem_specified, solutions_to_store_per_problem,
 			flattening_boltzmann_temperature_specified, flattening_boltzmann_temperature,
-			do_greedy_specified, do_greedy
+			do_greedy_specified, do_greedy,
+			dwave_samples_specified, dwave_samples, dwave_annealing_time_specified, dwave_annelaing_time,
+			dwave_use_layout_embedding_specified, dwave_use_layout_embedding, dwave_solver_name_specified, dwave_solver_name
 		)
 	);
 

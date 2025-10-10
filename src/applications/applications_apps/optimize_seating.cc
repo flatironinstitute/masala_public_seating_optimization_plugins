@@ -162,32 +162,6 @@ set_setter(
 }
 
 /// @brief Set the number of classical Monte Carlo steps for a classical optimizer.
-/// @details Specialization for bools.
-template<>
-void
-set_setter(
-	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
-	std::string const & appname,
-	masala::base::api::MasalaObjectAPIDefinition const & api_def,
-	std::string const & setter_name,
-	bool const setting
-) {
-	using namespace masala::base::api;
-	using namespace masala::base::api::setter;
-
-	MasalaObjectAPISetterDefinition_OneInputCSP< bool const > setter(
-		api_def.get_oneinput_setter_function< bool const >( setter_name ).lock()
-	);
-	CHECK_OR_THROW( setter != nullptr, appname, "set_setter", "The " + api_def.api_class_name() + " did not have a "
-		+ setter_name + "() function."
-	);
-	setter->function(setting);
-	tracerman->write_to_tracer( appname + "::set_setter", "Set " + api_def.api_class_name() + "."
-		+ setter_name + "(" + (setting ? "true" : "false" ) + ")."
-	);
-}
-
-/// @brief Set the number of classical Monte Carlo steps for a classical optimizer.
 /// @details Specialization for strings.
 template<>
 void
@@ -210,6 +184,31 @@ set_setter(
 	setter->function(setting);
 	tracerman->write_to_tracer( appname + "::set_setter", "Set " + api_def.api_class_name() + "."
 		+ setter_name + "(\"" + setting + "\")."
+	);
+}
+
+/// @brief Set the number of classical Monte Carlo steps for a classical optimizer.
+/// @details Specialization for const bools.
+void
+set_const_bool_setter(
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	std::string const & appname,
+	masala::base::api::MasalaObjectAPIDefinition const & api_def,
+	std::string const & setter_name,
+	bool const setting
+) {
+	using namespace masala::base::api;
+	using namespace masala::base::api::setter;
+
+	MasalaObjectAPISetterDefinition_OneInputCSP< bool const > setter(
+		api_def.get_oneinput_setter_function< bool const >( setter_name ).lock()
+	);
+	CHECK_OR_THROW( setter != nullptr, appname, "set_setter", "The " + api_def.api_class_name() + " did not have a "
+		+ setter_name + "() function."
+	);
+	setter->function(setting);
+	tracerman->write_to_tracer( appname + "::set_setter", "Set " + api_def.api_class_name() + "."
+		+ setter_name + "(" + (setting ? "true" : "false" ) + ")."
 	);
 }
 
@@ -407,25 +406,25 @@ load_dwave_cfn_optimizer(
 
 		set_setter<Real>( tracerman, appname, *abqp_api_def, "set_onenode_penalty_cap", 30.0 );
 		set_setter<Real>( tracerman, appname, *abqp_api_def, "set_twonode_penalty_cap", 30.0 );
-		set_setter<bool const>( tracerman, appname, *abqp_api_def, "set_optimize_onenode_penalties", true );
-		set_setter<bool const>( tracerman, appname, *abqp_api_def, "set_optimize_twonode_penalties", true );
+		set_const_bool_setter( tracerman, appname, *abqp_api_def, "set_optimize_onenode_penalties", true );
+		set_const_bool_setter( tracerman, appname, *abqp_api_def, "set_optimize_twonode_penalties", true );
 		set_setter<Real const>( tracerman, appname, *abqp_api_def, "set_local_optimizer_kbt", 12.0 );
 		set_setter<Real>( tracerman, appname, *abqp_api_def, "set_weighted_linear_algebra_kbt", 12.0 );
 		set_setter<bool>( tracerman, appname, *abqp_api_def, "set_exclude_duplicate_bitstrings_from_initial_linear_algebra", true );
 		set_setter<bool>( tracerman, appname, *abqp_api_def, "set_use_weighted_linear_algebra", true );
 		set_setter<std::string const &>( tracerman, appname, *abqp_api_def, "set_linear_algebra_approach", "col_pivoting_householder_qr_decomp" );
 		set_setter<Size>( tracerman, appname, *abqp_api_def, "set_cpu_threads_to_request", 0 );
-		set_setter<bool>( tracerman, appname, *abqp_api_def, "set_compute_qubit_effective_fields", true );
+		set_const_bool_setter( tracerman, appname, *abqp_api_def, "set_compute_qubit_effective_fields", true );
 		
 
 		// TODO SET CHOICE ORDER;
 		// TODO SET LOCAL OPTIMIZER;
 		// TODO CONFIGURE OTHER OPTIONS;
 
-		set_setter<masala::base::managers::engine::MasalaDataRepresentationAPICSP const &>( tracerman, appname, *abqp_api_def, "set_template_preferred_cfn_data_representation", template_dr );
+		set_setter<masala::base::managers::engine::MasalaDataRepresentationAPICSP const &>( tracerman, appname, *opt_api_def, "set_template_preferred_cfn_data_representation", template_dr );
 	}
 
-	set_setter<bool>( tracerman, appname, *opt_api_def, "set_do_greedy_refinement", do_greedy );
+	set_const_bool_setter( tracerman, appname, *opt_api_def, "set_greedy", do_greedy );
 	// TODO TURN ON INHOMOGENEOUS DRIVING;
 	// TODO TODO TODO CONFIGURE HERE;
 

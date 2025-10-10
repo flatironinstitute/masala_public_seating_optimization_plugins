@@ -592,9 +592,9 @@ load_optimizer_settings(
 	int const /*do_greedy_specified*/, // Used for all optimizers, so no checks here.
 	bool const do_greedy,
 	int const dwave_samples_specified,
-	masala::base::Size dwave_samples,
+	masala::base::Size const dwave_samples,
 	int const dwave_annealing_time_specified,
-	masala::base::Real dwave_annealing_time,
+	masala::base::Real const dwave_annealing_time,
 	int const dwave_use_layout_embedding_specified,
 	bool const dwave_use_layout_embedding,
 	int const dwave_solver_name_specified,
@@ -665,7 +665,15 @@ load_options(
 	int & solutions_to_store_per_problem_specified,
 	int & flattening_boltzmann_temperature_specified,
 	int & do_greedy_specified,
-	int & problem_file_specified
+	int & problem_file_specified,
+	int & dwave_samples_specified,
+	masala::base::Size & dwave_samples,
+	int & dwave_annealing_time_specified,
+	masala::base::Real & dwave_annealing_time,
+	int & dwave_use_layout_embedding_specified,
+	bool & dwave_use_layout_embedding,
+	int & dwave_solver_name_specified,
+	std::string & dwave_solver_name
 ) {
 	using namespace masala::base::utility::container;
 	using namespace masala::base::utility::string;
@@ -684,7 +692,11 @@ load_options(
 		{"solutions_to_store_per_problem", required_argument, &solutions_to_store_per_problem_specified, 1},
 		{"flattening_boltzmann_temperature", required_argument, &flattening_boltzmann_temperature_specified, 1},
 		{"do_greedy", required_argument, &do_greedy_specified, 1},
-		{"problem_file", required_argument, &problem_file_specified, 1}
+		{"problem_file", required_argument, &problem_file_specified, 1},
+		{"dwave_samples", required_argument, &dwave_samples_specified, 1},
+		{"dwave_annealing_time", required_argument, &dwave_annealing_time_specified, 1},
+		{"dwave_use_layout_embedding", required_argument, &dwave_use_layout_embedding_specified, 1},
+		{"dwave_solver_name", required_argument, &dwave_solver_name_specified, 1}
 	};
 	std::map< std::string, std::string > const help_messages{
 		{"h", "Print a help message and exit."},
@@ -711,8 +723,14 @@ load_options(
 		},
 		{"problem_file", "The name (with absolute or relative path) of the file defining the seating optimization problem to "
 			"solve.  Required input."
-		}
+		},
+		{"dwave_samples", "The number of samples for the D-Wave to perform.  Defaults to 1000." },
+		{"dwave_annealing_time", "The D-wave annealing time, in microseconds.  Defaults to 20.0" },
+		{"dwave_use_layout_embedding", "If true, we use Layout embedding; if false, we use MinorMiner embedding.  Defaults to true." },
+		{"dwave_solver_name", "The name of the solver.  Required input if the D-Wave is used." }
 	};
+
+	CONTINUE HERE;
 
 	int option_index;
 	while( !getopt_long_only( argc, argv, "", long_options, &option_index ) ){
@@ -1003,7 +1021,9 @@ main(
 			help_indicated, masala_plugins_found, optimizer_name_specified,
 			classical_mc_steps_specified, total_threads_specified, classical_attempts_per_problem_specified,
 			solutions_to_store_per_problem_specified, flattening_boltzmann_temperature_specified, do_greedy_specified,
-			probfile_name_specified
+			probfile_name_specified,
+			dwave_samples_specified, dwave_samples, dwave_annealing_time_specified, dwave_annelaing_time,
+			dwave_use_layout_embedding_specified, dwave_use_layout_embedding, dwave_solver_name_specified, dwave_solver_name
 		)
 	) {
 		return 0;

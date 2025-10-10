@@ -425,7 +425,8 @@ load_dwave_cfn_optimizer(
 	}
 
 	set_const_bool_setter( tracerman, appname, *opt_api_def, "set_greedy", do_greedy );
-	// TODO TURN ON INHOMOGENEOUS DRIVING;
+	set_const_bool_setter( tracerman, appname, *opt_api_def, "set_inhomog_trans_field", true );
+	// TODO TODO TODO SET SOLVER;
 	// TODO TODO TODO CONFIGURE HERE;
 
 	return optimizer;

@@ -637,6 +637,32 @@ print_solutions(
 	}
 }
 
+/// @brief Write the solutions to disk:
+void
+write_solutions_to_disk(
+	std::string const & appname,
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_API const & problem,
+	std::vector< seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingSolution_APICSP > const & solutions
+) {
+	using masala::base::Size;
+	using namespace masala::base::managers::disk;
+
+	MasalaDiskManagerHandle diskman( MasalaDiskManager::get_instance() );
+
+	diskman->write_ascii_file( "problem_summary.txt", problem.get_problem_string() );
+
+	for( Size i(0); i<solutions.size(); ++i ) {
+		std::stringstream ss;
+		ss << "solution_" << std::setw(6) << std::setfill('0') << i << ".txt";
+
+		diskman->write_ascii_file( ss.str(), solutions[i]->get_solution_string() );
+		tracerman->write_to_tracer( appname, "\tWrote file " + ss.str() + "." );
+	}
+
+	tracerman->write_to_tracer( appname, "Wrote " + std::to_string(solutions.size()) + " solutions to disk." );
+}
+
 /// @brief Program entry point:
 int 
 main(

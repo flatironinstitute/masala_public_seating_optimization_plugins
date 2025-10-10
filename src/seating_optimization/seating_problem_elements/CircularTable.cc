@@ -161,6 +161,15 @@ CircularTable::get_api_definition() {
 		// 		std::bind( &CircularTable::get_adjacent_seats, this )
 		// 	)
 		// );
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_ZeroInput< std::string > >(
+				"type_specific_details_string", "Get a string describing the subclass-specific details of this table.  Base class "
+				"implementation doesn't do anything; must be implemented by derived classes.",
+				true, false, false, true,
+				"type_specific_details_string", "A string describing the subclass-specific details of this table.",
+				std::bind( &CircularTable::type_specific_details_string, this )
+			)
+		);
 
 		// Getters:
 		api_def->add_getter(
@@ -363,6 +372,17 @@ CircularTable::get_adjacent_seats() const {
 		outvec[i] = std::make_pair( seats[i-1], seats[i] );
 	}
 	return outvec;
+}
+
+/// @brief Get a string describing the subclass-specific details of this table.  Base class
+/// implementation doesn't do anything; must be implemented by derived classes.
+std::string
+CircularTable::type_specific_details_string() const {
+	std::lock_guard< std::mutex > lock( mutex() );
+	std::stringstream ss;
+	ss << std::setprecision(6);
+	ss << "RADIUS: " << radius_;
+	return ss.str();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

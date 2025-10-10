@@ -144,6 +144,12 @@ public:
 	/// @brief Access a particular seat, by local index (staring at 0 with the first seat around this table).  Throws if seat out of range.
 	SeatCSP seat( Size const seat_index ) const;
 
+	/// @brief Determine whether a given seat is at this table.
+	bool has_seat( SeatCSP const & seat ) const;
+
+	/// @brief Given a seat, get its local index.  Throws if the seat is not at this table.
+	Size seat_local_index( SeatCSP const & seat ) const;
+
 public:
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -170,6 +176,10 @@ public:
 	virtual
 	std::vector< std::pair< SeatCSP, SeatCSP > >
 	get_adjacent_seats() const;
+
+	/// @brief Get a string describing the subclass-specific details of this table.  Base class
+	/// implementation doesn't do anything; must be implemented by derived classes.
+	virtual std::string type_specific_details_string() const;
 
 protected:
 

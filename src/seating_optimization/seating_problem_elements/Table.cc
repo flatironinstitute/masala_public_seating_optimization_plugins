@@ -32,6 +32,7 @@
 #include <seating_optimization/seating_problem_elements/Seat.hh>
 
 // Base headers:
+#include <base/utility/container/container_util.tmpl.hh>
 #include <base/error/ErrorHandling.hh>
 #include <base/api/MasalaObjectAPIDefinition.hh>
 #include <base/api/constructor/MasalaObjectAPIConstructorMacros.hh>
@@ -157,6 +158,15 @@ Table::get_api_definition() {
 		// 		std::bind( &Table::get_adjacent_seats, this )
 		// 	)
 		// );
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_ZeroInput< std::string > >(
+				"type_specific_details_string", "Get a string describing the subclass-specific details of this table.  Base class "
+				"implementation doesn't do anything; must be implemented by derived classes.",
+				true, false, true, false,
+				"type_specific_details_string", "A string describing the subclass-specific details of this table.",
+				std::bind( &Table::type_specific_details_string, this )
+			)
+		);
 
 		// Getters:
 		api_def->add_getter(
@@ -206,6 +216,26 @@ Table::get_api_definition() {
 				"seat", "A shared pointer to the Seat object.",
 				false, false,
 				std::bind( &Table::seat, this, std::placeholders::_1 )
+			)
+		);
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_OneInput< bool, SeatCSP const & > >(
+				"has_seat",
+				"Determine whether a given seat is at this table.",
+				"seat", "A shared pointer to the seat that may or may not be at this table.",
+				"has_seat", "True if this seat is at this table; false otherwise.",
+				false, false,
+				std::bind( &Table::has_seat, this, std::placeholders::_1 )
+			)
+		);
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_OneInput< Size, SeatCSP const & > >(
+				"seat_local_index",
+				"Given a seat, get its local index.  Throws if the seat is not at this table.",
+				"seat", "A shared pointer to a seat that is at this table.",
+				"seat_local_index", "The local index of this seat at this table.",
+				false, false,
+				std::bind( &Table::seat_local_index, this, std::placeholders::_1 )
 			)
 		);
 
@@ -283,6 +313,26 @@ Table::seat(
 	return seats_[seat_index];
 }
 
+/// @brief Determine whether a given seat is at this table.
+bool
+Table::has_seat(
+	SeatCSP const & seat
+) const {
+	std::lock_guard< std::mutex > lock( mutex() );
+	return masala::base::utility::container::has_value( seats_, seat );
+}
+
+/// @brief Given a seat, get its local index.  Throws if the seat is not at this table.
+masala::base::Size
+Table::seat_local_index(
+	SeatCSP const & seat
+) const {
+	std::lock_guard< std::mutex > lock( mutex() );
+	std::vector< SeatSP >::const_iterator it( std::find( seats_.begin(), seats_.end(), seat ) );
+	CHECK_OR_THROW_FOR_CLASS( it != seats_.end(), "seat_local_index", "The given seat was not at this table." );
+	return std::distance( seats_.begin(), it );
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC SETTERS
 ////////////////////////////////////////////////////////////////////////////////
@@ -319,6 +369,14 @@ std::vector< std::pair< SeatCSP, SeatCSP > >
 Table::get_adjacent_seats() const {
 	MASALA_THROW( class_namespace() + "::" + class_name(), "get_adjacent_seats", "This function must be implemented." );
 	return std::vector< std::pair< SeatCSP, SeatCSP > >{};
+}
+
+/// @brief Get a string describing the subclass-specific details of this table.  Base class
+/// implementation doesn't do anything; must be implemented by derived classes.
+/*virtual*/
+std::string
+Table::type_specific_details_string() const {
+	return "";
 }
 
 ////////////////////////////////////////////////////////////////////////////////

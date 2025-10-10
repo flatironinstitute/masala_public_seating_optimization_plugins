@@ -33,6 +33,7 @@
 #include <base/api/MasalaObjectAPIDefinition.hh>
 #include <base/api/constructor/MasalaObjectAPIConstructorMacros.hh>
 #include <base/api/constructor/MasalaObjectAPIConstructorDefinition_ThreeInput.tmpl.hh>
+#include <base/api/getter/MasalaObjectAPIGetterDefinition_ZeroInput.tmpl.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_TwoInput.tmpl.hh>
 #include <base/utility/string/string_manipulation.hh>
@@ -140,6 +141,7 @@ Seat::get_api_definition() {
 	using namespace masala::base::api;
 	using namespace masala::base::api::constructor;
 	using namespace masala::base::api::setter;
+	using namespace masala::base::api::getter;
 	using masala::base::Real;
 	using masala::base::Size;
 
@@ -170,6 +172,33 @@ Seat::get_api_definition() {
 		// Work functions:
 
 		// Getters:
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< masala::base::Real > >(
+				"x",
+				"Get the x-coordinate.",
+				"x", "The x-coordinate for this seat.",
+				false, false,
+				std::bind( &Seat::x, this )
+			)
+		);
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< masala::base::Real > >(
+				"y",
+				"Get the y-coordinate.",
+				"y", "The y-coordinate for this seat.",
+				false, false,
+				std::bind( &Seat::y, this )
+			)
+		);
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< masala::base::Real > >(
+				"angle_degrees",
+				"Get the angle of this seat, in degrees.",
+				"angle-degrees", "The angle of this seat, in degrees.",
+				false, false,
+				std::bind( &Seat::angle_degrees, this )
+			)
+		);
 
 		// Setters:
 		api_def->add_setter(
@@ -212,6 +241,27 @@ Seat::get_api_definition() {
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC GETTERS
 ////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Get the x-coordinate.
+masala::base::Real
+Seat::x() const {
+	std::lock_guard< std::mutex > lock( mutex() );
+	return x_;
+}
+
+/// @brief Get the y-coordinate.
+masala::base::Real
+Seat::y() const {
+	std::lock_guard< std::mutex > lock( mutex() );
+	return y_;
+}
+
+/// @brief Get the angle, in degrees.
+masala::base::Real
+Seat::angle_degrees() const {
+	std::lock_guard< std::mutex > lock( mutex() );
+	return angle_degrees_;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC SETTERS

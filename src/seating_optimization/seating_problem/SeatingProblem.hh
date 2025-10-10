@@ -32,12 +32,14 @@
 
 // Numeric API headers:
 #include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem_API.fwd.hh>
+#include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationSolution_API.fwd.hh>
 
 // Seating optimization headers:
 #include <seating_optimization/seating_problem_elements/Guest.fwd.hh>
 #include <seating_optimization/seating_problem_elements/Table.fwd.hh>
 #include <seating_optimization/seating_problem_elements/Seat.fwd.hh>
 #include <seating_optimization/seating_problem_elements/constraints/Constraint.fwd.hh>
+#include <seating_optimization/seating_problem/SeatingSolution.fwd.hh>
 
 // Base headers:
 #include <base/types.hh>
@@ -147,6 +149,21 @@ public:
 	/// @brief Get the number of seats.
 	masala::base::Size n_seats() const;
 
+	/// @brief Access a guest, by guest index.
+	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP
+	guest(
+		masala::base::Size const guest_index
+	) const;
+
+	/// @brief Access a seat, by seat index.
+	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP
+	seat(
+		masala::base::Size const seat_index
+	) const;
+
+	/// @brief Has this object been finalized?
+	bool finalized() const;
+
 public:
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -189,6 +206,25 @@ public:
 		masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & problem
 	) const;
 
+	/// @brief Given a CFN solution, generate a SeatingSolution object from it.
+	/// @note The returned object is unfinalized, since it needs a shared pointer from this SeatingProblem object to be cached in it.
+	SeatingSolutionSP
+	seating_solution_from_cfn_solution(
+		masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const & cfn_solution
+	) const;
+
+	/// @brief Given a global seat index, determine whether this seat is at a table.
+	bool seat_is_at_a_table( masala::base::Size const seat_index ) const;
+
+	/// @brief Given a global seat index, determine the table index and local index of the seat at the table.  Throws if the seat isn't at a table.
+	std::pair< masala::base::Size, masala::base::Size > table_and_local_seat_index_from_global_seat_index( masala::base::Size const seat_index ) const;
+
+	/// @brief Indicate that this object is fully set up.
+	void finalize();
+
+	/// @brief Print the problem to the tracer.  Problem must be finalized, or this function throws.
+	void print_problem() const;
+
 protected:
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -203,6 +239,14 @@ protected:
 	api_definition() {
 		return api_definition_;
 	}
+
+	/// @brief Given a global seat index, determine whether this seat is at a table.
+	/// @details Intended to be called from a mutex-locked context.
+	bool protected_seat_is_at_a_table( masala::base::Size const seat_index ) const;
+
+	/// @brief Given a global seat index, determine the table index and local index of the seat at the table.  Throws if the seat isn't at a table.
+	/// @details Intended to be called from a mutex-locked context.
+	std::pair< masala::base::Size, masala::base::Size > protected_table_and_local_seat_index_from_global_seat_index( masala::base::Size const seat_index ) const;
 
 	/// @brief Add a guest.  Stored directly; not cloned.  Throws if the unique guest ID has already been taken.
 	/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
@@ -262,15 +306,24 @@ private:
 	/// @brief The API definition for this object.s
 	masala::base::api::MasalaObjectAPIDefinitionCSP api_definition_;
 
+	/// @brief Has this object been finalized?
+	bool finalized_ = false;
+
 	/// @brief The guests that we are storing, stored by unique identifier.
 	/// @details The UID string points to a pair of guest index, guest object.
 	std::map< std::string, std::pair< masala::base::Size, seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP > > guests_;
+
+	/// @brief The guests, stored by guest index.  Populated at finalization time.
+	std::map< masala::base::Size, seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP > guests_by_index_;
 
 	/// @brief The tables, stored by index.
 	std::vector< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::TableCSP > tables_;
 
 	/// @brief The zero-based absolute indices of the seats.
 	std::map< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP, masala::base::Size > seat_indices_;
+
+	/// @brief The seats indexed by their zero-based absolute indices.  Populated at finalization time.
+	std::map< masala::base::Size, seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP > seats_by_index_;
 
 	/// @brief The constraints, sorted by index.
 	std::vector< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::ConstraintCSP > constraints_;

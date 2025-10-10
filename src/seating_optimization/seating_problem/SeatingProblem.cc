@@ -30,6 +30,7 @@
 #include <seating_optimization/seating_problem_elements/Seat.hh>
 #include <seating_optimization/seating_problem_elements/SeatingElementBase.hh>
 #include <seating_optimization/seating_problem_elements/constraints/Constraint.hh>
+#include <seating_optimization/seating_problem/SeatingSolution.hh>
 
 // Base headers:
 #include <base/utility/string/string_manipulation.hh>
@@ -47,9 +48,11 @@
 
 // Numeric API headers:
 #include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem_API.hh>
+#include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationSolution_API.hh>
 
 // STL headers:
 #include <sstream>
+#include <iomanip>
 
 namespace seating_optimization_masala_plugins {
 namespace seating_optimization {
@@ -194,6 +197,53 @@ SeatingProblem::get_api_definition() {
 				std::bind( &SeatingProblem::set_up_cfn_problem, this, std::placeholders::_1 )
 			)
 		);
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_OneInput< SeatingSolutionSP, masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const & > >(
+				"seating_solution_from_cfn_solution", "Given a CFN solution, generate a SeatingSolution object from it.  "
+				"The returned object is unfinalized, since it needs a shared pointer from this SeatingProblem object to be "
+				"cached in it.",
+				true, false, false, false,
+				"cfn_solution", "The solution to a cost function network optimization problem.",
+				"seating_solution", "A solution to this seating problem.",
+				std::bind( &SeatingProblem::seating_solution_from_cfn_solution, this, std::placeholders::_1 )
+			)
+		);
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_ZeroInput< void > >(
+				"finalize", "Indicate that this object is fully set up.",
+				false, false, false, false,
+				"void", "This function returns nothing.",
+				std::bind( &SeatingProblem::finalize, this )
+			)
+		);
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_OneInput< bool, Size const > >(
+				"seat_is_at_a_table", "Given a global seat index, determine whether this seat is at a table.",
+				true, false, false, false,
+				"seat_index", "The global index of the seat.",
+				"seat_is_at_a_table", "True if this seat is at a table; false if it is free-floating.",
+				std::bind( &SeatingProblem::seat_is_at_a_table, this, std::placeholders::_1 )
+			)
+		);
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_OneInput< std::pair< Size, Size >, Size const > >(
+				"table_and_local_seat_index_from_global_seat_index", "Given a global seat index, determine the table index "
+				"and local index of the seat at the table.  Throws if the seat isn't at a table.",
+				true, false, false, false,
+				"seat_index", "The global index of the seat.",
+				"table_and_local_seat_index", "A pair, where the first entry is the table index, and the second is the local "
+				"index of the seat at the table.",
+				std::bind( &SeatingProblem::table_and_local_seat_index_from_global_seat_index, this, std::placeholders::_1 )
+			)
+		);
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_ZeroInput< void > >(
+				"print_problem", "Print a description of the problem to the tracer.",
+				true, false, false, false,
+				"void", "This function returns nothing.",
+				std::bind( &SeatingProblem::print_problem, this )
+			)
+		);
 
         // Getters:
 		api_def->add_getter(
@@ -219,6 +269,14 @@ SeatingProblem::get_api_definition() {
 				"n_seats", "The number of seats.",
 				false, false,
 				std::bind( &SeatingProblem::n_seats, this )
+			)
+		);
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< bool > >(
+				"finalized", "Has this object been finalized?",
+				"finalized", "True if this object has been finalized; false otherwise.",
+				false, false,
+				std::bind( &SeatingProblem::finalized, this )
 			)
 		);
 
@@ -286,6 +344,39 @@ SeatingProblem::n_seats() const {
 	return seat_indices_.size();
 }
 
+/// @brief Access a guest, by guest index.
+seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP
+SeatingProblem::guest(
+	masala::base::Size const guest_index
+) const {
+	std::lock_guard< std::mutex > lock( mutex_ );
+	CHECK_OR_THROW_FOR_CLASS( finalized_, "guest", "This object must be finalized before calling this function." );
+	CHECK_OR_THROW_FOR_CLASS( guest_index < guests_by_index_.size(), "guest", "The guest index " + std::to_string(guest_index)
+		+ " is out of range.  Only " + std::to_string(guests_by_index_.size()) + " guests have been defined."
+	);
+	return guests_by_index_.at(guest_index);
+}
+
+/// @brief Access a seat, by seat index.
+seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP
+SeatingProblem::seat(
+	masala::base::Size const seat_index
+) const {
+	std::lock_guard< std::mutex > lock( mutex_ );
+	CHECK_OR_THROW_FOR_CLASS( finalized_, "seat", "This object must be finalized before calling this function." )
+	CHECK_OR_THROW_FOR_CLASS( seat_index < seats_by_index_.size(), "guest", "The seat index " + std::to_string(seat_index)
+		+ " is out of range.  Only " + std::to_string(seats_by_index_.size()) + " seats have been defined."
+	);
+	return seats_by_index_.at(seat_index);
+}
+
+/// @brief Has this object been finalized?
+bool
+SeatingProblem::finalized() const {
+	std::lock_guard< std::mutex > lock( mutex_ );
+	return finalized_;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC SETTERS
@@ -302,6 +393,7 @@ SeatingProblem::configure_from_problem_definition_file_lines(
 	MasalaPluginModuleManagerHandle plugman( MasalaPluginModuleManager::get_instance() );
 
 	std::lock_guard< std::mutex > lock(mutex_);
+	CHECK_OR_THROW_FOR_CLASS( !finalized_, "configure_from_problem_definition_file_lines", "This object must not be finalized before this function is called." );
 
 	for( std::string const & line : file_lines ) {
 		std::string const line_sans_comments( line.substr(0, line.find_first_of('#') ) );
@@ -384,6 +476,7 @@ SeatingProblem::get_adjacent_seat_global_indices() const {
 	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
 	std::vector< std::pair< Size, Size > > outvec;
 	std::lock_guard< std::mutex > lock( mutex_ );
+	CHECK_OR_THROW_FOR_CLASS( finalized_, "get_adjacent_seat_global_indices", "This object must be finalized before this function is called." );
 	
 	for( Size i(0); i<tables_.size(); ++i ) {
 		std::vector< std::pair< SeatCSP, SeatCSP > > const adjacent_seats_for_table( tables_[i]->get_adjacent_seats() );
@@ -406,12 +499,20 @@ SeatingProblem::set_up_cfn_problem(
 	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & problem
 ) const {
 	using namespace masala::numeric::optimization::cost_function_network;
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints;
+
+	std::vector< ConstraintCSP > constraints_copy;
+	{
+		std::lock_guard< std::mutex > lock( mutex_ );
+		CHECK_OR_THROW_FOR_CLASS( finalized_, "set_up_cfn_problem", "This object must be finalized before this function is called." );
+		constraints_copy = constraints_ ;
+	}
 
 	CostFunctionNetworkOptimizationProblemSP inner_problem( std::dynamic_pointer_cast< CostFunctionNetworkOptimizationProblem >( problem.get_inner_data_representation_object() ) );
 	CHECK_OR_THROW_FOR_CLASS( inner_problem != nullptr, "set_up_cfn_problem", "Could not interpret inner object of \"" + problem.class_name() + "\" class as a CostFunctionNetworkOptimizationProblem." );
 	CHECK_OR_THROW_FOR_CLASS( inner_problem->empty(), "set_up_cfn_problem", "A non-empty \"" + inner_problem->class_name() + "\" problem instance was passed to this function." );
 
-	for( auto const & constraint : constraints_ ) {
+	for( auto const & constraint : constraints_copy ) {
 		constraint->add_constraint_to_cfn_problem( *this, *inner_problem, 1.0 );
 	}
 
@@ -419,9 +520,165 @@ SeatingProblem::set_up_cfn_problem(
 	problem.finalize();
 }
 
+/// @brief Given a CFN solution, generate a SeatingSolution object from it.
+/// @note The returned object is unfinalized, since it needs a shared pointer from this SeatingProblem object to be cached in it.
+SeatingSolutionSP
+SeatingProblem::seating_solution_from_cfn_solution(
+	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const & cfn_solution
+) const {
+	using namespace masala::numeric_api::auto_generated_api::optimization::cost_function_network;
+	using masala::base::Size;
+
+	std::lock_guard< std::mutex > lock( mutex_ );
+	CostFunctionNetworkOptimizationProblem_APICSP cfn_problem(
+		std::static_pointer_cast< CostFunctionNetworkOptimizationProblem_API const >( cfn_solution.problem() )
+	);
+	CHECK_OR_THROW_FOR_CLASS( cfn_problem != nullptr, "seating_solution_from_cfn_solution", "Could not get CFN problem description." );
+	CHECK_OR_THROW_FOR_CLASS( cfn_problem->total_nodes() == guests_.size(), "seating_solution_from_cfn_solution", "The number of guests ("
+		+ std::to_string(guests_.size()) + ") did not match the number of nodes in the CFN problem (" + std::to_string(cfn_problem->total_nodes()) + ")."
+	);
+
+	SeatingSolutionSP seating_soln( masala::make_shared< SeatingSolution >() );
+
+	std::vector< Size > const cfn_soln_all_positions( cfn_solution.solution_at_all_positions() );
+	CHECK_OR_THROW_FOR_CLASS( cfn_soln_all_positions.size() == guests_.size(), "seating_solution_from_cfn_solution", "Size mismatch between CFN solution at all positions and guest count." );
+	
+	for( Size absnode_index(0), n_abs_nodes(cfn_soln_all_positions.size()); absnode_index < n_abs_nodes; ++absnode_index ) {
+		seating_soln->add_guest_seat_assignment( absnode_index, cfn_soln_all_positions[absnode_index] );
+	}
+
+	return seating_soln;
+}
+
+/// @brief Given a global seat index, determine whether this seat is at a table.
+bool
+SeatingProblem::seat_is_at_a_table(
+	masala::base::Size const seat_index
+) const {
+	std::lock_guard< std::mutex > lock( mutex_ );
+	return protected_seat_is_at_a_table( seat_index );
+}
+
+/// @brief Given a global seat index, determine the table index and local index of the seat at the table.  Throws if the seat isn't at a table.
+std::pair< masala::base::Size, masala::base::Size >
+SeatingProblem::table_and_local_seat_index_from_global_seat_index(
+	masala::base::Size const seat_index
+) const {
+	std::lock_guard< std::mutex > lock( mutex_ );
+	return protected_table_and_local_seat_index_from_global_seat_index( seat_index );
+}
+
+/// @brief Indicate that this object is fully set up.
+void
+SeatingProblem::finalize() {
+	using masala::base::Size;
+	std::lock_guard< std::mutex > lock( mutex_ );
+
+	CHECK_OR_THROW_FOR_CLASS( !finalized_, "finalize", "This object has already been finalized." );
+	finalized_ = true; 
+}
+
+/// @brief Print the problem to the tracer.  Problem must be finalized, or this function throws.
+void
+SeatingProblem::print_problem() const {
+	using masala::base::Size;
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
+
+	std::lock_guard< std::mutex > lock( mutex_ );
+	CHECK_OR_THROW_FOR_CLASS( finalized_, "print_problem", "The problem must be finalized before this function is called." );
+
+	write_to_tracer( "GUESTS:" );
+	write_to_tracer( "Guest_index\tGuest_UID\tGuest_name" );
+	Size const nguests( guests_.size() );
+	for( Size iguest(0); iguest<nguests; ++iguest ) {
+		Guest const & guest( *guests_by_index_.at(iguest) );
+		write_to_tracer(
+			std::to_string(iguest)
+			+ "\t" + guest.unique_identifier()
+			+ "\t\"" + guest.name() + "\""
+		);
+	}
+	write_to_tracer("");
+
+	write_to_tracer( "TABLES:" );
+	write_to_tracer( "Table_index\tTable_type\tX\tY\tAngle\tType_specific_details" );
+	Size const ntables( tables_.size() );
+	for( Size itable(0); itable<ntables; ++itable ) {
+		Table const & table( *tables_[itable] );
+		std::ostringstream ss;
+		ss << std::setprecision(6);
+		ss
+			<< itable
+			<< "\t" << table.class_name()
+			<< "\t" << table.x()
+			<< "\t" << table.y()
+			<< "\t" << table.angle()
+			<< "\t" << table.type_specific_details_string();
+		write_to_tracer( ss.str() );
+	}
+	write_to_tracer("");
+
+	write_to_tracer( "SEATS:" );
+	write_to_tracer( "Global_seat_index\tTable_index\tLocal_seat_index\tX\tY\tAngle" );
+	Size const nseats( seats_by_index_.size() );
+	for( Size iseat(0); iseat<nseats; ++iseat ) {
+		SeatCSP const & seat( seats_by_index_.at(iseat) );
+		bool const is_at_table( protected_seat_is_at_a_table(iseat) );
+		std::ostringstream ss;
+		ss << iseat;
+		if( is_at_table ) {
+			std::pair< Size, Size > const table_and_local_seat( protected_table_and_local_seat_index_from_global_seat_index(iseat) );
+			ss << "\t" << table_and_local_seat.first;
+			ss << "\t" << table_and_local_seat.second;
+		} else {
+			ss << "\tN/A\tN/A";
+		}
+		ss << seat->x() << "\t" << seat->y() << "\t" << seat->angle_degrees();
+		write_to_tracer( ss.str() );
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // PROTECTED FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Given a global seat index, determine whether this seat is at a table.
+/// @details Intended to be called from a mutex-locked context.
+bool
+SeatingProblem::protected_seat_is_at_a_table(
+	masala::base::Size const seat_index
+) const {
+	using masala::base::Size;
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
+	std::map< Size, SeatCSP >::const_iterator it( seats_by_index_.find(seat_index) );
+	CHECK_OR_THROW_FOR_CLASS( it != seats_by_index_.end(), "protected_seat_is_at_a_table", "Seat index was out of range." );
+	for( auto const & table : tables_ ) {
+		if( table->has_seat( it->second ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/// @brief Given a global seat index, determine the table index and local index of the seat at the table.  Throws if the seat isn't at a table.
+/// @details Intended to be called from a mutex-locked context.
+std::pair< masala::base::Size, masala::base::Size >
+SeatingProblem::protected_table_and_local_seat_index_from_global_seat_index(
+	masala::base::Size const seat_index
+) const {
+	using masala::base::Size;
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
+	std::map< Size, SeatCSP >::const_iterator it( seats_by_index_.find(seat_index) );
+	CHECK_OR_THROW_FOR_CLASS( it != seats_by_index_.end(), "protected_table_and_local_seat_index_from_global_seat_index", "Seat index was out of range." );
+	Size table_counter(0);
+	for( auto const & table : tables_ ) {
+		if( table->has_seat( it->second ) ) {
+			return std::pair< Size, Size >( table_counter, table->seat_local_index( it->second ) );
+		}
+		++table_counter;
+	}
+	MASALA_THROW( class_namespace() + "::" + class_name(), "protected_table_and_local_seat_index_from_global_seat_index", "Seat does not appear to be associated with a table." );
+}
 
 /// @brief Add a guest.  Stored directly; not cloned.  Throws if the unique guest ID has already been taken.
 /// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
@@ -429,12 +686,15 @@ void
 SeatingProblem::protected_add_guest(
 	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP const & guest_in
 ) {
+	CHECK_OR_THROW_FOR_CLASS( !finalized_, "protected_add_guest", "This object must not be finalized before this function is called." );
 	std::string const uid( guest_in->unique_identifier() );
 	CHECK_OR_THROW_FOR_CLASS( guests_.count( uid ) == 0, "protected_add_guest", "A guest with unique identifier \""
 		+ uid + "\" has already been added."
 	);
 	masala::base::Size nguests( guests_.size() );
 	guests_[uid] = std::make_pair( nguests, guest_in );
+	CHECK_OR_THROW_FOR_CLASS( guests_by_index_.count(nguests) == 0, "protected_add_guest", "Guest number " + std::to_string(nguests) + " has already been added." );
+	guests_by_index_[nguests] = guest_in;
 	write_to_tracer( "Added guest \"" + guest_in->name() + "\" (index " + std::to_string(nguests) + ") with unique identifier \"" + guest_in->unique_identifier() + "\"." );
 }
 
@@ -444,6 +704,7 @@ void
 SeatingProblem::protected_add_table(
 	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::TableCSP const & table_in
 ){
+	CHECK_OR_THROW_FOR_CLASS( !finalized_, "protected_add_table", "This object must not be finalized before this function is called." );
 	for( auto const & table : tables_ ) {
 		CHECK_OR_THROW_FOR_CLASS( table.get() != table_in.get(), "protected_add_table", "A table was passed to this function that has already been added!" );
 	}
@@ -460,6 +721,7 @@ void
 SeatingProblem::protected_add_seat(
 	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP const & //seat_in
 ) {
+	CHECK_OR_THROW_FOR_CLASS( !finalized_, "protected_add_seat", "This object must not be finalized before this function is called." );
 	MASALA_THROW( class_namespace() + "::" + class_name(), "protected_add_seat", "Loose seats are not yet supported!" );
 }
 
@@ -469,6 +731,7 @@ void
 SeatingProblem::protected_add_constraint(
 	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::ConstraintCSP const & constraint_in
 ) {
+	CHECK_OR_THROW_FOR_CLASS( !finalized_, "protected_add_constraint", "This object must not be finalized before this function is called." );
 	constraints_.push_back( constraint_in );
 	write_to_tracer( "Added constraint " + std::to_string(constraints_.size() -1) + " of type \"" + constraint_in->class_name() + "\"." );
 }
@@ -479,6 +742,7 @@ void
 SeatingProblem::protected_make_independent() {
 	using masala::base::Size;
 	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints;
 
 	api_definition_ = nullptr;
 	if( !guests_.empty() ) {
@@ -487,6 +751,7 @@ SeatingProblem::protected_make_independent() {
 			CHECK_OR_THROW_FOR_CLASS( new_guest != nullptr, "protected_make_independent", "Could not clone guest \"" + it->second.second->name() + "\"." );
 			new_guest->make_independent();
 			it->second.second = new_guest;
+			guests_by_index_[ it->second.first ] = new_guest;
 		}
 	}
 	if( !tables_.empty() ) {
@@ -497,6 +762,15 @@ SeatingProblem::protected_make_independent() {
 			tables_[i] = new_table;
 		}
 	}
+	if( !constraints_.empty() ) {
+		for( Size i(0); i<constraints_.size(); ++i ) {
+			ConstraintSP new_constraint( std::dynamic_pointer_cast< Constraint >( constraints_[i]->clone() ) );
+			CHECK_OR_THROW_FOR_CLASS( new_constraint != nullptr, "protected_make_independent", "Unable to clone constraint " + std::to_string(i) + "." );
+			new_constraint->make_independent();
+			constraints_[i] = new_constraint;
+		}
+	}
+
 	regenerate_seat_indices();
 }
 
@@ -506,9 +780,13 @@ void
 SeatingProblem::protected_assign(
     SeatingProblem const & src
 ) {
+	finalized_ = src.finalized_;
 	guests_ = src.guests_;
+	guests_by_index_ = src.guests_by_index_;
 	tables_ = src.tables_;
 	seat_indices_ = src.seat_indices_;
+	seats_by_index_ = src.seats_by_index_;
+	constraints_ = src.constraints_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -523,12 +801,14 @@ SeatingProblem::regenerate_seat_indices() {
 	using masala::base::Size;
 
 	seat_indices_.clear();
+	seats_by_index_.clear();
 	Size counter(0);
 	for( Size i(0); i<tables_.size(); ++i ) {
 		for( Size j(0); j<tables_[i]->num_seats(); ++j ) {
 			SeatCSP curseat(  tables_[i]->seat(j) );
 			CHECK_OR_THROW_FOR_CLASS( seat_indices_.count(curseat) == 0, "regenerate_seat_indices", "A seat was already added to the seat_indices_ map." );
 			seat_indices_[curseat] = counter;
+			seats_by_index_[counter] = curseat;
 			++counter;
 		}
 	}

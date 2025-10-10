@@ -534,7 +534,7 @@ load_dwave_cfn_optimizer(
 		// Configure choice order:
 		{
 			MasalaPluginAPISP choiceorder(
-				MasalaPluginModuleManager::get_instance()->create_plugin_object_instance_by_short_name( { "ChoiceOrder" }, "BoltzmannAverageEnergyChoiceOrder", false )
+				MasalaPluginModuleManager::get_instance()->create_plugin_object_instance_by_short_name( { "ChoiceOrder" }, "BoltzmannAverageEnergyChoiceOrder", true )
 			);
 			CHECK_OR_THROW( choiceorder != nullptr && choiceorder->inner_class_name() == "BoltzmannAverageEnergyChoiceOrder",
 				appname,"load_dwave_cfn_optimizer", "Could not load a BoltzmannAverageEnergyChoiceOrder "

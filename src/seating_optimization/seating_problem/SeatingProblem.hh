@@ -225,6 +225,9 @@ public:
 	/// @brief Print the problem to the tracer.  Problem must be finalized, or this function throws.
 	void print_problem() const;
 
+	/// @brief Print the problem to a string.  Problem must be finalized, or this function throws.
+	std::string get_problem_string() const;
+
 protected:
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -239,6 +242,10 @@ protected:
 	api_definition() {
 		return api_definition_;
 	}
+
+	/// @brief Print the problem to a string.  Problem must be finalized, or this function throws.
+	/// @details This should be called from a mutex-locked context only.
+	std::string protected_print_problem_to_string() const;
 
 	/// @brief Given a global seat index, determine whether this seat is at a table.
 	/// @details Intended to be called from a mutex-locked context.

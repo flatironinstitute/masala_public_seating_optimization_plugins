@@ -650,13 +650,13 @@ write_solutions_to_disk(
 
 	MasalaDiskManagerHandle diskman( MasalaDiskManager::get_instance() );
 
-	diskman->write_ascii_file( "problem_summary.txt", problem.get_problem_string() );
+	diskman->write_ascii_file( "problem_summary.txt", problem.get_problem_string() + "\n" );
 
 	for( Size i(0); i<solutions.size(); ++i ) {
 		std::stringstream ss;
 		ss << "solution_" << std::setw(6) << std::setfill('0') << i << ".txt";
 
-		diskman->write_ascii_file( ss.str(), solutions[i]->get_solution_string() );
+		diskman->write_ascii_file( ss.str(), solutions[i]->get_solution_string() + "\n" );
 		tracerman->write_to_tracer( appname, "\tWrote file " + ss.str() + "." );
 	}
 

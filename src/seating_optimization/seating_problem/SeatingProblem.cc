@@ -238,10 +238,18 @@ SeatingProblem::get_api_definition() {
 		);
 		api_def->add_work_function(
 			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_ZeroInput< void > >(
-				"print_problem", "Print a description of the problem to the tracer.",
+				"print_problem", "Print a description of the problem to the tracer.  Problem must be finalized.",
 				true, false, false, false,
 				"void", "This function returns nothing.",
 				std::bind( &SeatingProblem::print_problem, this )
+			)
+		);
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_ZeroInput< std::string > >(
+				"get_problem_string", "Print a description of the problem to a string.  Problem must be finalized.",
+				true, false, false, false,
+				"problem_string", "A description of the problem, in string form.",
+				std::bind( &SeatingProblem::get_problem_string, this )
 			)
 		);
 
@@ -581,27 +589,45 @@ SeatingProblem::finalize() {
 /// @brief Print the problem to the tracer.  Problem must be finalized, or this function throws.
 void
 SeatingProblem::print_problem() const {
+	std::lock_guard< std::mutex > lock( mutex_ );
+	write_to_tracer( protected_print_problem_to_string() );
+}
+
+/// @brief Print the problem to a string.  Problem must be finalized, or this function throws.
+std::string
+SeatingProblem::get_problem_string() const {
+	std::lock_guard< std::mutex > lock( mutex_ );
+	return protected_print_problem_to_string();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// PROTECTED FUNCTIONS
+////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Print the problem to a string.  Problem must be finalized, or this function throws.
+/// @details This should be called from a mutex-locked context only.
+std::string
+SeatingProblem::protected_print_problem_to_string() const {
+	std::stringstream outstream;
+
 	using masala::base::Size;
 	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
 
-	std::lock_guard< std::mutex > lock( mutex_ );
 	CHECK_OR_THROW_FOR_CLASS( finalized_, "print_problem", "The problem must be finalized before this function is called." );
 
-	write_to_tracer( "GUESTS:" );
-	write_to_tracer( "Guest_index\tGuest_UID\tGuest_name" );
+	outstream << "GUESTS:\n";
+	outstream << "Guest_index\tGuest_UID\tGuest_name\n";
 	Size const nguests( guests_.size() );
 	for( Size iguest(0); iguest<nguests; ++iguest ) {
 		Guest const & guest( *guests_by_index_.at(iguest) );
-		write_to_tracer(
-			std::to_string(iguest)
-			+ "\t" + guest.unique_identifier()
-			+ "\t\"" + guest.name() + "\""
-		);
+		outstream << iguest
+			<< "\t" << guest.unique_identifier()
+			<< "\t\"" << guest.name() + "\"\n";
 	}
-	write_to_tracer("");
+	outstream << "\n";
 
-	write_to_tracer( "TABLES:" );
-	write_to_tracer( "Table_index\tTable_type\tX\tY\tAngle\tType_specific_details" );
+	outstream << "TABLES:\n";
+	outstream << "Table_index\tTable_type\tX\tY\tAngle\tType_specific_details\n";
 	Size const ntables( tables_.size() );
 	for( Size itable(0); itable<ntables; ++itable ) {
 		Table const & table( *tables_[itable] );
@@ -614,12 +640,12 @@ SeatingProblem::print_problem() const {
 			<< "\t" << table.y()
 			<< "\t" << table.angle()
 			<< "\t" << table.type_specific_details_string();
-		write_to_tracer( ss.str() );
+		outstream << ss.str() << "\n";
 	}
-	write_to_tracer("");
+	outstream << "\n";
 
-	write_to_tracer( "SEATS:" );
-	write_to_tracer( "Global_seat_index\tTable_index\tLocal_seat_index\tX\tY\tAngle" );
+	outstream << "SEATS:\n";
+	outstream << "Global_seat_index\tTable_index\tLocal_seat_index\tX\tY\tAngle\n";
 	Size const nseats( seats_by_index_.size() );
 	for( Size iseat(0); iseat<nseats; ++iseat ) {
 		SeatCSP const & seat( seats_by_index_.at(iseat) );
@@ -634,13 +660,14 @@ SeatingProblem::print_problem() const {
 			ss << "\tN/A\tN/A";
 		}
 		ss << seat->x() << "\t" << seat->y() << "\t" << seat->angle_degrees();
-		write_to_tracer( ss.str() );
+		outstream << ss.str();
+		if( iseat < nseats-1 ) {
+			outstream << "\n";
+		}
 	}
-}
 
-////////////////////////////////////////////////////////////////////////////////
-// PROTECTED FUNCTIONS
-////////////////////////////////////////////////////////////////////////////////
+	return outstream.str();
+}
 
 /// @brief Given a global seat index, determine whether this seat is at a table.
 /// @details Intended to be called from a mutex-locked context.

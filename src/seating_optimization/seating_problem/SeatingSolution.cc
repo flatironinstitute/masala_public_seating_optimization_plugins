@@ -183,6 +183,16 @@ SeatingSolution::get_api_definition() {
 				std::bind( &SeatingSolution::print_solution, this, std::placeholders::_1 )
 			)
 		);
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_OneInput< std::string, bool const > >(
+				"get_solution_string", "Print the solution to a string.  Must be finalized first.  If include_problem is true, "
+				"all information needed to visualize the solution (including coordinates of chairs and tables) is printed.",
+				true, false, false, false,
+				"include_problem", "If true, a description of the problem is printed.",
+				"solution_string", "The solution, as a string.",
+				std::bind( &SeatingSolution::get_solution_string, this, std::placeholders::_1 )
+			)
+		);
 
         // Getters:
 		api_def->add_getter(
@@ -294,19 +304,47 @@ void
 SeatingSolution::print_solution(
 	bool const include_problem
 ) const {
+	std::lock_guard< std::mutex > lock( mutex_ );
+	write_to_tracer( protected_print_solution_to_string( include_problem ) );
+}
+
+
+/// @brief Print the solution to a string.  Must be finalized first.  If include_problem is true,
+/// all information needed to visualize the solution (including coordinates of chairs and tables) is
+/// printed.
+std::string
+SeatingSolution::get_solution_string(
+	bool const include_problem
+) const {
+	std::lock_guard< std::mutex > lock( mutex_ );
+	return protected_print_solution_to_string( include_problem );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// PROTECTED FUNCTIONS
+////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Print the solution to a string.  Must be finalized first.  If include_problem is true,
+/// all information needed to visualize the solution (including coordinates of chairs and tables) is
+/// printed.  This version should be called from a mutex-locked context.
+std::string
+SeatingSolution::protected_print_solution_to_string(
+	bool const include_problem
+) const {
 	using masala::base::Size;
 	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
 
-	std::lock_guard< std::mutex > lock( mutex_ );
-	CHECK_OR_THROW_FOR_CLASS( finalized_, "print_solution", "This object must be finalized before this function is called." );
-	CHECK_OR_THROW_FOR_CLASS( seating_problem_ != nullptr, "print_solution", "A seating problem definition must be provided before this function is called." );
+	CHECK_OR_THROW_FOR_CLASS( finalized_, "protected_print_solution_to_string", "This object must be finalized before this function is called." );
+	CHECK_OR_THROW_FOR_CLASS( seating_problem_ != nullptr, "protected_print_solution_to_strings", "A seating problem definition must be provided before this function is called." );
+	std::ostringstream out_ss;
+
 	if( include_problem ) {
-		write_to_tracer("PROBLEM:");
-		seating_problem_->print_problem();
-		write_to_tracer("");
-		write_to_tracer( "SOLUTION:" );
+		out_ss << "PROBLEM:\n";
+		out_ss << seating_problem_->get_problem_string() << "\n";
+		out_ss << "\n";
+		out_ss << "SOLUTION:\n";
 	}
-	write_to_tracer( "Guest_index\tGuest_UID\tGuest_name\tSeat_global_index\tTable_index\tSeat_index_at_table" );
+	out_ss << "Guest_index\tGuest_UID\tGuest_name\tSeat_global_index\tTable_index\tSeat_index_at_table\n";
 
 	masala::base::Size counter(0);
 	for( auto const & entry : guest_to_seat_ ) {
@@ -316,21 +354,19 @@ SeatingSolution::print_solution(
 		bool const seat_is_at_a_table( seating_problem_->seat_is_at_a_table( seat_index ) );
 		std::pair< Size, Size > table_and_local_seat_index( seating_problem_->table_and_local_seat_index_from_global_seat_index( seat_index ) );
 
-		write_to_tracer(
-			std::to_string(counter)
-			+ "\t" + guest.unique_identifier()
-			+ "\t\"" + guest.name() + "\""
-			+ "\t" + std::to_string( seat_index )
-			+ "\t" + ( seat_is_at_a_table ? std::to_string( table_and_local_seat_index.first ) : "N/A" )
-			+ "\t" + ( seat_is_at_a_table ? std::to_string( table_and_local_seat_index.second ) : "N/A" )
-		);
+		out_ss << counter
+			<< "\t" << guest.unique_identifier()
+			<< "\t\"" << guest.name() << "\""
+			<< "\t" << std::to_string( seat_index )
+			<< "\t" << ( seat_is_at_a_table ? std::to_string( table_and_local_seat_index.first ) : "N/A" )
+			<< "\t" << ( seat_is_at_a_table ? std::to_string( table_and_local_seat_index.second ) : "N/A" );
+		if( counter < guest_to_seat_.size()-1 ) {
+			out_ss << "\n";
+		}
 		++counter;
 	}
+	return out_ss.str();
 }
-
-////////////////////////////////////////////////////////////////////////////////
-// PROTECTED FUNCTIONS
-////////////////////////////////////////////////////////////////////////////////
 
 /// @brief Make this object fully indepdendent.  Derived classes must override this, and the override must call
 /// the parent class implementation.

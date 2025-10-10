@@ -172,6 +172,11 @@ public:
 	/// printed.
 	void print_solution( bool const include_problem ) const;
 
+	/// @brief Print the solution to a string.  Must be finalized first.  If include_problem is true,
+	/// all information needed to visualize the solution (including coordinates of chairs and tables) is
+	/// printed.
+	std::string get_solution_string( bool const include_problem ) const;
+
 protected:
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -186,6 +191,11 @@ protected:
 	api_definition() {
 		return api_definition_;
 	}
+
+	/// @brief Print the solution to a string.  Must be finalized first.  If include_problem is true,
+	/// all information needed to visualize the solution (including coordinates of chairs and tables) is
+	/// printed.  This version should be called from a mutex-locked context.
+	std::string protected_print_solution_to_string( bool const include_problem ) const;
 
 	/// @brief Make this object fully indepdendent.  Derived classes must override this, and the override must call
 	/// the parent class implementation.

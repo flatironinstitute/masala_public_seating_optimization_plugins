@@ -656,7 +656,7 @@ write_solutions_to_disk(
 		std::stringstream ss;
 		ss << "solution_" << std::setw(6) << std::setfill('0') << i << ".txt";
 
-		diskman->write_ascii_file( ss.str(), solutions[i]->get_solution_string() + "\n" );
+		diskman->write_ascii_file( ss.str(), solutions[i]->get_solution_string(false) + "\n" );
 		tracerman->write_to_tracer( appname, "\tWrote file " + ss.str() + "." );
 	}
 

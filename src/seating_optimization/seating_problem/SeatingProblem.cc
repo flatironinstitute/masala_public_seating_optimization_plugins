@@ -613,7 +613,7 @@ SeatingProblem::protected_print_problem_to_string() const {
 	using masala::base::Size;
 	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
 
-	CHECK_OR_THROW_FOR_CLASS( finalized_, "print_problem", "The problem must be finalized before this function is called." );
+	CHECK_OR_THROW_FOR_CLASS( finalized_, "protected_print_problem_to_string", "The problem must be finalized before this function is called." );
 
 	outstream << "GUESTS:\n";
 	outstream << "Guest_index\tGuest_UID\tGuest_name\n";

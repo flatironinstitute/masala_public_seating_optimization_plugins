@@ -222,6 +222,9 @@ public:
 	/// @brief Indicate that this object is fully set up.
 	void finalize();
 
+	/// @brief Print the problem to the tracer.  Problem must be finalized, or this function throws.
+	void print_problem() const;
+
 protected:
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -236,6 +239,14 @@ protected:
 	api_definition() {
 		return api_definition_;
 	}
+
+	/// @brief Given a global seat index, determine whether this seat is at a table.
+	/// @details Intended to be called from a mutex-locked context.
+	bool protected_seat_is_at_a_table( masala::base::Size const seat_index ) const;
+
+	/// @brief Given a global seat index, determine the table index and local index of the seat at the table.  Throws if the seat isn't at a table.
+	/// @details Intended to be called from a mutex-locked context.
+	std::pair< masala::base::Size, masala::base::Size > protected_table_and_local_seat_index_from_global_seat_index( masala::base::Size const seat_index ) const;
 
 	/// @brief Add a guest.  Stored directly; not cloned.  Throws if the unique guest ID has already been taken.
 	/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.

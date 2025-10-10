@@ -52,6 +52,7 @@
 
 // STL headers:
 #include <sstream>
+#include <iomanip>
 
 namespace seating_optimization_masala_plugins {
 namespace seating_optimization {
@@ -546,17 +547,8 @@ bool
 SeatingProblem::seat_is_at_a_table(
 	masala::base::Size const seat_index
 ) const {
-	using masala::base::Size;
-	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
 	std::lock_guard< std::mutex > lock( mutex_ );
-	std::map< Size, SeatCSP >::const_iterator it( seats_by_index_.find(seat_index) );
-	CHECK_OR_THROW_FOR_CLASS( it != seats_by_index_.end(), "seat_is_at_a_table", "Seat index was out of range." );
-	for( auto const & table : tables_ ) {
-		if( table->has_seat( it->second ) ) {
-			return true;
-		}
-	}
-	return false;
+	return protected_seat_is_at_a_table( seat_index );
 }
 
 /// @brief Given a global seat index, determine the table index and local index of the seat at the table.  Throws if the seat isn't at a table.
@@ -564,19 +556,8 @@ std::pair< masala::base::Size, masala::base::Size >
 SeatingProblem::table_and_local_seat_index_from_global_seat_index(
 	masala::base::Size const seat_index
 ) const {
-	using masala::base::Size;
-	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
 	std::lock_guard< std::mutex > lock( mutex_ );
-	std::map< Size, SeatCSP >::const_iterator it( seats_by_index_.find(seat_index) );
-	CHECK_OR_THROW_FOR_CLASS( it != seats_by_index_.end(), "seat_is_at_a_table", "Seat index was out of range." );
-	Size table_counter(0);
-	for( auto const & table : tables_ ) {
-		if( table->has_seat( it->second ) ) {
-			return std::pair< Size, Size >( table_counter, table->seat_local_index( it->second ) );
-		}
-		++table_counter;
-	}
-	MASALA_THROW( class_namespace() + "::" + class_name(), "table_and_local_seat_index_from_global_seat_index", "Seat does not appear to be associated with a table." );
+	return protected_table_and_local_seat_index_from_global_seat_index( seat_index );
 }
 
 /// @brief Indicate that this object is fully set up.
@@ -586,27 +567,110 @@ SeatingProblem::finalize() {
 	std::lock_guard< std::mutex > lock( mutex_ );
 
 	CHECK_OR_THROW_FOR_CLASS( !finalized_, "finalize", "This object has already been finalized." );
-	// CHECK_OR_THROW_FOR_CLASS( guests_by_index_.empty(), "finalize", "The guests by index map was not empty." );
-	// CHECK_OR_THROW_FOR_CLASS( seats_by_index_.empty(), "finalize", "The seats by index map was not empty." );
-	// for( auto const & entry : guests_ ) {
-	// 	Size const curindex( entry.second.first );
-	// 	CHECK_OR_THROW_FOR_CLASS( guests_by_index_.count(curindex) == 0, "finalize", "The guest index " + std::to_string(curindex)
-	// 		+ " was present more than once."
-	// 	);
-	// 	guests_by_index_[curindex] = entry.second.second;
-	// }
-	// for( auto const & entry : seat_indices_ ) {
-	// 	Size const curindex( entry.second );
-	// 	CHECK_OR_THROW_FOR_CLASS( seats_by_index_.count(curindex) == 0, "finalize", "Seat " + std::to_string(curindex) + " was added more than once.");
-	// 	seats_by_index_[curindex] = entry.first;
-	// }
-	// Fix above.  Bidirectional maps can be added on the fly, not with finalization function;
 	finalized_ = true; 
+}
+
+/// @brief Print the problem to the tracer.  Problem must be finalized, or this function throws.
+void
+SeatingProblem::print_problem() const {
+	using masala::base::Size;
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
+
+	std::lock_guard< std::mutex > lock( mutex_ );
+	CHECK_OR_THROW_FOR_CLASS( finalized_, "print_problem", "The problem must be finalized before this function is called." );
+
+	write_to_tracer( "GUESTS:" );
+	write_to_tracer( "Guest_index\tGuest_UID\tGuest_name" );
+	Size const nguests( guests_.size() );
+	for( Size iguest(0); iguest<nguests; ++iguest ) {
+		Guest const & guest( *guests_by_index_.at(iguest) );
+		write_to_tracer(
+			std::to_string(iguest)
+			+ "\t" + guest.unique_identifier()
+			+ "\t\"" + guest.name() + "\""
+		);
+	}
+	write_to_tracer("");
+
+	write_to_tracer( "TABLES:" );
+	write_to_tracer( "Table_index\tTable_type\tX\tY\tAngle\tType_specific_details" );
+	Size const ntables( tables_.size() );
+	for( Size itable(0); itable<ntables; ++itable ) {
+		Table const & table( *tables_[itable] );
+		std::ostringstream ss;
+		ss << std::setprecision(6);
+		ss
+			<< itable
+			<< "\t" << table.class_name()
+			<< "\t" << table.x()
+			<< "\t" << table.y()
+			<< "\t" << table.angle()
+			<< "\t" << table.type_specific_details_string();
+		write_to_tracer( ss.str() );
+	}
+	write_to_tracer("");
+
+	write_to_tracer( "SEATS:" );
+	write_to_tracer( "Global_seat_index\tTable_index\tLocal_seat_index\tX\tY\tAngle" );
+	Size const nseats( seats_by_index_.size() );
+	for( Size iseat(0); iseat<nseats; ++iseat ) {
+		SeatCSP const & seat( seats_by_index_.at(iseat) );
+		bool const is_at_table( protected_seat_is_at_a_table(iseat) );
+		std::ostringstream ss;
+		ss << iseat;
+		if( is_at_table ) {
+			std::pair< Size, Size > const table_and_local_seat( protected_table_and_local_seat_index_from_global_seat_index(iseat) );
+			ss << "\t" << table_and_local_seat.first;
+			ss << "\t" << table_and_local_seat.second;
+		} else {
+			ss << "\tN/A\tN/A";
+		}
+		ss << seat->x() << "\t" << seat->y() << "\t" << seat->angle();
+		write_to_tracer( ss.str() );
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // PROTECTED FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
+
+/// @brief Given a global seat index, determine whether this seat is at a table.
+/// @details Intended to be called from a mutex-locked context.
+bool
+SeatingProblem::protected_seat_is_at_a_table(
+	masala::base::Size const seat_index
+) const {
+	using masala::base::Size;
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
+	std::map< Size, SeatCSP >::const_iterator it( seats_by_index_.find(seat_index) );
+	CHECK_OR_THROW_FOR_CLASS( it != seats_by_index_.end(), "protected_seat_is_at_a_table", "Seat index was out of range." );
+	for( auto const & table : tables_ ) {
+		if( table->has_seat( it->second ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/// @brief Given a global seat index, determine the table index and local index of the seat at the table.  Throws if the seat isn't at a table.
+/// @details Intended to be called from a mutex-locked context.
+std::pair< masala::base::Size, masala::base::Size >
+SeatingProblem::protected_table_and_local_seat_index_from_global_seat_index(
+	masala::base::Size const seat_index
+) const {
+	using masala::base::Size;
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
+	std::map< Size, SeatCSP >::const_iterator it( seats_by_index_.find(seat_index) );
+	CHECK_OR_THROW_FOR_CLASS( it != seats_by_index_.end(), "protected_table_and_local_seat_index_from_global_seat_index", "Seat index was out of range." );
+	Size table_counter(0);
+	for( auto const & table : tables_ ) {
+		if( table->has_seat( it->second ) ) {
+			return std::pair< Size, Size >( table_counter, table->seat_local_index( it->second ) );
+		}
+		++table_counter;
+	}
+	MASALA_THROW( class_namespace() + "::" + class_name(), "protected_table_and_local_seat_index_from_global_seat_index", "Seat does not appear to be associated with a table." );
+}
 
 /// @brief Add a guest.  Stored directly; not cloned.  Throws if the unique guest ID has already been taken.
 /// @note This version performs no mutex locking.  It should be called from a mutex-locked context.

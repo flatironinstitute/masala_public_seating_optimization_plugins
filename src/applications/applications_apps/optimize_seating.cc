@@ -162,6 +162,31 @@ set_setter(
 }
 
 /// @brief Set the number of classical Monte Carlo steps for a classical optimizer.
+template<>
+void
+set_setter(
+	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
+	std::string const & appname,
+	masala::base::api::MasalaObjectAPIDefinition const & api_def,
+	std::string const & setter_name,
+	masala::base::managers::engine::MasalaEngineAPICSP const & setting
+) {
+	using namespace masala::base::api;
+	using namespace masala::base::api::setter;
+
+	MasalaObjectAPISetterDefinition_OneInputCSP< masala::base::managers::engine::MasalaEngineAPICSP const & > setter(
+		api_def.get_oneinput_setter_function< masala::base::managers::engine::MasalaEngineAPICSP const & >( setter_name ).lock()
+	);
+	CHECK_OR_THROW( setter != nullptr, appname, "set_setter", "The " + api_def.api_class_name() + " did not have a "
+		+ setter_name + "() function."
+	);
+	setter->function(setting);
+	tracerman->write_to_tracer( appname + "::set_setter", "Set " + api_def.api_class_name() + "."
+		+ setter_name + "(" + setting->inner_class_name() + ")."
+	);
+}
+
+/// @brief Set the number of classical Monte Carlo steps for a classical optimizer.
 /// @details Specialization for strings.
 template<>
 void
@@ -214,7 +239,7 @@ set_const_bool_setter(
 
 /// @brief Set the number of classical Monte Carlo steps for a classical optimizer.
 /// @details Specialization for bools.
-template<bool>
+template<>
 void
 set_setter(
 	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
@@ -352,7 +377,7 @@ load_mc_cfn_optimizer(
 	set_setter<Size>( tracerman, appname, *api_def, "set_n_solutions_to_store_per_problem", solutions_to_store_per_problem );
 	set_setter<std::string const &>( tracerman, appname, *api_def, "set_solution_storage_mode", "check_on_acceptance" );
 	set_setter<std::string const &>( tracerman, appname, *api_def, "set_greedy_refinement_mode", "refine_top" );
-	set_setter<bool>( tracerman, appname, *api_def, "set_do_greedy_refinement", do_greedy_refinement );
+	set_const_bool_setter( tracerman, appname, *api_def, "set_do_greedy_refinement", do_greedy_refinement );
 	if( load_hill_flattening_version ) {
 		configure_hill_flattening_kbt( tracerman, appname, *api_def, flattening_boltzmann_temperature );
 	}
@@ -372,6 +397,7 @@ load_dwave_cfn_optimizer(
 	bool const do_greedy
 ) {
 	using namespace masala::base::managers::engine;
+	using namespace masala::base::managers::plugin_module;
 	using namespace masala::base::api;
 	using masala::base::Size;
 	using masala::base::Real;
@@ -415,13 +441,39 @@ load_dwave_cfn_optimizer(
 		set_setter<std::string const &>( tracerman, appname, *abqp_api_def, "set_linear_algebra_approach", "col_pivoting_householder_qr_decomp" );
 		set_setter<Size>( tracerman, appname, *abqp_api_def, "set_cpu_threads_to_request", 0 );
 		set_const_bool_setter( tracerman, appname, *abqp_api_def, "set_compute_qubit_effective_fields", true );
+
+		// Configure minimization engine:
+		{
+			MasalaEngineAPISP minimizer(
+				MasalaEngineManager::get_instance()->create_engine_by_short_name( "BFGSFunctionOptimizer", false )
+			);
+			CHECK_OR_THROW( minimizer != nullptr && minimizer->inner_class_name() == "BFGSFunctionOptimizer",
+				appname,"load_dwave_cfn_optimizer", "Could not load a BFGSFunctionOptimizer "
+				"from the Masala engine manager.  Has the Standard Masala Plugins library path "
+				"been passed to the -masala_plugins commandling option?"
+			);
+			MasalaObjectAPIDefinitionCSP minimizer_api_def( minimizer->get_api_definition_for_inner_class().lock() );
+			CHECK_OR_THROW( minimizer_api_def != nullptr, appname, "load_dwave_cfn_optimizer", "Could not get an API definition for the " + minimizer->inner_class_name() + " optimizer." );
+			set_setter<Size>( tracerman, appname, *minimizer_api_def, "set_max_iterations", 1000 );
+			set_setter<Size>( tracerman, appname, *minimizer_api_def, "set_threads_to_request", 0 );
+			set_setter<bool>( tracerman, appname, *minimizer_api_def, "set_throw_if_iterations_exceeded", false );
+
+
+
+			set_setter<MasalaEngineAPICSP const &>( tracerman, appname, *abqp_api_def, "set_realvalued_local_function_optimizer", minimizer );
+		}
+
+
+		// Configure choice order:
+		
+		//set_setter<MasalaPluginAPISP const &>( tracerman, appname, *abqp_api_def, "set_choice_order", choiceorder );
 		
 
 		// TODO SET CHOICE ORDER;
 		// TODO SET LOCAL OPTIMIZER;
 		// TODO CONFIGURE OTHER OPTIONS;
 
-		set_setter<masala::base::managers::engine::MasalaDataRepresentationAPICSP const &>( tracerman, appname, *opt_api_def, "set_template_preferred_cfn_data_representation", template_dr );
+		set_setter<MasalaDataRepresentationAPICSP const &>( tracerman, appname, *opt_api_def, "set_template_preferred_cfn_data_representation", template_dr );
 	}
 
 	set_const_bool_setter( tracerman, appname, *opt_api_def, "set_greedy", do_greedy );

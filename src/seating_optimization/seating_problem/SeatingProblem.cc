@@ -236,6 +236,14 @@ SeatingProblem::get_api_definition() {
 				std::bind( &SeatingProblem::table_and_local_seat_index_from_global_seat_index, this, std::placeholders::_1 )
 			)
 		);
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_ZeroInput< void > >(
+				"print_problem", "Print a description of the problem to the tracer.",
+				true, false, false, false,
+				"void", "This function returns nothing.",
+				std::bind( &SeatingProblem::print_problem, this )
+			)
+		);
 
         // Getters:
 		api_def->add_getter(

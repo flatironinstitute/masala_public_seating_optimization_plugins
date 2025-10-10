@@ -147,6 +147,9 @@ public:
 	/// @brief Determine whether a given seat is at this table.
 	bool has_seat( SeatCSP const & seat ) const;
 
+	/// @brief Given a seat, get its local index.  Throws if the seat is not at this table.
+	Size seat_local_index( SeatCSP const & seat ) const;
+
 public:
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -219,6 +219,16 @@ Table::get_api_definition() {
 				std::bind( &Table::has_seat, this, std::placeholders::_1 )
 			)
 		);
+		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_OneInput< Size, SeatCSP const & > >(
+				"seat_local_index",
+				"Given a seat, get its local index.  Throws if the seat is not at this table.",
+				"seat", "A shared pointer to a seat that is at this table.",
+				"seat_local_index", "The local index of this seat at this table.",
+				false, false,
+				std::bind( &Table::seat_local_index, this, std::placeholders::_1 )
+			)
+		);
 
 		// Setters:
 		api_def->add_setter(
@@ -301,6 +311,17 @@ Table::has_seat(
 ) const {
 	std::lock_guard< std::mutex > lock( mutex() );
 	return masala::base::utility::container::has_value( seats_, seat );
+}
+
+/// @brief Given a seat, get its local index.  Throws if the seat is not at this table.
+masala::base::Size
+Table::seat_local_index(
+	SeatCSP const & seat
+) const {
+	std::lock_guard< std::mutex > lock( mutex() );
+	std::vector< SeatSP >::const_iterator it( std::find( seats_.begin(), seats_.end(), seat ) );
+	CHECK_OR_THROW_FOR_CLASS( it != seats_.end(), "seat_local_index", "The given seat was not at this table." );
+	return std::distance( seats_.begin(), it );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

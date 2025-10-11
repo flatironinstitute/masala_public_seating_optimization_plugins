@@ -630,6 +630,7 @@ load_optimizer_settings(
 			solutions_to_store_per_problem, flattening_boltzmann_temperature, do_greedy, false
 		);
 	} else if( optimizer_name == "DWaveQuantumQUBOProblemOptimizer" ) {
+		CHECK_OR_THROW( dwave_solver_name_specified, appname, "load_optimizer_settings", "A D-Wave solver must be specified (-dwave_solver_name commandline option) to use the DWaveQuantumQUBOProblemOptimizer." );
 		return load_dwave_cfn_optimizer( tracerman, appname, dwave_samples, solutions_to_store_per_problem, dwave_annealing_time, do_greedy, dwave_use_layout_embedding, dwave_solver_name );
 	} else {
 		MASALA_THROW( appname, "load_optimizer_settings", "Did not recognize \"" + optimizer_name + "\" as an allowed optimizer.  "
@@ -679,6 +680,7 @@ load_options(
 	using namespace masala::base::utility::string;
 	using namespace masala::base::managers::tracer;
 	using masala::base::Size;
+	using masala::base::Real;
 
 	// Options that we can load:
 	option long_options[] {
@@ -729,8 +731,6 @@ load_options(
 		{"dwave_use_layout_embedding", "If true, we use Layout embedding; if false, we use MinorMiner embedding.  Defaults to true." },
 		{"dwave_solver_name", "The name of the solver.  Required input if the D-Wave is used." }
 	};
-
-	CONTINUE HERE;
 
 	int option_index;
 	while( !getopt_long_only( argc, argv, "", long_options, &option_index ) ){
@@ -795,6 +795,34 @@ load_options(
 		} else if( curname == "problem_file" ) {
 			probfile_name = std::string( optarg );
 			CHECK_OR_THROW( !probfile_name.empty(), appname, "load_options", "The problem file name must not be empty." ); 
+		} else if( curname == "dwave_samples" ) {
+			std::istringstream ss( optarg );
+			long signed int temp;
+			ss >> temp;
+			CHECK_OR_THROW( ss.eof() && !(ss.bad() || ss.fail() ), appname, "load_options", "Could not parse \"" + std::string(optarg) + "\" as an integer." );
+			CHECK_OR_THROW( temp > 0, appname, "load_options", "The number D-wave samples must be a positive integer." );
+			dwave_samples = static_cast< Size >(temp);
+		} else if( curname == "dwave_annealing_time" ) {
+			std::istringstream ss( optarg );
+			Real temp;
+			ss >> temp;
+			CHECK_OR_THROW( ss.eof() && !(ss.bad() || ss.fail() ), appname, "load_options", "Could not parse \"" + std::string(optarg) + "\" as a floating-point number." );
+			CHECK_OR_THROW( temp > 0, appname, "load_options", "The D-Wave annealing time must be positive." );
+			dwave_annealing_time = temp;
+		} else if( curname == "dwave_use_layout_embedding" ) {
+			std::string const layoutstring( optarg );
+			if( layoutstring == "TRUE" ) {
+				dwave_use_layout_embedding = true;
+			} else if( layoutstring == "FALSE" ) {
+				dwave_use_layout_embedding = false;
+			} else {
+				MASALA_THROW( appname, "load_options", "Could not parse \"" + std::string(optarg) + "\" as a Boolean.  Must be either TRUE or FALSE." );
+			}
+		} else if( curname == "dwave_solver_name" ) {
+			dwave_solver_name = std::string( optarg );
+			CHECK_OR_THROW( !dwave_solver_name.empty(), appname, "load_options", "The D-wave solver name must not be empty." ); 
+		} else {
+			MASALA_THROW( appname, "load_options", "Unknown command-line option \"" + curname + "\"." );
 		}
 	}
 
@@ -983,6 +1011,10 @@ main(
 	int flattening_boltzmann_temperature_specified(0);
 	int do_greedy_specified(0);
 	int probfile_name_specified(0);
+	int dwave_samples_specified(0);
+	int dwave_annealing_time_specified(0);
+	int dwave_use_layout_embedding_specified(0);
+	int dwave_solver_name_specified(0);
 
 	// Allowed optimizer names:
 	std::vector< std::string > const allowed_optimizer_names{
@@ -993,13 +1025,15 @@ main(
 
 	// Options that we will load:
 	std::vector< std::string > masala_plugin_paths;
-	std::string optimizer_name, probfile_name;
+	std::string optimizer_name, probfile_name, dwave_solver_name;
 	masala::base::Size classical_mc_steps( 1000000 );
 	masala::base::Size total_threads( 1 );
 	masala::base::Size classical_attempts_per_problem( 1 );
 	masala::base::Size solutions_to_store_per_problem( 1 );
+	masala::base::Size dwave_samples( 1000 );
 	masala::base::Real flattening_boltzmann_temperature( 10.0 );
-	bool do_greedy( true );
+	masala::base::Real dwave_annelaing_time( 20.0 );
+	bool do_greedy( true ), dwave_use_layout_embedding( true );
 
 	// Masala tracer manager:
 	MasalaTracerManagerHandle tracerman( MasalaTracerManager::get_instance() );

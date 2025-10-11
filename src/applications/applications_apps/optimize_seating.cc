@@ -484,8 +484,8 @@ load_dwave_cfn_optimizer(
 		MasalaObjectAPIDefinitionCSP abqp_api_def( template_dr->get_api_definition_for_inner_class().lock() );
 		CHECK_OR_THROW( abqp_api_def != nullptr, appname, "load_dwave_cfn_optimizer", "Could not get an API definition for the " + template_dr->inner_class_name() + " optimizer." );
 
-		set_setter<Real>( tracerman, appname, *abqp_api_def, "set_onenode_penalty_cap", 40.0 );
-		set_setter<Real>( tracerman, appname, *abqp_api_def, "set_twonode_penalty_cap", 40.0 );
+		set_setter<Real>( tracerman, appname, *abqp_api_def, "set_onenode_penalty_cap", 100.0 );
+		set_setter<Real>( tracerman, appname, *abqp_api_def, "set_twonode_penalty_cap", 100.0 );
 		set_const_bool_setter( tracerman, appname, *abqp_api_def, "set_optimize_onenode_penalties", true );
 		set_const_bool_setter( tracerman, appname, *abqp_api_def, "set_optimize_twonode_penalties", true );
 		set_setter<Real const>( tracerman, appname, *abqp_api_def, "set_local_optimizer_kbt", 12.0 );

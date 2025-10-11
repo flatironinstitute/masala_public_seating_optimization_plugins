@@ -562,13 +562,13 @@ load_dwave_cfn_optimizer(
 	set_setter<bool>( tracerman, appname, *opt_api_def, "set_remove_output_files", false );
 	set_setter<Real const>( tracerman, appname, *opt_api_def, "set_annealing_time", annealing_time );
 	set_setter<Size>( tracerman, appname, *opt_api_def, "set_n_solutions_to_store_per_problem", solutions_to_store_per_problem );
-	set_setter<Size>( tracerman, appname, *opt_api_def, "set_num_reads", dwave_samples );
-	set_setter<std::string const &>( tracerman, appname, *opt_api_def, "set_output_directory", "./dwave_temp/" );
+	set_setter<Size const>( tracerman, appname, *opt_api_def, "set_num_reads", dwave_samples );
+	set_setter<std::string const &>( tracerman, appname, *opt_api_def, "set_output_directory", "./test_scratch/" );
 	set_setter<std::string const &>( tracerman, appname, *opt_api_def, "set_solver", dwave_solver_name );
-	set_setter<Size>( tracerman, appname, *opt_api_def, "set_minorminer_chainlength_patience", 32 );
-	set_setter<Size>( tracerman, appname, *opt_api_def, "set_minorminer_max_no_improvement", 128 );
-	set_setter<Size>( tracerman, appname, *opt_api_def, "set_minorminer_max_no_improvement", 16 );
-	set_setter<Size>( tracerman, appname, *opt_api_def, "set_minorminer_tries", 256 );
+	set_setter<Size const>( tracerman, appname, *opt_api_def, "set_minorminer_chainlength_patience", 32 );
+	set_setter<Size const>( tracerman, appname, *opt_api_def, "set_minorminer_max_no_improvement", 128 );
+	set_setter<Size const>( tracerman, appname, *opt_api_def, "set_minorminer_max_no_improvement", 16 );
+	set_setter<Size const>( tracerman, appname, *opt_api_def, "set_minorminer_tries", 256 );
 	set_setter<std::string const &>( tracerman, appname, *opt_api_def, "set_embedding_type", (use_layout_embedding ? "layout" : "minor_miner") );
 
 	return optimizer;

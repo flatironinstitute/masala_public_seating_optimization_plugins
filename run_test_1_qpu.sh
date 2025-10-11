@@ -1,1 +1,1 @@
-./bin/optimize_seating -masala_plugins $MASALA_STANDARD_PLUGINS,$MASALA_QUANTUM_COMPUTING_PLUGINS -optimizer_name DWaveQuantumQUBOProblemOptimizer -problem_file test_data/example_problem_1.txt -dwave_solver_name Advantage2_system1.6 -total_threads 16
+./bin/optimize_seating -masala_plugins $MASALA_STANDARD_PLUGINS,$MASALA_QUANTUM_COMPUTING_PLUGINS -solutions_to_store_per_problem 24 -dwave_samples 10000 -optimizer_name DWaveQuantumQUBOProblemOptimizer -problem_file test_data/example_problem_1.txt -dwave_solver_name Advantage2_system1.6 -total_threads 16

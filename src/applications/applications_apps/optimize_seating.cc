@@ -738,7 +738,9 @@ load_options(
 		std::string const curname(long_options[option_index].name);
 		tracerman->write_to_tracer( appname, "Parsed -" + curname +  " option." );
 
-		if( curname == "masala_plugins" ) {
+		if( curname == "h" || curname == "help" ) {
+			continue;
+		}else if( curname == "masala_plugins" ) {
 			std::string optargstring(optarg);
 			replace_all_instances_of_text(optargstring, ",", " ");
 			std::istringstream ss( optargstring );

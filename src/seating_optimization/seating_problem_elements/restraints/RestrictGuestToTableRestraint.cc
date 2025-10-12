@@ -217,10 +217,17 @@ RestrictGuestToTableRestraint::get_api_definition() {
 /// @details Base class implementation throws.  Must be overridden by derived classes.
 void
 RestrictGuestToTableRestraint::configure_from_input_line(
-	std::string const & //input_line
+	std::string const & input_line
 ) {
-	TODO TODO TODO;
-	MASALA_THROW( class_namespace() + "::" + class_name(), "configure_from_input_line", "This restraint class must override this function." );
+	using masala::base::Size;
+	std::lock_guard< std::mutex > lock( mutex() );
+	std::istringstream ss(input_line);
+	std::string temp;
+	signed long int tempint;
+	ss >> temp >> guest_uid_ >> tempint;
+	CHECK_OR_THROW_FOR_CLASS( temp == class_name(), "configure_from_input_line", "Expected line to start with \"" + class_name() + "\", but got \"" + temp + "\"." );
+	CHECK_OR_THROW_FOR_CLASS( tempint >= 0, "configure_from_input_line", "Expected non-negative table index." );
+	table_ = static_cast<Size>( tempint );
 }
 
 /// @brief Set the guest UID.

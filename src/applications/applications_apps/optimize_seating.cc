@@ -885,7 +885,8 @@ solve_problem(
 	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
 	masala::base::managers::engine::MasalaEngineAPI const & optimizer_api,
 	seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_APICSP seating_problem,
-	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblems_API const & problems
+	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblems_API const & problems,
+	std::vector< std::map< masala::base::Size, masala::base::Size > > const & guest_choice_to_seat_index
 ) {
 	using masala::base::Size;
 	using namespace masala::numeric_api::base_classes::optimization::cost_function_network;
@@ -921,7 +922,7 @@ solve_problem(
 			+ "\t" + std::to_string(cursolution->solution_score_solver_approximation()) + "\t" + ( cursolution->solution_is_valid() ? "TRUE" : "FALSE" )
 		);
 		if( cursolution->solution_is_valid() ) {
-			SeatingSolution_APISP seating_solution( seating_problem->seating_solution_from_cfn_solution( *cursolution ) );
+			SeatingSolution_APISP seating_solution( seating_problem->seating_solution_from_cfn_solution( *cursolution, guest_choice_to_seat_index ) );
 			seating_solution->set_problem( seating_problem );
 			seating_solution->finalize();
 			seating_solutions.push_back( seating_solution );
@@ -938,8 +939,12 @@ set_up_cfn_problem(
 	std::string const & appname,
 	masala::base::managers::tracer::MasalaTracerManagerHandle tracerman,
 	masala::base::managers::engine::MasalaEngineAPI const & optimizer_api,
-	seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_API const & seating_problem
+	seating_optimization_masala_plugins::seating_optimization_api::auto_generated_api::seating_problem::SeatingProblem_API const & seating_problem,
+	std::vector< std::vector< bool > > & allowed_seats_by_guest,
+	std::vector< std::map< masala::base::Size, masala::base::Size > > & guest_choice_to_seat_index,
+	std::vector< std::map< masala::base::Size, masala::base::Size > > & seat_index_to_guest_choice
 ) {
+	using masala::base::Size;
 	using namespace masala::numeric_api::base_classes::optimization::cost_function_network;
 	using namespace masala::numeric_api::auto_generated_api::optimization::cost_function_network;
 
@@ -955,7 +960,7 @@ set_up_cfn_problem(
 	tracerman->write_to_tracer( appname, "Created a problem container of class \"" + problem->inner_class_name() + "\"." );
 
 	// Configure and finalize here:
-	seating_problem.set_up_cfn_problem( *problem );
+	seating_problem.set_up_cfn_problem( *problem, allowed_seats_by_guest, guest_choice_to_seat_index, seat_index_to_guest_choice );
 
 	// Package in a problems container:
 	CostFunctionNetworkOptimizationProblems_APISP problems( masala::make_shared< CostFunctionNetworkOptimizationProblems_API >() );
@@ -1021,6 +1026,7 @@ main(
 	int argc,
 	char * argv[]
 ) {
+	using masala::base::Size;
 	using namespace masala::base::managers::tracer;
 	using namespace masala::base::managers::engine;
 	using namespace masala::base::managers::threads;
@@ -1126,11 +1132,18 @@ main(
 	SeatingProblem_APICSP seating_problem( load_problem_specification( appname, probfile_name ) );
 
 	// Generate the CFN problem:
-	CostFunctionNetworkOptimizationProblems_APICSP problems( set_up_cfn_problem( appname, tracerman, *optimizer_api, *seating_problem ) );
+	std::vector< std::vector< bool > > allowed_seats_by_guest;
+	std::vector< std::map< Size, Size > > guest_choice_to_seat_index;
+	std::vector< std::map< Size, Size > > seat_index_to_guest_choice;
+	CostFunctionNetworkOptimizationProblems_APICSP problems(
+		set_up_cfn_problem( appname, tracerman, *optimizer_api, *seating_problem,
+			allowed_seats_by_guest, guest_choice_to_seat_index, seat_index_to_guest_choice
+		)
+	);
 
 	// Solve the problem:
 	std::vector< SeatingSolution_APICSP > solutions(
-		solve_problem( appname, tracerman, *optimizer_api, seating_problem, *problems )
+		solve_problem( appname, tracerman, *optimizer_api, seating_problem, *problems, guest_choice_to_seat_index )
 	);
 
 	// Print the solution(s):

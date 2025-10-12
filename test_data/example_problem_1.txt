@@ -33,12 +33,12 @@ GuestOverlapConstraint  30.0
 
 # Restrain some guests to be at the first table.
 
-RestrictGuestToTableRestraint	bride				0
-RestrictGuestToTableRestraint	groom				0
-RestrictGuestToTableRestraint	mother_of_bride		0
-RestrictGuestToTableRestraint	father_of_bride		0
-RestrictGuestToTableRestraint	mother_of_groom		0
-RestrictGuestToTableRestraint	father_of_groom		0
+RestrictGuestToTableRestraint	bride			1
+RestrictGuestToTableRestraint	groom			1
+RestrictGuestToTableRestraint	mother_of_bride		1
+RestrictGuestToTableRestraint	father_of_bride		1
+RestrictGuestToTableRestraint	mother_of_groom		1
+RestrictGuestToTableRestraint	father_of_groom		1
 
 # Add some guest pair constraints: it's unfavourable for the creepy uncle to sit next to
 # any of the young women to whom he is not related.

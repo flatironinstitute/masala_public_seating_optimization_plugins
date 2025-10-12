@@ -41,6 +41,7 @@
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 #include <base/api/getter/MasalaObjectAPIGetterDefinition_OneInput.tmpl.hh>
 #include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_ZeroInput.tmpl.hh>
+#include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_TwoInput.tmpl.hh>
 #include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_FourInput.tmpl.hh>
 #include <base/managers/plugin_module/MasalaPluginAPI.hh>
 #include <base/managers/plugin_module/MasalaPluginModuleManager.hh>
@@ -214,14 +215,15 @@ SeatingProblem::get_api_definition() {
 			)
 		);
 		api_def->add_work_function(
-			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_OneInput< SeatingSolutionSP, masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const & > >(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_TwoInput< SeatingSolutionSP, masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const &, std::vector< std::map< masala::base::Size, masala::base::Size > > const & > >(
 				"seating_solution_from_cfn_solution", "Given a CFN solution, generate a SeatingSolution object from it.  "
 				"The returned object is unfinalized, since it needs a shared pointer from this SeatingProblem object to be "
 				"cached in it.",
 				true, false, false, false,
 				"cfn_solution", "The solution to a cost function network optimization problem.",
+				"guest_choice_to_seat_index", "a vector indexed by guest index, containing maps of guest choice index to absolute seat index.",
 				"seating_solution", "A solution to this seating problem.",
-				std::bind( &SeatingProblem::seating_solution_from_cfn_solution, this, std::placeholders::_1 )
+				std::bind( &SeatingProblem::seating_solution_from_cfn_solution, this, std::placeholders::_1, std::placeholders::_2 )
 			)
 		);
 		api_def->add_work_function(
@@ -592,7 +594,8 @@ SeatingProblem::set_up_cfn_problem(
 /// @note The returned object is unfinalized, since it needs a shared pointer from this SeatingProblem object to be cached in it.
 SeatingSolutionSP
 SeatingProblem::seating_solution_from_cfn_solution(
-	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const & cfn_solution
+	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const & cfn_solution,
+	std::vector< std::map< masala::base::Size, masala::base::Size > > const & guest_choice_to_seat_index
 ) const {
 	using namespace masala::numeric_api::auto_generated_api::optimization::cost_function_network;
 	using masala::base::Size;
@@ -612,7 +615,7 @@ SeatingProblem::seating_solution_from_cfn_solution(
 	CHECK_OR_THROW_FOR_CLASS( cfn_soln_all_positions.size() == guests_.size(), "seating_solution_from_cfn_solution", "Size mismatch between CFN solution at all positions and guest count." );
 	
 	for( Size absnode_index(0), n_abs_nodes(cfn_soln_all_positions.size()); absnode_index < n_abs_nodes; ++absnode_index ) {
-		seating_soln->add_guest_seat_assignment( absnode_index, cfn_soln_all_positions[absnode_index] );
+		seating_soln->add_guest_seat_assignment( absnode_index, guest_choice_to_seat_index[absnode_index].at(cfn_soln_all_positions[absnode_index]) );
 	}
 
 	return seating_soln;

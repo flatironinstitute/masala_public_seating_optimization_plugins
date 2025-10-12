@@ -207,14 +207,15 @@ public:
 		masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & problem,
 		std::vector< std::vector< bool > > & allowed_seats,
 		std::vector< std::map< masala::base::Size,  masala::base::Size > > & guest_choice_to_seat_index,
-		std::vector< std::map<  masala::base::Size,  masala::base::Size > > &seat_index_to_guest_choice
+		std::vector< std::map<  masala::base::Size,  masala::base::Size > > & seat_index_to_guest_choice
 	) const;
 
 	/// @brief Given a CFN solution, generate a SeatingSolution object from it.
 	/// @note The returned object is unfinalized, since it needs a shared pointer from this SeatingProblem object to be cached in it.
 	SeatingSolutionSP
 	seating_solution_from_cfn_solution(
-		masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const & cfn_solution
+		masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const & cfn_solution,
+		std::vector< std::map< masala::base::Size, masala::base::Size > > const & guest_choice_to_seat_index
 	) const;
 
 	/// @brief Given a global seat index, determine whether this seat is at a table.

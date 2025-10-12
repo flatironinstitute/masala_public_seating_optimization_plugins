@@ -757,7 +757,7 @@ SeatingProblem::protected_add_seat(
 	MASALA_THROW( class_namespace() + "::" + class_name(), "protected_add_seat", "Loose seats are not yet supported!" );
 }
 
-/// @brief Add a constraint.  Stored directly; not cloned.  (NOT YET SUPPORTED -- THROWS.  MUST BE IMPLEMENTED.)
+/// @brief Add a constraint.  Stored directly; not cloned.
 /// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
 void
 SeatingProblem::protected_add_constraint(
@@ -766,6 +766,17 @@ SeatingProblem::protected_add_constraint(
 	CHECK_OR_THROW_FOR_CLASS( !finalized_, "protected_add_constraint", "This object must not be finalized before this function is called." );
 	constraints_.push_back( constraint_in );
 	write_to_tracer( "Added constraint " + std::to_string(constraints_.size() -1) + " of type \"" + constraint_in->class_name() + "\"." );
+}
+
+/// @brief Add a restraint.  Stored directly; not cloned.
+/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
+void
+SeatingProblem::protected_add_restraint(
+	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::restraints::RestraintCSP const & restraint_in
+) {
+	CHECK_OR_THROW_FOR_CLASS( !finalized_, "protected_add_restraint", "This object must not be finalized before this function is called." );
+	restraints_.push_back( restraint_in );
+	write_to_tracer( "Added restraint " + std::to_string(restraints_.size() -1) + " of type \"" + restraint_in->class_name() + "\"." );
 }
 
 /// @brief Make this object fully indepdendent.  Derived classes must override this, and the override must call

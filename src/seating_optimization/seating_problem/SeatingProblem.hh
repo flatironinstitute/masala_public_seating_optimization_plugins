@@ -39,6 +39,7 @@
 #include <seating_optimization/seating_problem_elements/Table.fwd.hh>
 #include <seating_optimization/seating_problem_elements/Seat.fwd.hh>
 #include <seating_optimization/seating_problem_elements/constraints/Constraint.fwd.hh>
+#include <seating_optimization/seating_problem_elements/restraints/Restraint.fwd.hh>
 #include <seating_optimization/seating_problem/SeatingSolution.fwd.hh>
 
 // Base headers:
@@ -276,11 +277,18 @@ protected:
 		seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP const & seat_in
 	);
 
-	/// @brief Add a constraint.  Stored directly; not cloned.  (NOT YET SUPPORTED -- THROWS.  MUST BE IMPLEMENTED.)
+	/// @brief Add a constraint.  Stored directly; not cloned.
 	/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
 	void
 	protected_add_constraint(
 		seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::ConstraintCSP const & constraint_in
+	);
+
+	/// @brief Add a restraint.  Stored directly; not cloned.
+	/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
+	void
+	protected_add_restraint(
+		seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::restraints::RestraintCSP const & restraint_in
 	);
 
 	/// @brief Make this object fully indepdendent.  Derived classes must override this, and the override must call
@@ -334,6 +342,9 @@ private:
 
 	/// @brief The constraints, sorted by index.
 	std::vector< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::ConstraintCSP > constraints_;
+
+	/// @brief The restraints, sorted by index.
+	std::vector< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::restraints::RestraintCSP > restraints_;
 
 }; // class SeatingProblem
 

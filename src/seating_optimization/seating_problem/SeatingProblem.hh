@@ -204,7 +204,10 @@ public:
 	/// @param[in] problem A shared pointer to an empty problem.  Filled and finalized by this operation.
 	void
 	set_up_cfn_problem(
-		masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & problem
+		masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & problem,
+		std::vector< std::vector< bool > > & allowed_seats,
+		std::vector< std::map< masala::base::Size,  masala::base::Size > > & guest_choice_to_seat_index,
+		std::vector< std::map<  masala::base::Size,  masala::base::Size > > &seat_index_to_guest_choice
 	) const;
 
 	/// @brief Given a CFN solution, generate a SeatingSolution object from it.

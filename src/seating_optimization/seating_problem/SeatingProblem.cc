@@ -41,6 +41,7 @@
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 #include <base/api/getter/MasalaObjectAPIGetterDefinition_OneInput.tmpl.hh>
 #include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_ZeroInput.tmpl.hh>
+#include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_FourInput.tmpl.hh>
 #include <base/managers/plugin_module/MasalaPluginAPI.hh>
 #include <base/managers/plugin_module/MasalaPluginModuleManager.hh>
 
@@ -190,12 +191,26 @@ SeatingProblem::get_api_definition() {
 			)
 		);
 		api_def->add_work_function(
-			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_OneInput< void, masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & > >(
+			masala::make_shared<
+				MasalaObjectAPIWorkFunctionDefinition_FourInput<
+					void,
+					masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API &,
+					std::vector< std::vector< bool > > &,
+					std::vector< std::map< masala::base::Size,  masala::base::Size > > &,
+					std::vector< std::map< masala::base::Size,  masala::base::Size > > &
+				>
+			>(
 				"set_up_cfn_problem", "Configure and finalize a cost function network optimization problem from this object.",
 				true, false, false, false,
 				"problem", "A shared pointer to an empty CFN problem instance.  Filled and finalized by this operation.",
+				"allowed_seats", "An empty vector of Boolean vectors.  Filled by this operation to produce a vector indexed by guest index, containing "
+				"vectors indexed by seat index, indicating whether each guest can sit at each seat or not.",
+				"guest_choice_to_seat_index", "An empty vector of Size-Size maps.  Filled by this operation to produce a vector indexed by guest index, "
+				"containing maps of guest choice index to absolute seat index.",
+				"seat_index_to_guest_choice", "An empty vector of Size-Size maps.  Filled by this operation to produce a vector indexed by guest index, "
+				"containing maps absolute seat index to guest choice index.",
 				"void", "This function returns nothing.",
-				std::bind( &SeatingProblem::set_up_cfn_problem, this, std::placeholders::_1 )
+				std::bind( &SeatingProblem::set_up_cfn_problem, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4 )
 			)
 		);
 		api_def->add_work_function(
@@ -509,7 +524,10 @@ SeatingProblem::get_adjacent_seat_global_indices() const {
 /// @param[in] problem A shared pointer to an empty problem.  Filled and finalized by this operation.
 void
 SeatingProblem::set_up_cfn_problem(
-	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & problem
+	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & problem,
+	std::vector< std::vector< bool > > & allowed_seats,
+	std::vector< std::map< masala::base::Size,  masala::base::Size > > & guest_choice_to_seat_index,
+	std::vector< std::map<  masala::base::Size,  masala::base::Size > > &seat_index_to_guest_choice
 ) const {
 	using masala::base::Size;
 	using namespace masala::numeric::optimization::cost_function_network;
@@ -529,12 +547,15 @@ SeatingProblem::set_up_cfn_problem(
 	CHECK_OR_THROW_FOR_CLASS( inner_problem != nullptr, "set_up_cfn_problem", "Could not interpret inner object of \"" + problem.class_name() + "\" class as a CostFunctionNetworkOptimizationProblem." );
 	CHECK_OR_THROW_FOR_CLASS( inner_problem->empty(), "set_up_cfn_problem", "A non-empty \"" + inner_problem->class_name() + "\" problem instance was passed to this function." );
 	
-	std::vector< std::vector< bool > > allowed_seats( guests_.size(), std::vector<bool>( seat_indices_.size(), true ) );
+	allowed_seats.clear();
+	allowed_seats.resize( guests_.size(), std::vector<bool>( seat_indices_.size(), true ) );
 	for( auto const & restraint : restraints_copy ) {
 		restraint->restrain_seating_choices( *this, allowed_seats );
 	}
-	std::vector< std::map< Size, Size > > guest_choice_to_seat_index( guests_.size() );
-	std::vector< std::map< Size, Size > > seat_index_to_guest_choice( guests_.size() );
+	guest_choice_to_seat_index.clear();
+	seat_index_to_guest_choice.clear();
+	guest_choice_to_seat_index.resize( guests_.size() );
+	seat_index_to_guest_choice.resize( guests_.size() );
 
 	write_to_tracer( "Allowed seats by guest:" );
 	for( Size i(0); i<guests_.size(); ++i ) {

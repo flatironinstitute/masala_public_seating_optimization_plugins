@@ -533,11 +533,15 @@ SeatingProblem::set_up_cfn_problem(
 	for( auto const & restraint : restraints_copy ) {
 		restraint->restrain_seating_choices( *this, allowed_seats );
 	}
+	std::vector< std::map< Size, Size > > guest_choice_to_seat_index( guests_.size() );
+	std::vector< std::map< Size, Size > > seat_index_to_guest_choice( guests_.size() );
+
 	write_to_tracer( "Allowed seats by guest:" );
 	for( Size i(0); i<guests_.size(); ++i ) {
 		std::ostringstream ss;
 		ss << "Guest " << i << " (" << guests_by_index_.at(i)->name() << "):\t";
 		bool first(true);
+		Size counter(0);
 		for( Size j(0); j<allowed_seats[i].size(); ++j ) {
 			if(allowed_seats[i][j]) {
 				if(first) {
@@ -546,13 +550,17 @@ SeatingProblem::set_up_cfn_problem(
 					ss << ",";
 				}
 				ss << j;
+
+				guest_choice_to_seat_index[i][counter] = j;
+				seat_index_to_guest_choice[i][j] = counter;
+				++counter;
 			}
 		}
 		write_to_tracer( ss.str() );
 	}
 
 	for( auto const & constraint : constraints_copy ) {
-		constraint->add_constraint_to_cfn_problem( *this, *inner_problem, 1.0 );
+		constraint->add_constraint_to_cfn_problem( *this, allowed_seats, guest_choice_to_seat_index, *inner_problem, 1.0 );
 	}
 
 	// Finalize:

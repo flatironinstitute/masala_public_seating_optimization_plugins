@@ -259,11 +259,26 @@ RestrictGuestToTableRestraint::set_table(
 /// set some subset of these Booleans to false.
 void
 RestrictGuestToTableRestraint::restrain_seating_choices(
-	seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const &, //seating_problem,
-	std::vector< std::vector< bool > > & //allowed_seating_choices_by_guest
+	seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const & seating_problem,
+	std::vector< std::vector< bool > > & allowed_seating_choices_by_guest
 ) const {
-	TODO TODO TODO;
-	MASALA_THROW( class_namespace() + "::" + class_name(), "restrain_seating_choices", "This class must override this function." );
+	using masala::base::Size;
+	std::lock_guard< std::mutex > lock( mutex() );
+	masala::base::Size guest_index( seating_problem.guest_index_from_uid(guest_uid_) );
+	CHECK_OR_THROW_FOR_CLASS( guest_index < allowed_seating_choices_by_guest.size(), "restrain_seating_choices", "Expected allowed_seating_choices_by_guest "
+		"array to be at least size " + std::to_string(guest_index+1) + ", but got array of size " + std::to_string( allowed_seating_choices_by_guest.size() )
+		+ "."
+	);
+	std::vector< bool > & innervec( allowed_seating_choices_by_guest[guest_index] );
+	for( Size i(0); i<innervec.size(); ++i ) {
+		if( !seating_problem.seat_is_at_a_table(i) ) {
+			innervec[i] = false;
+		} else {
+			if( seating_problem.table_and_local_seat_index_from_global_seat_index(i).first != table_ ) {
+				innervec[i] = false;
+			}
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////

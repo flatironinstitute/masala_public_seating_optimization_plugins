@@ -448,7 +448,9 @@ load_dwave_cfn_optimizer(
 	masala::base::Real const annealing_time,
 	bool const do_greedy,
 	bool const use_layout_embedding,
-	std::string const & dwave_solver_name
+	std::string const & dwave_solver_name,
+	masala::base::Real const dwave_onenode_penalty_cap,
+	masala::base::Real const dwave_twonode_penalty_cap
 ) {
 	using namespace masala::base::managers::engine;
 	using namespace masala::base::managers::plugin_module;
@@ -484,8 +486,8 @@ load_dwave_cfn_optimizer(
 		MasalaObjectAPIDefinitionCSP abqp_api_def( template_dr->get_api_definition_for_inner_class().lock() );
 		CHECK_OR_THROW( abqp_api_def != nullptr, appname, "load_dwave_cfn_optimizer", "Could not get an API definition for the " + template_dr->inner_class_name() + " optimizer." );
 
-		set_setter<Real>( tracerman, appname, *abqp_api_def, "set_onenode_penalty_cap", 100.0 );
-		set_setter<Real>( tracerman, appname, *abqp_api_def, "set_twonode_penalty_cap", 100.0 );
+		set_setter<Real>( tracerman, appname, *abqp_api_def, "set_onenode_penalty_cap", dwave_onenode_penalty_cap );
+		set_setter<Real>( tracerman, appname, *abqp_api_def, "set_twonode_penalty_cap", dwave_twonode_penalty_cap );
 		set_const_bool_setter( tracerman, appname, *abqp_api_def, "set_optimize_onenode_penalties", true );
 		set_const_bool_setter( tracerman, appname, *abqp_api_def, "set_optimize_twonode_penalties", true );
 		set_setter<Real const>( tracerman, appname, *abqp_api_def, "set_local_optimizer_kbt", 12.0 );
@@ -598,7 +600,11 @@ load_optimizer_settings(
 	int const dwave_use_layout_embedding_specified,
 	bool const dwave_use_layout_embedding,
 	int const dwave_solver_name_specified,
-	std::string const & dwave_solver_name
+	std::string const & dwave_solver_name,
+	int const dwave_onenode_penalty_cap_specified,
+	masala::base::Real const dwave_onenode_penalty_cap,
+	int const dwave_twonode_penalty_cap_specified,
+	masala::base::Real const dwave_twonode_penalty_cap
 ) {
 	// Initial checks:
 	if( !( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" || optimizer_name == "MonteCarloCostFunctionNetworkOptimizer" ) ) {
@@ -619,6 +625,8 @@ load_optimizer_settings(
 		CHECK_OR_THROW( !dwave_annealing_time_specified, appname, "load_optimizer_settings", "A D-Wave annealing time was specified, but the optimizer is not the DWaveQuantumQUBOProblemOptimizer." );
 		CHECK_OR_THROW( !dwave_use_layout_embedding_specified, appname, "load_optimizer_settings", "A D-Wave embedding type was specified, but the optimizer is not the DWaveQuantumQUBOProblemOptimizer." );
 		CHECK_OR_THROW( !dwave_solver_name_specified, appname, "load_optimizer_settings", "A D-Wave solver name was specified, but the optimizer is not the DWaveQuantumQUBOProblemOptimizer." );
+		CHECK_OR_THROW( !dwave_onenode_penalty_cap_specified, appname, "load_optimizer_settings", "A D-Wave one-node penalty cap was specified, but the optimizer is not the DWaveQuantumQUBOProblemOptimizer." );
+		CHECK_OR_THROW( !dwave_twonode_penalty_cap_specified, appname, "load_optimizer_settings", "A D-Wave two-node penalty cap was specified, but the optimizer is not the DWaveQuantumQUBOProblemOptimizer." );
 	}
 
 	if( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" ) {
@@ -631,7 +639,7 @@ load_optimizer_settings(
 		);
 	} else if( optimizer_name == "DWaveQuantumQUBOProblemOptimizer" ) {
 		CHECK_OR_THROW( dwave_solver_name_specified, appname, "load_optimizer_settings", "A D-Wave solver must be specified (-dwave_solver_name commandline option) to use the DWaveQuantumQUBOProblemOptimizer." );
-		return load_dwave_cfn_optimizer( tracerman, appname, dwave_samples, solutions_to_store_per_problem, dwave_annealing_time, do_greedy, dwave_use_layout_embedding, dwave_solver_name );
+		return load_dwave_cfn_optimizer( tracerman, appname, dwave_samples, solutions_to_store_per_problem, dwave_annealing_time, do_greedy, dwave_use_layout_embedding, dwave_solver_name, dwave_onenode_penalty_cap, dwave_twonode_penalty_cap );
 	} else {
 		MASALA_THROW( appname, "load_optimizer_settings", "Did not recognize \"" + optimizer_name + "\" as an allowed optimizer.  "
 			"Supported optimizers are: " + masala::base::utility::container::container_to_string( allowed_optimizer_names, ", " ) + "."
@@ -674,7 +682,11 @@ load_options(
 	int & dwave_use_layout_embedding_specified,
 	bool & dwave_use_layout_embedding,
 	int & dwave_solver_name_specified,
-	std::string & dwave_solver_name
+	std::string & dwave_solver_name,
+	int & dwave_onenode_penalty_cap_specified,
+	masala::base::Real & dwave_onenode_penalty_cap,
+	int & dwave_twonode_penalty_cap_specified,
+	masala::base::Real & dwave_twonode_penalty_cap
 ) {
 	using namespace masala::base::utility::container;
 	using namespace masala::base::utility::string;
@@ -698,7 +710,9 @@ load_options(
 		{"dwave_samples", required_argument, &dwave_samples_specified, 1},
 		{"dwave_annealing_time", required_argument, &dwave_annealing_time_specified, 1},
 		{"dwave_use_layout_embedding", required_argument, &dwave_use_layout_embedding_specified, 1},
-		{"dwave_solver_name", required_argument, &dwave_solver_name_specified, 1}
+		{"dwave_solver_name", required_argument, &dwave_solver_name_specified, 1},
+		{"dwave_onenode_penalty_cap", required_argument, &dwave_onenode_penalty_cap_specified, 1},
+		{"dwave_twonode_penalty_cap", required_argument, &dwave_twonode_penalty_cap_specified, 1}
 	};
 	std::map< std::string, std::string > const help_messages{
 		{"h", "Print a help message and exit."},
@@ -729,7 +743,9 @@ load_options(
 		{"dwave_samples", "The number of samples for the D-Wave to perform.  Defaults to 1000." },
 		{"dwave_annealing_time", "The D-wave annealing time, in microseconds.  Defaults to 20.0" },
 		{"dwave_use_layout_embedding", "If true, we use Layout embedding; if false, we use MinorMiner embedding.  Defaults to true." },
-		{"dwave_solver_name", "The name of the solver.  Required input if the D-Wave is used." }
+		{"dwave_solver_name", "The name of the solver.  Required input if the D-Wave is used." },
+		{"dwave_onenode_penalty_cap", "The cap on the one-node penalty values.  Only used to limit dynamic range if the D-Wave is used.  Defaults to 100.0." },
+		{"dwave_twonode_penalty_cap", "The cap on the two-node penalty values.  Only used to limit dynamic range if the D-Wave is used.  Defaults to 100.0." }
 	};
 
 	int option_index;
@@ -823,6 +839,16 @@ load_options(
 		} else if( curname == "dwave_solver_name" ) {
 			dwave_solver_name = std::string( optarg );
 			CHECK_OR_THROW( !dwave_solver_name.empty(), appname, "load_options", "The D-wave solver name must not be empty." ); 
+		} else if( curname == "dwave_onenode_penalty_cap" ) {
+			std::istringstream ss( optarg );
+			ss >> dwave_onenode_penalty_cap;
+			CHECK_OR_THROW( ss.eof() && !(ss.bad() || ss.fail() ), appname, "load_options", "Could not parse \"" + std::string(optarg) + "\" as a floating-point number." );
+			CHECK_OR_THROW( dwave_onenode_penalty_cap > 0, appname, "load_options", "The D-Wave one-node penalty cap must be positive." );
+		} else if( curname == "dwave_twonode_penalty_cap" ) {
+			std::istringstream ss( optarg );
+			ss >> dwave_twonode_penalty_cap;
+			CHECK_OR_THROW( ss.eof() && !(ss.bad() || ss.fail() ), appname, "load_options", "Could not parse \"" + std::string(optarg) + "\" as a floating-point number." );
+			CHECK_OR_THROW( dwave_twonode_penalty_cap > 0, appname, "load_options", "The D-Wave two-node penalty cap must be positive." );
 		} else {
 			MASALA_THROW( appname, "load_options", "Unknown command-line option \"" + curname + "\"." );
 		}
@@ -1017,6 +1043,8 @@ main(
 	int dwave_annealing_time_specified(0);
 	int dwave_use_layout_embedding_specified(0);
 	int dwave_solver_name_specified(0);
+	int dwave_onenode_penalty_cap_specified(0);
+	int dwave_twonode_penalty_cap_specified(0);
 
 	// Allowed optimizer names:
 	std::vector< std::string > const allowed_optimizer_names{
@@ -1035,6 +1063,8 @@ main(
 	masala::base::Size dwave_samples( 1000 );
 	masala::base::Real flattening_boltzmann_temperature( 10.0 );
 	masala::base::Real dwave_annelaing_time( 20.0 );
+	masala::base::Real dwave_onenode_penalty_cap( 100.0 );
+	masala::base::Real dwave_twonode_penalty_cap( 100.0 );
 	bool do_greedy( true ), dwave_use_layout_embedding( true );
 
 	// Masala tracer manager:
@@ -1059,7 +1089,8 @@ main(
 			solutions_to_store_per_problem_specified, flattening_boltzmann_temperature_specified, do_greedy_specified,
 			probfile_name_specified,
 			dwave_samples_specified, dwave_samples, dwave_annealing_time_specified, dwave_annelaing_time,
-			dwave_use_layout_embedding_specified, dwave_use_layout_embedding, dwave_solver_name_specified, dwave_solver_name
+			dwave_use_layout_embedding_specified, dwave_use_layout_embedding, dwave_solver_name_specified, dwave_solver_name,
+			dwave_onenode_penalty_cap_specified, dwave_onenode_penalty_cap, dwave_twonode_penalty_cap_specified, dwave_twonode_penalty_cap
 		)
 	) {
 		return 0;
@@ -1085,7 +1116,8 @@ main(
 			flattening_boltzmann_temperature_specified, flattening_boltzmann_temperature,
 			do_greedy_specified, do_greedy,
 			dwave_samples_specified, dwave_samples, dwave_annealing_time_specified, dwave_annelaing_time,
-			dwave_use_layout_embedding_specified, dwave_use_layout_embedding, dwave_solver_name_specified, dwave_solver_name
+			dwave_use_layout_embedding_specified, dwave_use_layout_embedding, dwave_solver_name_specified, dwave_solver_name,
+			dwave_onenode_penalty_cap_specified, dwave_onenode_penalty_cap, dwave_twonode_penalty_cap_specified, dwave_twonode_penalty_cap
 		)
 	);
 

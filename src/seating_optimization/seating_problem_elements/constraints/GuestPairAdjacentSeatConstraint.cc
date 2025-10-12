@@ -166,21 +166,31 @@ GuestPairAdjacentSeatConstraint::get_api_definition() {
 		// Work functions:
 		api_def->add_work_function(
 			masala::make_shared<
-				MasalaObjectAPIWorkFunctionDefinition_ThreeInput<
+				MasalaObjectAPIWorkFunctionDefinition_FiveInput<
 					void,
 					seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const &,
+					std::vector< std::vector< bool > > const &,
+					std::vector< std::map< masala::base::Size, masala::base::Size > > const &,
 					masala::numeric::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem &,
 					masala::base::Real const
 				>
 			>(
 				"add_constraint_to_cfn_problem", "Modify a pairwise precomputed cost function network optimization problem to add "
 				"the constraint to it.  Base class implementation throws.  Must be overridden by derived classes.",
-				true, false, false, true,
+				true, false, true, false,
 				"seating_problem", "The object describing the seats, tables, guests, and constraints.",
+				"guest_to_allowed_seats", "A vector indexed by guest index, of vectors indexed by seat, of Booleans indicating "
+				"whether a seat is allowed for that guest.",
+				"guest_to_seat_index_to_guest_choice", "A vector indexed by guest index, of maps of seat index to guest "
+				"choice index.  Only the subset of seats accessible to the guest is present in the map.",
 				"cfn_problem", "The cost function network optimizaton problem, modified by this operation.",
 				"global_strength_multiplier", "A global multiplier for the strength of this constraint.",
 				"void", "This function returns nothing.",
-				std::bind( &GuestPairAdjacentSeatConstraint::add_constraint_to_cfn_problem, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 )
+				std::bind(
+					&GuestPairAdjacentSeatConstraint::add_constraint_to_cfn_problem, this,
+					std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
+					std::placeholders::_4, std::placeholders::_5
+				)
 			)
 		);
 
@@ -226,7 +236,9 @@ GuestPairAdjacentSeatConstraint::configure_from_input_line(
 /// @details Base class implementation throws.  Must be overridden by derived classes.
 void
 GuestPairAdjacentSeatConstraint::add_constraint_to_cfn_problem(
-	seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const & seating_problem,
+seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const & seating_problem,
+	std::vector< std::vector< bool > > const & guest_to_allowed_seats,
+	std::vector< std::map< masala::base::Size, masala::base::Size > > const & guest_to_seat_index_to_guest_choice,
 	masala::numeric::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem & cfn_problem,
 	masala::base::Real const global_strength_multiplier
 ) const {
@@ -251,10 +263,18 @@ GuestPairAdjacentSeatConstraint::add_constraint_to_cfn_problem(
 
 	std::vector< std::pair< Size, Size > > const adjacent_seat_indices( seating_problem.get_adjacent_seat_global_indices() );
 	for( auto const & seat_pair : adjacent_seat_indices ) {
-		cfn_problem_cast->add_to_twobody_penalty( std::make_pair( guest1_index, guest2_index ), std::make_pair( seat_pair.first, seat_pair.second ), penalty_value );
-		write_to_tracer( "Constrained guests " + std::to_string(guest1_index) + " and " + std::to_string(guest2_index) + ", at seats " + std::to_string(seat_pair.first) + " and " + std::to_string(seat_pair.second) + ".  Penalty: " + std::to_string(penalty_value) + "." );
-		cfn_problem_cast->add_to_twobody_penalty( std::make_pair( guest1_index, guest2_index ), std::make_pair( seat_pair.second, seat_pair.first ), penalty_value );
-		write_to_tracer( "Constrained guests " + std::to_string(guest1_index) + " and " + std::to_string(guest2_index) + ", at seats " + std::to_string(seat_pair.second) + " and " + std::to_string(seat_pair.first) + ".  Penalty: " + std::to_string(penalty_value) + "." );
+		if( guest_to_allowed_seats[guest1_index][seat_pair.first] && guest_to_allowed_seats[guest2_index][seat_pair.second] ) {
+			Size const guest1_choice_index( guest_to_seat_index_to_guest_choice[guest1_index].at(seat_pair.first) );
+			Size const guest2_choice_index( guest_to_seat_index_to_guest_choice[guest2_index].at(seat_pair.second) );
+			cfn_problem_cast->add_to_twobody_penalty( std::make_pair( guest1_index, guest2_index ), std::make_pair( guest1_choice_index, guest2_choice_index ), penalty_value );
+			write_to_tracer( "Constrained guests " + std::to_string(guest1_index) + " and " + std::to_string(guest2_index) + ", at seats " + std::to_string(seat_pair.first) + " and " + std::to_string(seat_pair.second) + ".  Penalty: " + std::to_string(penalty_value) + "." );
+		}
+		if( guest_to_allowed_seats[guest1_index][seat_pair.second] && guest_to_allowed_seats[guest2_index][seat_pair.first] ) {
+			Size const guest1_choice_index( guest_to_seat_index_to_guest_choice[guest1_index].at(seat_pair.second) );
+			Size const guest2_choice_index( guest_to_seat_index_to_guest_choice[guest2_index].at(seat_pair.first) );
+			cfn_problem_cast->add_to_twobody_penalty( std::make_pair( guest1_index, guest2_index ), std::make_pair( guest1_choice_index, guest2_choice_index ), penalty_value );
+			write_to_tracer( "Constrained guests " + std::to_string(guest1_index) + " and " + std::to_string(guest2_index) + ", at seats " + std::to_string(seat_pair.second) + " and " + std::to_string(seat_pair.first) + ".  Penalty: " + std::to_string(penalty_value) + "." );
+		}
 	}
 }
 

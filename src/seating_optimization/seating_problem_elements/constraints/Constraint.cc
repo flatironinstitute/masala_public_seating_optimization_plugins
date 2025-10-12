@@ -165,9 +165,11 @@ Constraint::get_api_definition() {
 		// Work functions:
 		api_def->add_work_function(
 			masala::make_shared<
-				MasalaObjectAPIWorkFunctionDefinition_ThreeInput<
+				MasalaObjectAPIWorkFunctionDefinition_FiveInput<
 					void,
 					seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const &,
+					std::vector< std::vector< bool > > const &,
+					std::vector< std::map< masala::base::Size, masala::base::Size > > const &,
 					masala::numeric::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem &,
 					masala::base::Real const
 				>
@@ -176,10 +178,18 @@ Constraint::get_api_definition() {
 				"the constraint to it.  Base class implementation throws.  Must be overridden by derived classes.",
 				true, false, true, false,
 				"seating_problem", "The object describing the seats, tables, guests, and constraints.",
+				"guest_to_allowed_seats", "A vector indexed by guest index, of vectors indexed by seat, of Booleans indicating "
+				"whether a seat is allowed for that guest.",
+				"guest_to_seat_index_to_guest_choice", "A vector indexed by guest index, of maps of seat index to guest "
+				"choice index.  Only the subset of seats accessible to the guest is present in the map.",
 				"cfn_problem", "The cost function network optimizaton problem, modified by this operation.",
 				"global_strength_multiplier", "A global multiplier for the strength of this constraint.",
 				"void", "This function returns nothing.",
-				std::bind( &Constraint::add_constraint_to_cfn_problem, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3 )
+				std::bind(
+					&Constraint::add_constraint_to_cfn_problem, this,
+					std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
+					std::placeholders::_4, std::placeholders::_5
+				)
 			)
 		);
 
@@ -220,6 +230,8 @@ Constraint::configure_from_input_line(
 void
 Constraint::add_constraint_to_cfn_problem(
 	seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const & ,//seating_problem,
+	std::vector< std::vector< bool > > const &, //guest_to_allowed_seats,
+	std::vector< std::map< masala::base::Size, masala::base::Size > > const &, //guest_to_seat_index_to_guest_choice,
 	masala::numeric::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem & ,//cfn_problem,
 	masala::base::Real const //global_strength_multiplier
 ) const {

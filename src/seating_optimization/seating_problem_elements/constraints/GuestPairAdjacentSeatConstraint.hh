@@ -156,6 +156,8 @@ public:
 	void
 	add_constraint_to_cfn_problem(
 		seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const & seating_problem,
+		std::vector< std::vector< bool > > const & guest_to_allowed_seats,
+		std::vector< std::map< masala::base::Size, masala::base::Size > > const & guest_to_seat_index_to_guest_choice,
 		masala::numeric::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem & cfn_problem,
 		masala::base::Real const global_strength_multiplier
 	) const override;

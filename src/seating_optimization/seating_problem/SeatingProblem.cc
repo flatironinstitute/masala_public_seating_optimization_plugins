@@ -560,7 +560,7 @@ SeatingProblem::set_up_cfn_problem(
 	}
 
 	for( auto const & constraint : constraints_copy ) {
-		constraint->add_constraint_to_cfn_problem( *this, allowed_seats, guest_choice_to_seat_index, *inner_problem, 1.0 );
+		constraint->add_constraint_to_cfn_problem( *this, allowed_seats, seat_index_to_guest_choice, *inner_problem, 1.0 );
 	}
 
 	// Finalize:

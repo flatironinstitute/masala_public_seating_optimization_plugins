@@ -511,19 +511,45 @@ void
 SeatingProblem::set_up_cfn_problem(
 	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & problem
 ) const {
+	using masala::base::Size;
 	using namespace masala::numeric::optimization::cost_function_network;
 	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints;
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::restraints;
 
 	std::vector< ConstraintCSP > constraints_copy;
+	std::vector< RestraintCSP > restraints_copy;
 	{
 		std::lock_guard< std::mutex > lock( mutex_ );
 		CHECK_OR_THROW_FOR_CLASS( finalized_, "set_up_cfn_problem", "This object must be finalized before this function is called." );
 		constraints_copy = constraints_ ;
+		restraints_copy = restraints_ ;
 	}
 
 	CostFunctionNetworkOptimizationProblemSP inner_problem( std::dynamic_pointer_cast< CostFunctionNetworkOptimizationProblem >( problem.get_inner_data_representation_object() ) );
 	CHECK_OR_THROW_FOR_CLASS( inner_problem != nullptr, "set_up_cfn_problem", "Could not interpret inner object of \"" + problem.class_name() + "\" class as a CostFunctionNetworkOptimizationProblem." );
 	CHECK_OR_THROW_FOR_CLASS( inner_problem->empty(), "set_up_cfn_problem", "A non-empty \"" + inner_problem->class_name() + "\" problem instance was passed to this function." );
+	
+	std::vector< std::vector< bool > > allowed_seats( guests_.size(), std::vector<bool>( seat_indices_.size(), true ) );
+	for( auto const & restraint : restraints_copy ) {
+		restraint->restrain_seating_choices( *this, allowed_seats );
+	}
+	write_to_tracer( "Allowed seats by guest:" );
+	for( Size i(0); i<guests_.size(); ++i ) {
+		std::ostringstream ss;
+		ss << "Guest " << i << " (" << guests_by_index_.at(i)->name() << "):\t";
+		bool first(true);
+		for( Size j(0); j<allowed_seats[i].size(); ++j ) {
+			if(allowed_seats[i][j]) {
+				if(first) {
+					first = false;
+				} else {
+					ss << ",";
+				}
+				ss << j;
+			}
+		}
+		write_to_tracer( ss.str() );
+	}
 
 	for( auto const & constraint : constraints_copy ) {
 		constraint->add_constraint_to_cfn_problem( *this, *inner_problem, 1.0 );
@@ -786,6 +812,7 @@ SeatingProblem::protected_make_independent() {
 	using masala::base::Size;
 	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
 	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints;
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::restraints;
 
 	api_definition_ = nullptr;
 	if( !guests_.empty() ) {
@@ -813,6 +840,14 @@ SeatingProblem::protected_make_independent() {
 			constraints_[i] = new_constraint;
 		}
 	}
+	if( !restraints_.empty() ) {
+		for( Size i(0); i<restraints_.size(); ++i ) {
+			RestraintSP new_restraint( std::dynamic_pointer_cast< Restraint >( restraints_[i]->clone() ) );
+			CHECK_OR_THROW_FOR_CLASS( new_restraint != nullptr, "protected_make_independent", "Unable to clone restraint " + std::to_string(i) + "." );
+			new_restraint->make_independent();
+			restraints_[i] = new_restraint;
+		}
+	}
 
 	regenerate_seat_indices();
 }
@@ -830,6 +865,7 @@ SeatingProblem::protected_assign(
 	seat_indices_ = src.seat_indices_;
 	seats_by_index_ = src.seats_by_index_;
 	constraints_ = src.constraints_;
+	restraints_ = src.restraints_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -244,6 +244,15 @@ SeatingProblem::get_api_definition() {
 			)
 		);
 		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_OneInput< std::vector< Size >, Size const > >(
+				"seats_at_table", "Get a vector of global seat indices for the seats at a given table.",
+				true, false, false, false,
+				"table_index", "The index of the table.",
+				"seats_at_table", "A vector of the global indices of the seats at this table.",
+				std::bind( &SeatingProblem::seats_at_table, this, std::placeholders::_1 )
+			)
+		);
+		api_def->add_work_function(
 			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_OneInput< std::pair< Size, Size >, Size const > >(
 				"table_and_local_seat_index_from_global_seat_index", "Given a global seat index, determine the table index "
 				"and local index of the seat at the table.  Throws if the seat isn't at a table.",
@@ -643,6 +652,24 @@ SeatingProblem::seat_is_at_a_table(
 ) const {
 	std::lock_guard< std::mutex > lock( mutex_ );
 	return protected_seat_is_at_a_table( seat_index );
+}
+
+/// @brief Get a vector of global seat indices for the seats at a given table.
+/// @param[in] table_index The index of the table.
+std::vector< masala::base::Size >
+SeatingProblem::seats_at_table(
+	masala::base::Size const table_index
+) const {
+	using masala::base::Size;
+	std::lock_guard< std::mutex > lock( mutex_ );
+	CHECK_OR_THROW_FOR_CLASS( table_index < tables_.size(), "seats_at_table", "Table index is out of range." );
+	Size nseat( tables_[table_index]->num_seats() );
+	std::vector< Size > outvec( nseat );
+	for( Size i(0); i<nseat; ++i ){
+		outvec[i] = seat_indices_.at( tables_[table_index]->seat(i) );
+	}
+	outvec.shrink_to_fit();
+	return outvec;
 }
 
 /// @brief Given a global seat index, determine the table index and local index of the seat at the table.  Throws if the seat isn't at a table.

@@ -224,6 +224,10 @@ public:
 	/// @brief Given a global seat index, determine whether this seat is at a table.
 	bool seat_is_at_a_table( masala::base::Size const seat_index ) const;
 
+	/// @brief Get a vector of global seat indices for the seats at a given table.
+	/// @param[in] table_index The index of the table.
+	std::vector< masala::base::Size > seats_at_table( masala::base::Size const table_index ) const;
+
 	/// @brief Given a global seat index, determine the table index and local index of the seat at the table.  Throws if the seat isn't at a table.
 	std::pair< masala::base::Size, masala::base::Size > table_and_local_seat_index_from_global_seat_index( masala::base::Size const seat_index ) const;
 

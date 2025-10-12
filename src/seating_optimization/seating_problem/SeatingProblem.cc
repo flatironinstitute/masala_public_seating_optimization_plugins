@@ -30,6 +30,7 @@
 #include <seating_optimization/seating_problem_elements/Seat.hh>
 #include <seating_optimization/seating_problem_elements/SeatingElementBase.hh>
 #include <seating_optimization/seating_problem_elements/constraints/Constraint.hh>
+#include <seating_optimization/seating_problem_elements/restraints/Restraint.hh>
 #include <seating_optimization/seating_problem/SeatingSolution.hh>
 
 // Base headers:
@@ -434,18 +435,22 @@ SeatingProblem::configure_from_problem_definition_file_lines(
 			GuestCSP guest( std::dynamic_pointer_cast< Guest const >(seating_element) );
 			if( guest != nullptr ) { protected_add_guest(guest); }
 			else {
-				constraints::ConstraintCSP constraint( std::dynamic_pointer_cast< constraints::Constraint const >(seating_element) );
-				if( constraint != nullptr ) { protected_add_constraint(constraint); }
-				else {			
-					TableCSP table( std::dynamic_pointer_cast< Table const >(seating_element) );
-					if( table != nullptr ) { protected_add_table(table); }
-					else {
-						SeatCSP seat( std::dynamic_pointer_cast< Seat const >(seating_element) );
-						if( seat != nullptr ) { protected_add_seat(seat); }
+				restraints::RestraintCSP restraint( std::dynamic_pointer_cast< restraints::Restraint const >(seating_element) );
+				if( restraint != nullptr ) { protected_add_restraint(restraint); }
+				else {
+					constraints::ConstraintCSP constraint( std::dynamic_pointer_cast< constraints::Constraint const >(seating_element) );
+					if( constraint != nullptr ) { protected_add_constraint(constraint); }
+					else {			
+						TableCSP table( std::dynamic_pointer_cast< Table const >(seating_element) );
+						if( table != nullptr ) { protected_add_table(table); }
 						else {
-							MASALA_THROW( class_namespace() + "::" + class_name(), "configure_from_problem_definition_file_lines",
-								"Could not interpret \"" + seating_element->class_name() + "\" object as a Guest, a Table, a Seat, or a Constraint."
-							);
+							SeatCSP seat( std::dynamic_pointer_cast< Seat const >(seating_element) );
+							if( seat != nullptr ) { protected_add_seat(seat); }
+							else {
+								MASALA_THROW( class_namespace() + "::" + class_name(), "configure_from_problem_definition_file_lines",
+									"Could not interpret \"" + seating_element->class_name() + "\" object as a Guest, a Table, a Seat, a Constraint, or a Restraint."
+								);
+							}
 						}
 					}
 				}

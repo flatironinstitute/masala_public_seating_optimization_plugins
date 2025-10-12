@@ -141,10 +141,10 @@ RestrictGuestToTableRestraint::get_api_definition() {
 			masala::make_shared< MasalaObjectAPIDefinition >(
 				*this,
 				"The RestrictGuestToTableRestraint class restricts a guest to only have seating options at a given table.",
-				false, true
+				false, false
 			)
 		);
-		ADD_PROTECTED_CONSTRUCTOR_DEFINITIONS( RestrictGuestToTableRestraint, api_def );
+		ADD_PUBLIC_CONSTRUCTOR_DEFINITIONS( RestrictGuestToTableRestraint, api_def );
 
 		// Getters:
 
@@ -163,7 +163,7 @@ RestrictGuestToTableRestraint::get_api_definition() {
 			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< std::string const & > >(
 				"set_guest_uid", "Set the guest UID.",
 				"setting", "The unique ID of the guest.",
-				false, true,
+				false, false,
 				std::bind( &RestrictGuestToTableRestraint::set_guest_uid, this, std::placeholders::_1 )
 			)
 		);
@@ -171,7 +171,7 @@ RestrictGuestToTableRestraint::get_api_definition() {
 			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< Size const > >(
 				"set_table", "Set the table index.",
 				"setting", "The table index.",
-				false, true,
+				false, false,
 				std::bind( &RestrictGuestToTableRestraint::set_table, this, std::placeholders::_1 )
 			)
 		);

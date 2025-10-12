@@ -18,8 +18,7 @@
 
 /// @file src/seating_optimization/seating_problem_elements/restraints/RestrictGuestToTableRestraint.cc
 /// @brief Implementations for a RestrictGuestToTableRestraint.
-/// @details The RestrictGuestToTableRestraint class is the base class for restraints, which are elements of a seating problem.  They stricly limit the
-/// seating choices for a particular guest, unlike Constraints, which only impose a penalty or a bonus for a particular seating choice.
+/// @details The RestrictGuestToTableRestraint class strictly limits a guest to a particular table.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
 
 // Unit header:
@@ -225,6 +224,7 @@ RestrictGuestToTableRestraint::configure_from_input_line(
 	std::string temp;
 	signed long int tempint;
 	ss >> temp >> guest_uid_ >> tempint;
+	CHECK_OR_THROW_FOR_CLASS( ss.eof() && !(ss.bad() || ss.fail()), "configure_from_input_line", "Could not parse line \"" + input_line + "\"." );
 	CHECK_OR_THROW_FOR_CLASS( temp == class_name(), "configure_from_input_line", "Expected line to start with \"" + class_name() + "\", but got \"" + temp + "\"." );
 	CHECK_OR_THROW_FOR_CLASS( tempint >= 0, "configure_from_input_line", "Expected non-negative table index." );
 	table_ = static_cast<Size>( tempint );
@@ -289,7 +289,7 @@ RestrictGuestToTableRestraint::restrain_seating_choices(
 /// the parent class implementation.
 void
 RestrictGuestToTableRestraint::protected_make_independent() {
-	// TODO DEEP CLONING
+	// Nothing to deep-clone here.
 	Parent::protected_make_independent();
 }
 
@@ -302,7 +302,8 @@ RestrictGuestToTableRestraint::protected_assign( SeatingElementBase const & src 
 		+ " to a RestrictGuestToTableRestraint object."
 	);
 
-	// TODO TODO TODO
+	guest_uid_ = src_ptr_cast->guest_uid_;
+	table_ = src_ptr_cast->table_;
 
 	Parent::protected_assign( src );
 }

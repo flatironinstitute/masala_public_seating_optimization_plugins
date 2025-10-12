@@ -140,6 +140,12 @@ public:
 	/// @details Base class implementation throws.  Must be overridden by derived classes.
 	void configure_from_input_line( std::string const & input_line ) override;
 
+	/// @brief Set the guest UID.
+	void set_guest_uid( std::string const & setting );
+
+	/// @brief Set the table index.
+	void set_table( masala::base::Size const setting );
+
 public:
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -175,6 +181,12 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 // PRIVATE DATA
 ////////////////////////////////////////////////////////////////////////////////
+
+	/// @brief The Guest UID.
+	std::string guest_uid_;
+
+	/// @brief The table index.
+	masala::base::Size table_ = 0;
 
 }; // class RestrictGuestToTableRestraint
 

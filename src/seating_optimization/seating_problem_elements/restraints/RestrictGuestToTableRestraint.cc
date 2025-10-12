@@ -159,6 +159,22 @@ RestrictGuestToTableRestraint::get_api_definition() {
 				std::bind( &RestrictGuestToTableRestraint::configure_from_input_line, this, std::placeholders::_1 )
 			)
 		);
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< std::string const & > >(
+				"set_guest_uid", "Set the guest UID.",
+				"setting", "The unique ID of the guest.",
+				false, true,
+				std::bind( &RestrictGuestToTableRestraint::set_guest_uid, this, std::placeholders::_1 )
+			)
+		);
+		api_def->add_setter(
+			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< Size const > >(
+				"set_table", "Set the table index.",
+				"setting", "The table index.",
+				false, true,
+				std::bind( &RestrictGuestToTableRestraint::set_table, this, std::placeholders::_1 )
+			)
+		);
 
 		// Work functions:
 		api_def->add_work_function(
@@ -205,6 +221,24 @@ RestrictGuestToTableRestraint::configure_from_input_line(
 ) {
 	TODO TODO TODO;
 	MASALA_THROW( class_namespace() + "::" + class_name(), "configure_from_input_line", "This restraint class must override this function." );
+}
+
+/// @brief Set the guest UID.
+void
+RestrictGuestToTableRestraint::set_guest_uid(
+	std::string const & setting
+) {
+	std::lock_guard< std::mutex > lock( mutex() );
+	guest_uid_ = setting;
+}
+
+/// @brief Set the table index.
+void
+RestrictGuestToTableRestraint::set_table(
+	masala::base::Size const setting
+) {
+	std::lock_guard< std::mutex > lock( mutex() );
+	table_ = setting;
 }
 
 

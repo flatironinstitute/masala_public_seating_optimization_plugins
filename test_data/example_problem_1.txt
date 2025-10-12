@@ -33,8 +33,8 @@ GuestOverlapConstraint  30.0
 
 # Restrain some guests to be at the first table.
 
-RestrictGuestToSeatsRestraint   bride           9 10 11
-RestrictGuestToSeatsRestraint   bride           9 10 11
+RestrictGuestToSeatsRestraint	bride		9 10 11
+RestrictGuestToSeatsRestraint	groom		9 10 11
 RestrictGuestToTableRestraint	bride			1
 RestrictGuestToTableRestraint	groom			1
 RestrictGuestToTableRestraint	mother_of_bride		1

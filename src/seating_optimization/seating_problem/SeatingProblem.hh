@@ -39,6 +39,7 @@
 #include <seating_optimization/seating_problem_elements/Table.fwd.hh>
 #include <seating_optimization/seating_problem_elements/Seat.fwd.hh>
 #include <seating_optimization/seating_problem_elements/constraints/Constraint.fwd.hh>
+#include <seating_optimization/seating_problem_elements/restraints/Restraint.fwd.hh>
 #include <seating_optimization/seating_problem/SeatingSolution.fwd.hh>
 
 // Base headers:
@@ -203,14 +204,18 @@ public:
 	/// @param[in] problem A shared pointer to an empty problem.  Filled and finalized by this operation.
 	void
 	set_up_cfn_problem(
-		masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & problem
+		masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & problem,
+		std::vector< std::vector< bool > > & allowed_seats,
+		std::vector< std::map< masala::base::Size,  masala::base::Size > > & guest_choice_to_seat_index,
+		std::vector< std::map<  masala::base::Size,  masala::base::Size > > & seat_index_to_guest_choice
 	) const;
 
 	/// @brief Given a CFN solution, generate a SeatingSolution object from it.
 	/// @note The returned object is unfinalized, since it needs a shared pointer from this SeatingProblem object to be cached in it.
 	SeatingSolutionSP
 	seating_solution_from_cfn_solution(
-		masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const & cfn_solution
+		masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const & cfn_solution,
+		std::vector< std::map< masala::base::Size, masala::base::Size > > const & guest_choice_to_seat_index
 	) const;
 
 	/// @brief Given a global seat index, determine whether this seat is at a table.
@@ -276,11 +281,18 @@ protected:
 		seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP const & seat_in
 	);
 
-	/// @brief Add a constraint.  Stored directly; not cloned.  (NOT YET SUPPORTED -- THROWS.  MUST BE IMPLEMENTED.)
+	/// @brief Add a constraint.  Stored directly; not cloned.
 	/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
 	void
 	protected_add_constraint(
 		seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::ConstraintCSP const & constraint_in
+	);
+
+	/// @brief Add a restraint.  Stored directly; not cloned.
+	/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
+	void
+	protected_add_restraint(
+		seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::restraints::RestraintCSP const & restraint_in
 	);
 
 	/// @brief Make this object fully indepdendent.  Derived classes must override this, and the override must call
@@ -334,6 +346,9 @@ private:
 
 	/// @brief The constraints, sorted by index.
 	std::vector< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::ConstraintCSP > constraints_;
+
+	/// @brief The restraints, sorted by index.
+	std::vector< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::restraints::RestraintCSP > restraints_;
 
 }; // class SeatingProblem
 

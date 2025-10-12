@@ -30,6 +30,7 @@
 #include <seating_optimization/seating_problem_elements/Seat.hh>
 #include <seating_optimization/seating_problem_elements/SeatingElementBase.hh>
 #include <seating_optimization/seating_problem_elements/constraints/Constraint.hh>
+#include <seating_optimization/seating_problem_elements/restraints/Restraint.hh>
 #include <seating_optimization/seating_problem/SeatingSolution.hh>
 
 // Base headers:
@@ -40,6 +41,8 @@
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
 #include <base/api/getter/MasalaObjectAPIGetterDefinition_OneInput.tmpl.hh>
 #include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_ZeroInput.tmpl.hh>
+#include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_TwoInput.tmpl.hh>
+#include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_FourInput.tmpl.hh>
 #include <base/managers/plugin_module/MasalaPluginAPI.hh>
 #include <base/managers/plugin_module/MasalaPluginModuleManager.hh>
 
@@ -189,23 +192,38 @@ SeatingProblem::get_api_definition() {
 			)
 		);
 		api_def->add_work_function(
-			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_OneInput< void, masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & > >(
+			masala::make_shared<
+				MasalaObjectAPIWorkFunctionDefinition_FourInput<
+					void,
+					masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API &,
+					std::vector< std::vector< bool > > &,
+					std::vector< std::map< masala::base::Size,  masala::base::Size > > &,
+					std::vector< std::map< masala::base::Size,  masala::base::Size > > &
+				>
+			>(
 				"set_up_cfn_problem", "Configure and finalize a cost function network optimization problem from this object.",
 				true, false, false, false,
 				"problem", "A shared pointer to an empty CFN problem instance.  Filled and finalized by this operation.",
+				"allowed_seats", "An empty vector of Boolean vectors.  Filled by this operation to produce a vector indexed by guest index, containing "
+				"vectors indexed by seat index, indicating whether each guest can sit at each seat or not.",
+				"guest_choice_to_seat_index", "An empty vector of Size-Size maps.  Filled by this operation to produce a vector indexed by guest index, "
+				"containing maps of guest choice index to absolute seat index.",
+				"seat_index_to_guest_choice", "An empty vector of Size-Size maps.  Filled by this operation to produce a vector indexed by guest index, "
+				"containing maps absolute seat index to guest choice index.",
 				"void", "This function returns nothing.",
-				std::bind( &SeatingProblem::set_up_cfn_problem, this, std::placeholders::_1 )
+				std::bind( &SeatingProblem::set_up_cfn_problem, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4 )
 			)
 		);
 		api_def->add_work_function(
-			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_OneInput< SeatingSolutionSP, masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const & > >(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_TwoInput< SeatingSolutionSP, masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const &, std::vector< std::map< masala::base::Size, masala::base::Size > > const & > >(
 				"seating_solution_from_cfn_solution", "Given a CFN solution, generate a SeatingSolution object from it.  "
 				"The returned object is unfinalized, since it needs a shared pointer from this SeatingProblem object to be "
 				"cached in it.",
 				true, false, false, false,
 				"cfn_solution", "The solution to a cost function network optimization problem.",
+				"guest_choice_to_seat_index", "a vector indexed by guest index, containing maps of guest choice index to absolute seat index.",
 				"seating_solution", "A solution to this seating problem.",
-				std::bind( &SeatingProblem::seating_solution_from_cfn_solution, this, std::placeholders::_1 )
+				std::bind( &SeatingProblem::seating_solution_from_cfn_solution, this, std::placeholders::_1, std::placeholders::_2 )
 			)
 		);
 		api_def->add_work_function(
@@ -434,18 +452,22 @@ SeatingProblem::configure_from_problem_definition_file_lines(
 			GuestCSP guest( std::dynamic_pointer_cast< Guest const >(seating_element) );
 			if( guest != nullptr ) { protected_add_guest(guest); }
 			else {
-				constraints::ConstraintCSP constraint( std::dynamic_pointer_cast< constraints::Constraint const >(seating_element) );
-				if( constraint != nullptr ) { protected_add_constraint(constraint); }
-				else {			
-					TableCSP table( std::dynamic_pointer_cast< Table const >(seating_element) );
-					if( table != nullptr ) { protected_add_table(table); }
-					else {
-						SeatCSP seat( std::dynamic_pointer_cast< Seat const >(seating_element) );
-						if( seat != nullptr ) { protected_add_seat(seat); }
+				restraints::RestraintCSP restraint( std::dynamic_pointer_cast< restraints::Restraint const >(seating_element) );
+				if( restraint != nullptr ) { protected_add_restraint(restraint); }
+				else {
+					constraints::ConstraintCSP constraint( std::dynamic_pointer_cast< constraints::Constraint const >(seating_element) );
+					if( constraint != nullptr ) { protected_add_constraint(constraint); }
+					else {			
+						TableCSP table( std::dynamic_pointer_cast< Table const >(seating_element) );
+						if( table != nullptr ) { protected_add_table(table); }
 						else {
-							MASALA_THROW( class_namespace() + "::" + class_name(), "configure_from_problem_definition_file_lines",
-								"Could not interpret \"" + seating_element->class_name() + "\" object as a Guest, a Table, a Seat, or a Constraint."
-							);
+							SeatCSP seat( std::dynamic_pointer_cast< Seat const >(seating_element) );
+							if( seat != nullptr ) { protected_add_seat(seat); }
+							else {
+								MASALA_THROW( class_namespace() + "::" + class_name(), "configure_from_problem_definition_file_lines",
+									"Could not interpret \"" + seating_element->class_name() + "\" object as a Guest, a Table, a Seat, a Constraint, or a Restraint."
+								);
+							}
 						}
 					}
 				}
@@ -504,24 +526,64 @@ SeatingProblem::get_adjacent_seat_global_indices() const {
 /// @param[in] problem A shared pointer to an empty problem.  Filled and finalized by this operation.
 void
 SeatingProblem::set_up_cfn_problem(
-	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & problem
+	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem_API & problem,
+	std::vector< std::vector< bool > > & allowed_seats,
+	std::vector< std::map< masala::base::Size,  masala::base::Size > > & guest_choice_to_seat_index,
+	std::vector< std::map<  masala::base::Size,  masala::base::Size > > &seat_index_to_guest_choice
 ) const {
+	using masala::base::Size;
 	using namespace masala::numeric::optimization::cost_function_network;
 	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints;
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::restraints;
 
 	std::vector< ConstraintCSP > constraints_copy;
+	std::vector< RestraintCSP > restraints_copy;
 	{
 		std::lock_guard< std::mutex > lock( mutex_ );
 		CHECK_OR_THROW_FOR_CLASS( finalized_, "set_up_cfn_problem", "This object must be finalized before this function is called." );
 		constraints_copy = constraints_ ;
+		restraints_copy = restraints_ ;
 	}
 
 	CostFunctionNetworkOptimizationProblemSP inner_problem( std::dynamic_pointer_cast< CostFunctionNetworkOptimizationProblem >( problem.get_inner_data_representation_object() ) );
 	CHECK_OR_THROW_FOR_CLASS( inner_problem != nullptr, "set_up_cfn_problem", "Could not interpret inner object of \"" + problem.class_name() + "\" class as a CostFunctionNetworkOptimizationProblem." );
 	CHECK_OR_THROW_FOR_CLASS( inner_problem->empty(), "set_up_cfn_problem", "A non-empty \"" + inner_problem->class_name() + "\" problem instance was passed to this function." );
+	
+	allowed_seats.clear();
+	allowed_seats.resize( guests_.size(), std::vector<bool>( seat_indices_.size(), true ) );
+	for( auto const & restraint : restraints_copy ) {
+		restraint->restrain_seating_choices( *this, allowed_seats );
+	}
+	guest_choice_to_seat_index.clear();
+	seat_index_to_guest_choice.clear();
+	guest_choice_to_seat_index.resize( guests_.size() );
+	seat_index_to_guest_choice.resize( guests_.size() );
+
+	write_to_tracer( "Allowed seats by guest:" );
+	for( Size i(0); i<guests_.size(); ++i ) {
+		std::ostringstream ss;
+		ss << "Guest " << i << " (" << guests_by_index_.at(i)->name() << "):\t";
+		bool first(true);
+		Size counter(0);
+		for( Size j(0); j<allowed_seats[i].size(); ++j ) {
+			if(allowed_seats[i][j]) {
+				if(first) {
+					first = false;
+				} else {
+					ss << ",";
+				}
+				ss << j;
+
+				guest_choice_to_seat_index[i][counter] = j;
+				seat_index_to_guest_choice[i][j] = counter;
+				++counter;
+			}
+		}
+		write_to_tracer( ss.str() );
+	}
 
 	for( auto const & constraint : constraints_copy ) {
-		constraint->add_constraint_to_cfn_problem( *this, *inner_problem, 1.0 );
+		constraint->add_constraint_to_cfn_problem( *this, allowed_seats, seat_index_to_guest_choice, *inner_problem, 1.0 );
 	}
 
 	// Finalize:
@@ -532,7 +594,8 @@ SeatingProblem::set_up_cfn_problem(
 /// @note The returned object is unfinalized, since it needs a shared pointer from this SeatingProblem object to be cached in it.
 SeatingSolutionSP
 SeatingProblem::seating_solution_from_cfn_solution(
-	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const & cfn_solution
+	masala::numeric_api::auto_generated_api::optimization::cost_function_network::CostFunctionNetworkOptimizationSolution_API const & cfn_solution,
+	std::vector< std::map< masala::base::Size, masala::base::Size > > const & guest_choice_to_seat_index
 ) const {
 	using namespace masala::numeric_api::auto_generated_api::optimization::cost_function_network;
 	using masala::base::Size;
@@ -552,7 +615,7 @@ SeatingProblem::seating_solution_from_cfn_solution(
 	CHECK_OR_THROW_FOR_CLASS( cfn_soln_all_positions.size() == guests_.size(), "seating_solution_from_cfn_solution", "Size mismatch between CFN solution at all positions and guest count." );
 	
 	for( Size absnode_index(0), n_abs_nodes(cfn_soln_all_positions.size()); absnode_index < n_abs_nodes; ++absnode_index ) {
-		seating_soln->add_guest_seat_assignment( absnode_index, cfn_soln_all_positions[absnode_index] );
+		seating_soln->add_guest_seat_assignment( absnode_index, guest_choice_to_seat_index[absnode_index].at(cfn_soln_all_positions[absnode_index]) );
 	}
 
 	return seating_soln;
@@ -752,7 +815,7 @@ SeatingProblem::protected_add_seat(
 	MASALA_THROW( class_namespace() + "::" + class_name(), "protected_add_seat", "Loose seats are not yet supported!" );
 }
 
-/// @brief Add a constraint.  Stored directly; not cloned.  (NOT YET SUPPORTED -- THROWS.  MUST BE IMPLEMENTED.)
+/// @brief Add a constraint.  Stored directly; not cloned.
 /// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
 void
 SeatingProblem::protected_add_constraint(
@@ -763,6 +826,17 @@ SeatingProblem::protected_add_constraint(
 	write_to_tracer( "Added constraint " + std::to_string(constraints_.size() -1) + " of type \"" + constraint_in->class_name() + "\"." );
 }
 
+/// @brief Add a restraint.  Stored directly; not cloned.
+/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
+void
+SeatingProblem::protected_add_restraint(
+	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::restraints::RestraintCSP const & restraint_in
+) {
+	CHECK_OR_THROW_FOR_CLASS( !finalized_, "protected_add_restraint", "This object must not be finalized before this function is called." );
+	restraints_.push_back( restraint_in );
+	write_to_tracer( "Added restraint " + std::to_string(restraints_.size() -1) + " of type \"" + restraint_in->class_name() + "\"." );
+}
+
 /// @brief Make this object fully indepdendent.  Derived classes must override this, and the override must call
 /// the parent class implementation.
 void
@@ -770,6 +844,7 @@ SeatingProblem::protected_make_independent() {
 	using masala::base::Size;
 	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements;
 	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints;
+	using namespace seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::restraints;
 
 	api_definition_ = nullptr;
 	if( !guests_.empty() ) {
@@ -797,6 +872,14 @@ SeatingProblem::protected_make_independent() {
 			constraints_[i] = new_constraint;
 		}
 	}
+	if( !restraints_.empty() ) {
+		for( Size i(0); i<restraints_.size(); ++i ) {
+			RestraintSP new_restraint( std::dynamic_pointer_cast< Restraint >( restraints_[i]->clone() ) );
+			CHECK_OR_THROW_FOR_CLASS( new_restraint != nullptr, "protected_make_independent", "Unable to clone restraint " + std::to_string(i) + "." );
+			new_restraint->make_independent();
+			restraints_[i] = new_restraint;
+		}
+	}
 
 	regenerate_seat_indices();
 }
@@ -814,6 +897,7 @@ SeatingProblem::protected_assign(
 	seat_indices_ = src.seat_indices_;
 	seats_by_index_ = src.seats_by_index_;
 	constraints_ = src.constraints_;
+	restraints_ = src.restraints_;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

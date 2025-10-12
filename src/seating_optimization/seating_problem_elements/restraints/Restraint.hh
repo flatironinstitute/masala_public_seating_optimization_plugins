@@ -16,17 +16,17 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/// @file src/seating_optimization/seating_problem_elements/constraints/Constraint.hh
-/// @brief Headers for a Constraint.
-/// @details The Constraint class is the base class for constraints, which are elements of a seating problem.  They can
-/// be things like, "Guests A and B should be seated next to one another," or "Guest C should be near the front of the room", etc.
+/// @file src/seating_optimization/seating_problem_elements/restraints/Restraint.hh
+/// @brief Headers for a Restraint.
+/// @details The Restraint class is the base class for restraints, which are elements of a seating problem.  They stricly limit the
+/// seating choices for a particular guest, unlike Constraints, which only impose a penalty or a bonus for a particular seating choice.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
 
-#ifndef Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_constraints_Constraint_hh
-#define Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_constraints_Constraint_hh
+#ifndef Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_restraints_Restraint_hh
+#define Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_restraints_Restraint_hh
 
 // Forward declarations:
-#include <seating_optimization/seating_problem_elements/constraints/Constraint.fwd.hh>
+#include <seating_optimization/seating_problem_elements/restraints/Restraint.fwd.hh>
 
 // Parent header:
 #include <seating_optimization/seating_problem_elements/SeatingElementBase.hh>
@@ -40,18 +40,17 @@
 // Base headers:
 #include <base/types.hh>
 #include <vector>
-#include <map>
 
 namespace seating_optimization_masala_plugins {
 namespace seating_optimization {
 namespace seating_problem_elements {
-namespace constraints {
+namespace restraints {
 
-/// @brief A Constraint.
-/// @details The Constraint class is the base class for constraints, which are elements of a seating problem.  They can
-/// be things like, "Guests A and B should be seated next to one another," or "Guest C should be near the front of the room", etc.
+/// @brief A Restraint.
+/// @details The Restraint class is the base class for restraints, which are elements of a seating problem.  They stricly limit the
+/// seating choices for a particular guest, unlike Constraints, which only impose a penalty or a bonus for a particular seating choice.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
-class Constraint : public seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBase {
+class Restraint : public seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBase {
 
 	typedef seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBase Parent;
 	typedef seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBaseSP ParentSP;
@@ -67,20 +66,20 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 
 	/// @brief Default constructor.
-	Constraint() = default;
+	Restraint() = default;
 
 	/// @brief Copy constructor.  Explicit due to mutex.
-	Constraint( Constraint const & src );
+	Restraint( Restraint const & src );
 
 	/// @brief Destructor.
-	~Constraint() override = default;
+	~Restraint() override = default;
 
 	/// @brief Make a copy of this object.
 	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBaseSP
 	clone() const override;
 
 	/// @brief Make a fully independent copy of this object.
-	ConstraintSP
+	RestraintSP
 	deep_clone() const;
 
 public:
@@ -91,7 +90,7 @@ public:
 
 	/// @brief Get the category or categories for this plugin class.  Default for all
 	/// optimization problems; may be overridden by derived classes.
-	/// @returns { { "SeatingProblem", "SeatingProblemElement", "Constraint" } }
+	/// @returns { { "SeatingProblem", "SeatingProblemElement", "Restraint" } }
 	/// @note Categories are hierarchical (e.g. Selector->AtomSelector->AnnotatedRegionSelector,
 	/// stored as { {"Selector", "AtomSelector", "AnnotatedRegionSelector"} }). A plugin can be
 	/// in more than one hierarchical category (in which case there would be more than one
@@ -102,17 +101,17 @@ public:
 
 	/// @brief Get the keywords for this plugin class.  Default for all
 	/// optimization solutions; may be overridden by derived classes.
-	/// @returns { "seating_problem", "seating_problem_element", "constraint" }
+	/// @returns { "seating_problem", "seating_problem_element", "restraint" }
 	std::vector< std::string >
 	get_keywords() const override;
 
 	/// @brief Get the name of this class.
-	/// @returns "Constraint".
+	/// @returns "Restraint".
 	std::string
 	class_name() const override;
 
 	/// @brief Get the namespace for this class.
-	/// @returns "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints".
+	/// @returns "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::restraints".
 	std::string
 	class_namespace() const override;
 
@@ -149,17 +148,15 @@ public:
 // PUBLIC WORK FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
 
-	/// @brief Modify a pairwise precomputed cost function network optimization problem to add
-	/// the constraint to it.
-	/// @details Base class implementation throws.  Must be overridden by derived classes.
+	/// @brief Limit the allowed seating choices for the guests.
+	/// @details Base class implementation throws.  Must be overridden by derived classes.  The allowed_seating_choices_by_guest
+	/// vector is a vector with one entry per guest, where each entry is a Boolean vector with one entry per seat.  Restraints can
+	/// set some subset of these Booleans to false.
 	virtual
 	void
-	add_constraint_to_cfn_problem(
+	restrain_seating_choices(
 		seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const & seating_problem,
-		std::vector< std::vector< bool > > const & guest_to_allowed_seats,
-		std::vector< std::map< masala::base::Size, masala::base::Size > > const & guest_to_seat_index_to_guest_choice,
-		masala::numeric::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem & cfn_problem,
-		masala::base::Real const global_strength_multiplier
+		std::vector< std::vector< bool > > & allowed_seating_choices_by_guest
 	) const;
 
 protected:
@@ -182,11 +179,11 @@ private:
 // PRIVATE DATA
 ////////////////////////////////////////////////////////////////////////////////
 
-}; // class Constraint
+}; // class Restraint
 
-} // namespace constraints
+} // namespace restraints
 } // namespace seating_problem_elements
 } // namespace seating_optimization
 } // namespace seating_optimization_masala_plugins
 
-#endif // Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_constraints_Constraint_hh
+#endif // Seating_Optimization_Masala_Plugins_src_seating_optimization_seating_problem_elements_restraints_Restraint_hh

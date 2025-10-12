@@ -16,14 +16,14 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/// @file src/seating_optimization/seating_problem_elements/constraints/Constraint.cc
-/// @brief Implementations for a Constraint.
-/// @details The Constraint class is the base class for constraints, which are elements of a seating problem.  They can
-/// be things like, "Guests A and B should be seated next to one another," or "Guest C should be near the front of the room", etc.
+/// @file src/seating_optimization/seating_problem_elements/restraints/Restraint.cc
+/// @brief Implementations for a Restraint.
+/// @details The Restraint class is the base class for restraints, which are elements of a seating problem.  They stricly limit the
+/// seating choices for a particular guest, unlike Constraints, which only impose a penalty or a bonus for a particular seating choice.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
 
 // Unit header:
-#include <seating_optimization/seating_problem_elements/constraints/Constraint.hh>
+#include <seating_optimization/seating_problem_elements/restraints/Restraint.hh>
 
 // Seating optimization headers:
 #include <seating_optimization/seating_problem/SeatingProblem.hh>
@@ -37,7 +37,7 @@
 #include <base/api/MasalaObjectAPIDefinition.hh>
 #include <base/api/constructor/MasalaObjectAPIConstructorMacros.hh>
 #include <base/api/setter/MasalaObjectAPISetterDefinition_OneInput.tmpl.hh>
-#include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_ThreeInput.tmpl.hh>
+#include <base/api/work_function/MasalaObjectAPIWorkFunctionDefinition_TwoInput.tmpl.hh>
 #include <base/utility/string/string_manipulation.hh>
 
 // STL headers:
@@ -45,32 +45,32 @@
 namespace seating_optimization_masala_plugins {
 namespace seating_optimization {
 namespace seating_problem_elements {
-namespace constraints {
+namespace restraints {
 
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTION AND DESTRUCTION
 ////////////////////////////////////////////////////////////////////////////////
 
 /// @brief Copy constructor.  Explicit due to mutex.
-Constraint::Constraint( Constraint const & src ) :
+Restraint::Restraint( Restraint const & src ) :
 	Parent( src )
 {
 	std::lock< std::mutex, std::mutex >( mutex(), src.mutex() );
 	std::lock_guard< std::mutex > lockthis( mutex(), std::adopt_lock );
 	std::lock_guard< std::mutex > lockthat( src.mutex(), std::adopt_lock );
-	Constraint::protected_assign( src );
+	Restraint::protected_assign( src );
 }
 
 /// @brief Make a copy of this object.
 seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatingElementBaseSP
-Constraint::clone() const {
-	return masala::make_shared< Constraint >( *this );
+Restraint::clone() const {
+	return masala::make_shared< Restraint >( *this );
 }
 
 /// @brief Make a fully independent copy of this object.
-ConstraintSP
-Constraint::deep_clone() const {
-	ConstraintSP new_guest( std::static_pointer_cast< Constraint >( this->clone() ) );
+RestraintSP
+Restraint::deep_clone() const {
+	RestraintSP new_guest( std::static_pointer_cast< Restraint >( this->clone() ) );
 	new_guest->make_independent();
 	return new_guest;
 }
@@ -81,52 +81,52 @@ Constraint::deep_clone() const {
 
 /// @brief Get the category or categories for this plugin class.  Default for all
 /// optimization problems; may be overridden by derived classes.
-/// @returns { { "SeatingProblem", "SeatingProblemElement", "Constraint" } }
+/// @returns { { "SeatingProblem", "SeatingProblemElement", "Restraint" } }
 /// @note Categories are hierarchical (e.g. Selector->AtomSelector->AnnotatedRegionSelector,
 /// stored as { {"Selector", "AtomSelector", "AnnotatedRegionSelector"} }). A plugin can be
 /// in more than one hierarchical category (in which case there would be more than one
 /// entry in the outer vector), but must be in at least one.  The first one is used as
 /// the primary key.
 std::vector< std::vector< std::string > >
-Constraint::get_categories() const {
+Restraint::get_categories() const {
 	return std::vector< std::vector< std::string > > {
-		{ "SeatingProblem", "SeatingProblemElement", "Constraint" }
+		{ "SeatingProblem", "SeatingProblemElement", "Restraint" }
 	};
 }
 
 /// @brief Get the keywords for this plugin class.  Default for all
 /// optimization solutions; may be overridden by derived classes.
-/// @returns { "seating_problem", "seating_problem_element", "constraint" }
+/// @returns { "seating_problem", "seating_problem_element", "restraint" }
 std::vector< std::string >
-Constraint::get_keywords() const {
+Restraint::get_keywords() const {
 	return std::vector< std::string > {
 		"seating_problem",
 		"seating_problem_element",
-		"constraint",
+		"restraint",
 	};
 }
 
 /// @brief Get the name of this class.
-/// @returns "Constraint".
+/// @returns "Restraint".
 std::string
-Constraint::class_name() const {
-	return "Constraint";
+Restraint::class_name() const {
+	return "Restraint";
 }
 
 /// @brief Get the namespace for this class.
-/// @returns "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints".
+/// @returns "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::restraints".
 std::string
-Constraint::class_namespace() const {
-	return "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints";
+Restraint::class_namespace() const {
+	return "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::restraints";
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC INTERFACE DEFINITION
 ////////////////////////////////////////////////////////////////////////////////
 
-/// @brief Get a description of the API for the Constraint class.
+/// @brief Get a description of the API for the Restraint class.
 masala::base::api::MasalaObjectAPIDefinitionCWP
-Constraint::get_api_definition() {
+Restraint::get_api_definition() {
 	using namespace masala::base::api;
 	using namespace masala::base::api::setter;
 	using namespace masala::base::api::work_function;
@@ -140,13 +140,13 @@ Constraint::get_api_definition() {
 		MasalaObjectAPIDefinitionSP api_def(
 			masala::make_shared< MasalaObjectAPIDefinition >(
 				*this,
-				"The Constraint class is the base class for constraints, which are elements of a seating problem.  They can "
-				"be things like, 'Guests A and B should be seated next to one another,' or 'Guest C should be near the front of the "
-				"room', etc.  This is a base class that is not intended to be instantiated outside of the API system.",
+				"The Restraint class is the base class for restraints, which are elements of a seating problem.  They stricly "
+				"limit the seating choices for a particular guest, unlike Constraints, which only impose a penalty or a bonus "
+				"for a particular seating choice.",
 				false, true
 			)
 		);
-		ADD_PROTECTED_CONSTRUCTOR_DEFINITIONS( Constraint, api_def );
+		ADD_PROTECTED_CONSTRUCTOR_DEFINITIONS( Restraint, api_def );
 
 		// Getters:
 
@@ -156,40 +156,31 @@ Constraint::get_api_definition() {
 				"configure_from_input_line", "Configure this object from a line in an input file.  "
 				"Base class implementation throws.  Must be overridden by derived classes.",
 				"input_line", "The line from which we are configuring this object.  Syntax depends on "
-				"derived class.  Must start with an identifier for the constraint type.",
+				"derived class.  Must start with an identifier for the restraint type.",
 				false, true,
-				std::bind( &Constraint::configure_from_input_line, this, std::placeholders::_1 )
+				std::bind( &Restraint::configure_from_input_line, this, std::placeholders::_1 )
 			)
 		);
 
 		// Work functions:
 		api_def->add_work_function(
 			masala::make_shared<
-				MasalaObjectAPIWorkFunctionDefinition_FiveInput<
+				MasalaObjectAPIWorkFunctionDefinition_TwoInput<
 					void,
 					seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const &,
-					std::vector< std::vector< bool > > const &,
-					std::vector< std::map< masala::base::Size, masala::base::Size > > const &,
-					masala::numeric::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem &,
-					masala::base::Real const
+					std::vector< std::vector< bool > > &
 				>
 			>(
-				"add_constraint_to_cfn_problem", "Modify a pairwise precomputed cost function network optimization problem to add "
-				"the constraint to it.  Base class implementation throws.  Must be overridden by derived classes.",
+				"restrain_seating_choices", "Limit the allowed seating choices for the guests.  Base class implementation throws.  "
+				"Must be overridden by derived classes.  The allowed_seating_choices_by_guest vector is a vector with one entry per "
+				"guest, where each entry is a Boolean vector with one entry per seat.  Restraints can set some subset of these Booleans "
+				"to false.",
 				true, false, true, false,
-				"seating_problem", "The object describing the seats, tables, guests, and constraints.",
-				"guest_to_allowed_seats", "A vector indexed by guest index, of vectors indexed by seat, of Booleans indicating "
-				"whether a seat is allowed for that guest.",
-				"guest_to_seat_index_to_guest_choice", "A vector indexed by guest index, of maps of seat index to guest "
-				"choice index.  Only the subset of seats accessible to the guest is present in the map.",
-				"cfn_problem", "The cost function network optimizaton problem, modified by this operation.",
-				"global_strength_multiplier", "A global multiplier for the strength of this constraint.",
+				"seating_problem", "The object describing the seats, tables, guests, and restraints.",
+				"allowed_seating_choices_by_guest", "A vector of vectors of Booleans, where the outer vector is indexed by guest and the "
+				"inner vector is indexed by seat global index.  True means that this guest can sit here, and false means they cannot.",
 				"void", "This function returns nothing.",
-				std::bind(
-					&Constraint::add_constraint_to_cfn_problem, this,
-					std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
-					std::placeholders::_4, std::placeholders::_5
-				)
+				std::bind( &Restraint::restrain_seating_choices, this, std::placeholders::_1, std::placeholders::_2 )
 			)
 		);
 
@@ -211,10 +202,10 @@ Constraint::get_api_definition() {
 /// @brief Configure this object from a line in an input file.
 /// @details Base class implementation throws.  Must be overridden by derived classes.
 void
-Constraint::configure_from_input_line(
+Restraint::configure_from_input_line(
 	std::string const & //input_line
 ) {
-	MASALA_THROW( class_namespace() + "::" + class_name(), "configure_from_input_line", "This constraint class must override this function." );
+	MASALA_THROW( class_namespace() + "::" + class_name(), "configure_from_input_line", "This restraint class must override this function." );
 }
 
 
@@ -222,20 +213,17 @@ Constraint::configure_from_input_line(
 // PUBLIC WORK FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
 
-
-/// @brief Modify a pairwise precomputed cost function network optimization problem to add
-/// the constraint to it.
-/// @details Base class implementation throws.  Must be overridden by derived classes.
+/// @brief Limit the allowed seating choices for the guests.
+/// @details Base class implementation throws.  Must be overridden by derived classes.  The allowed_seating_choices_by_guest
+/// vector is a vector with one entry per guest, where each entry is a Boolean vector with one entry per seat.  Restraints can
+/// set some subset of these Booleans to false.
 /*virtual*/
 void
-Constraint::add_constraint_to_cfn_problem(
-	seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const & ,//seating_problem,
-	std::vector< std::vector< bool > > const &, //guest_to_allowed_seats,
-	std::vector< std::map< masala::base::Size, masala::base::Size > > const &, //guest_to_seat_index_to_guest_choice,
-	masala::numeric::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem & ,//cfn_problem,
-	masala::base::Real const //global_strength_multiplier
+Restraint::restrain_seating_choices(
+	seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const &, //seating_problem,
+	std::vector< std::vector< bool > > & //allowed_seating_choices_by_guest
 ) const {
-	MASALA_THROW( class_namespace() + "::" + class_name(), "add_constraint_to_cfn_problem", "This class must override this function." );
+	MASALA_THROW( class_namespace() + "::" + class_name(), "restrain_seating_choices", "This class must override this function." );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -245,7 +233,7 @@ Constraint::add_constraint_to_cfn_problem(
 /// @brief Make this object fully indepdendent.  Derived classes must override this, and the override must call
 /// the parent class implementation.
 void
-Constraint::protected_make_independent() {
+Restraint::protected_make_independent() {
 	// TODO DEEP CLONING
 	Parent::protected_make_independent();
 }
@@ -253,10 +241,10 @@ Constraint::protected_make_independent() {
 /// @brief Assign src to this object.  Derived classes must override this, and the override must call
 /// the parent class implementation.
 void
-Constraint::protected_assign( SeatingElementBase const & src ) {
-	Constraint const * const src_ptr_cast( dynamic_cast< Constraint const * >( &src ) );
+Restraint::protected_assign( SeatingElementBase const & src ) {
+	Restraint const * const src_ptr_cast( dynamic_cast< Restraint const * >( &src ) );
 	CHECK_OR_THROW_FOR_CLASS( src_ptr_cast != nullptr, "protected_assign", "Cannot assign an object of type " + src.class_name()
-		+ " to a Constraint object."
+		+ " to a Restraint object."
 	);
 
 	// TODO TODO TODO
@@ -264,7 +252,7 @@ Constraint::protected_assign( SeatingElementBase const & src ) {
 	Parent::protected_assign( src );
 }
 
-} // namespace constraints
+} // namespace restraints
 } // namespace seating_problem_elements
 } // namespace seating_optimization
 } // namespace seating_optimization_masala_plugins

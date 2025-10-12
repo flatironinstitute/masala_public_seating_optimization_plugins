@@ -140,9 +140,10 @@ Restraint::get_api_definition() {
 		MasalaObjectAPIDefinitionSP api_def(
 			masala::make_shared< MasalaObjectAPIDefinition >(
 				*this,
-				"The Restraint class is the base class for restraints, which are elements of a seating problem.  They stricly limit the "
-				"seating choices for a particular guest, unlike Constraints, which only impose a penalty or a bonus for a particular seating "
-				"choice.", false, true
+				"The Restraint class is the base class for restraints, which are elements of a seating problem.  They stricly "
+				"limit the seating choices for a particular guest, unlike Constraints, which only impose a penalty or a bonus "
+				"for a particular seating choice.",
+				false, true
 			)
 		);
 		ADD_PROTECTED_CONSTRUCTOR_DEFINITIONS( Restraint, api_def );
@@ -219,8 +220,8 @@ Restraint::configure_from_input_line(
 /*virtual*/
 void
 Restraint::restrain_seating_choices(
-	seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const & seating_problem,
-	std::vector< std::vector< bool > > & allowed_seating_choices_by_guest
+	seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem const &, //seating_problem,
+	std::vector< std::vector< bool > > & //allowed_seating_choices_by_guest
 ) const {
 	MASALA_THROW( class_namespace() + "::" + class_name(), "restrain_seating_choices", "This class must override this function." );
 }

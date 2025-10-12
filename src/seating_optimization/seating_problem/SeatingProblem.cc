@@ -298,6 +298,14 @@ SeatingProblem::get_api_definition() {
 			)
 		);
 		api_def->add_getter(
+			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< Size > >(
+				"n_tables", "Get the number of tables.",
+				"n_tables", "The number of tables.",
+				false, false,
+				std::bind( &SeatingProblem::n_tables, this )
+			)
+		);
+		api_def->add_getter(
 			masala::make_shared< MasalaObjectAPIGetterDefinition_ZeroInput< bool > >(
 				"finalized", "Has this object been finalized?",
 				"finalized", "True if this object has been finalized; false otherwise.",
@@ -368,6 +376,13 @@ masala::base::Size
 SeatingProblem::n_seats() const {
 	std::lock_guard< std::mutex > lock( mutex_ );
 	return seat_indices_.size();
+}
+
+/// @brief Get the number of tables.
+masala::base::Size
+SeatingProblem::n_tables() const {
+	std::lock_guard< std::mutex > lock( mutex_ );
+	return tables_.size();
 }
 
 /// @brief Access a guest, by guest index.

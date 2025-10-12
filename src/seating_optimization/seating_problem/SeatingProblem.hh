@@ -150,6 +150,9 @@ public:
 	/// @brief Get the number of seats.
 	masala::base::Size n_seats() const;
 
+	/// @brief Get the number of tables.
+	masala::base::Size n_tables() const;
+
 	/// @brief Access a guest, by guest index.
 	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::GuestCSP
 	guest(

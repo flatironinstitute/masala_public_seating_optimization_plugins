@@ -56,7 +56,8 @@ falloff_mode_string_from_enum(
 	switch(mode_enum) {
 		case ProximityFalloffMode::GAUSSIAN :
 			return "GAUSSIAN";
-		default:
+		default :
+			break;
 	}
 
 	MASALA_THROW( "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints", "falloff_mode_string_from_enum",
@@ -315,14 +316,14 @@ seating_optimization_masala_plugins::seating_optimization::seating_problem::Seat
 		if( !guest_to_allowed_seats[guest1_index][iseat] ) {
 			continue;
 		}
-		Size const guest1_choice_index( guest_to_seat_index_to_guest_choice[guest1_choice_index].at(iseat) );
+		Size const guest1_choice_index( guest_to_seat_index_to_guest_choice[guest1_index].at(iseat) );
 		SeatCSP iseat_object( seating_problem.seat(iseat) );
 		std::pair< Real, Real > const seat1coord( std::make_pair( iseat_object->x(), iseat_object->y() ) );
 		for( Size jseat(0); jseat < nseats; ++jseat ) {
 			if( !guest_to_allowed_seats[guest2_index][jseat] ) {
 				continue;
 			}
-			Size const guest2_choice_index( guest_to_seat_index_to_guest_choice[guest2_choice_index].at(jseat) );
+			Size const guest2_choice_index( guest_to_seat_index_to_guest_choice[guest2_index].at(jseat) );
 			SeatCSP jseat_object( seating_problem.seat(jseat) );
 			std::pair< Real, Real > const seat2coord( std::make_pair( jseat_object->x(), jseat_object->y() ) );
 			Real const curpenalty( protected_compute_penalty( seat1coord, seat2coord, penalty_value_at_one_unit ) );
@@ -372,7 +373,9 @@ GuestPairProximityConstraint::protected_parse_gaussian_falloff_mode(
 	std::string const & input_line
 ) {
 	ss >> gaussian_sd_;
-	CHECK_OR_THROW_FOR_CLASS( gaussian_sd_ > 0, "protected_parse_gaussian_falloff_mode", "The Gaussian standard deviation must be greater than zero." );
+	CHECK_OR_THROW_FOR_CLASS( gaussian_sd_ > 0, "protected_parse_gaussian_falloff_mode",
+			"The Gaussian standard deviation must be greater than zero.  Error parsing line \"" + input_line + "\"."
+	);
 }
 
 /// @brief Compute the penalty.  Performs no mutex-locking, so should be called from a mutex-locked context.
@@ -391,7 +394,7 @@ GuestPairProximityConstraint::protected_compute_penalty(
 			// Not as efficient as it could be, but it doesn't matter for the paltry number of times that this function will be called.
 			Real const distsq( std::pow(seat1coord.first - seat2coord.first, 2) + std::pow(seat1coord.second - seat2coord.second, 2) );
 			Real const gaussian_sd_sq( gaussian_sd_ * gaussian_sd_ );
-			return constraint_strength_at_one_unit_ / std::exp( -1/gaussian_sd_sq ) * std::exp( -distsq / gaussian_sd_sq );
+			return penalty_value_at_one_unit / std::exp( -1/gaussian_sd_sq ) * std::exp( -distsq / gaussian_sd_sq );
 		}
 	}
 

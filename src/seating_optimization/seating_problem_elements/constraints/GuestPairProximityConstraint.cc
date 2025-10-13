@@ -185,7 +185,7 @@ GuestPairProximityConstraint::get_api_definition() {
 			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< std::string const & > >(
 				"configure_from_input_line", "Configure this object from a line in an input file.  "
 				"Base class implementation throws.  Must be overridden by derived classes.  This version expects "
-				"a line of the form 'GuestPairProximityConstraint <guest1_uid> <guest2_uid> <falloff_type> <falloff_options...>'.",
+				"a line of the form 'GuestPairProximityConstraint <guest1_uid> <guest2_uid> <constraint_strength> <falloff_type> <falloff_options...>'.",
 				"input_line", "The line from which we are configuring this object.  Syntax depends on "
 				"derived class.  Must start with an identifier for the constraint type.",
 				false, true,
@@ -241,7 +241,7 @@ GuestPairProximityConstraint::get_api_definition() {
 
 /// @brief Configure this object from a line in an input file.
 /// @details Base class implementation throws.  Must be overridden by derived classes.  This version expects
-/// a line of the form "GuestPairProximityConstraint <guest1_uid> <guest2_uid> <falloff_type> <falloff_options...>".
+/// a line of the form "GuestPairProximityConstraint <guest1_uid> <guest2_uid> <constraint_strength> <falloff_type> <falloff_options...>".
 void
 GuestPairProximityConstraint::configure_from_input_line(
 	std::string const & input_line
@@ -250,7 +250,7 @@ GuestPairProximityConstraint::configure_from_input_line(
 	std::string linestart;
 	std::lock_guard< std::mutex > lock( mutex() );
 
-	ss >> linestart >> first_guest_uid_ >> second_guest_uid_;
+	ss >> linestart >> first_guest_uid_ >> second_guest_uid_ >> constraint_strength_;
 	CHECK_OR_THROW_FOR_CLASS( !(ss.bad() || ss.fail()), "configure_from_input_line", "Could not parse line \"" + input_line + "\"." );
 	CHECK_OR_THROW_FOR_CLASS( linestart == "GuestPairProximityConstraint", "configure_from_input_line", "Expected line to begin with class name (\"GuestPairProximityConstraint\")." );
 
@@ -306,6 +306,7 @@ seating_optimization_masala_plugins::seating_optimization::seating_problem::Seat
 	if( guest2_index < guest1_index ) {
 		std::swap( guest1_index, guest2_index );
 	}
+	Real const penalty_value( global_strength_multiplier * constraint_strength_ );
 
 	TODO TODO TODO;
 
@@ -350,6 +351,7 @@ GuestPairProximityConstraint::protected_assign( SeatingElementBase const & src )
 	// TODO TODO TODO
 	first_guest_uid_ = src_ptr_cast->first_guest_uid_;
 	second_guest_uid_ = src_ptr_cast->second_guest_uid_;
+	constraint_strength_ = src_ptr_cast->constraint_strength_;
 	falloff_mode_ = src_ptr_cast->falloff_mode_;
 
 	Parent::protected_assign( src );

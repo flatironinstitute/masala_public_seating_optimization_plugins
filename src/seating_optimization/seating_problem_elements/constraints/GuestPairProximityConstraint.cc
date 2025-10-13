@@ -26,6 +26,7 @@
 
 // Seating optimization headers:
 #include <seating_optimization/seating_problem/SeatingProblem.hh>
+#include <seating_optimization/seating_problem_elements/Seat.hh>
 
 // Numeric headers:
 #include <numeric_api/utility/angles/angle_util.hh>
@@ -306,25 +307,29 @@ seating_optimization_masala_plugins::seating_optimization::seating_problem::Seat
 	if( guest2_index < guest1_index ) {
 		std::swap( guest1_index, guest2_index );
 	}
-	Real const penalty_value( global_strength_multiplier * constraint_strength_at_one_unit_ );
+	std::pair< Size, Size > guestpair( guest1_index, guest2_index );
+	Real const penalty_value_at_one_unit( global_strength_multiplier * constraint_strength_at_one_unit_ );
+	Size const nseats( seating_problem.n_seats() );
 
-	TODO TODO TODO;
-
-	// std::vector< std::pair< Size, Size > > const adjacent_seat_indices( seating_problem.get_adjacent_seat_global_indices() );
-	// for( auto const & seat_pair : adjacent_seat_indices ) {
-	// 	if( guest_to_allowed_seats[guest1_index][seat_pair.first] && guest_to_allowed_seats[guest2_index][seat_pair.second] ) {
-	// 		Size const guest1_choice_index( guest_to_seat_index_to_guest_choice[guest1_index].at(seat_pair.first) );
-	// 		Size const guest2_choice_index( guest_to_seat_index_to_guest_choice[guest2_index].at(seat_pair.second) );
-	// 		cfn_problem_cast->add_to_twobody_penalty( std::make_pair( guest1_index, guest2_index ), std::make_pair( guest1_choice_index, guest2_choice_index ), penalty_value );
-	// 		write_to_tracer( "Constrained guests " + std::to_string(guest1_index) + " and " + std::to_string(guest2_index) + ", at seats " + std::to_string(seat_pair.first) + " and " + std::to_string(seat_pair.second) + ".  Penalty: " + std::to_string(penalty_value) + "." );
-	// 	}
-	// 	if( guest_to_allowed_seats[guest1_index][seat_pair.second] && guest_to_allowed_seats[guest2_index][seat_pair.first] ) {
-	// 		Size const guest1_choice_index( guest_to_seat_index_to_guest_choice[guest1_index].at(seat_pair.second) );
-	// 		Size const guest2_choice_index( guest_to_seat_index_to_guest_choice[guest2_index].at(seat_pair.first) );
-	// 		cfn_problem_cast->add_to_twobody_penalty( std::make_pair( guest1_index, guest2_index ), std::make_pair( guest1_choice_index, guest2_choice_index ), penalty_value );
-	// 		write_to_tracer( "Constrained guests " + std::to_string(guest1_index) + " and " + std::to_string(guest2_index) + ", at seats " + std::to_string(seat_pair.second) + " and " + std::to_string(seat_pair.first) + ".  Penalty: " + std::to_string(penalty_value) + "." );
-	// 	}
-	// }
+	for( Size iseat(0); iseat < nseats; ++iseat ) {
+		if( !guest_to_allowed_seats[guest1_index][iseat] ) {
+			continue;
+		}
+		Size const guest1_choice_index( guest_to_seat_index_to_guest_choice[guest1_choice_index].at(iseat) );
+		SeatCSP iseat_object( seating_problem.seat(iseat) );
+		std::pair< Real, Real > const seat1coord( std::make_pair( iseat_object->x(), iseat_object->y() ) );
+		for( Size jseat(0); jseat < nseats; ++jseat ) {
+			if( !guest_to_allowed_seats[guest2_index][jseat] ) {
+				continue;
+			}
+			Size const guest2_choice_index( guest_to_seat_index_to_guest_choice[guest2_choice_index].at(jseat) );
+			SeatCSP jseat_object( seating_problem.seat(jseat) );
+			std::pair< Real, Real > const seat2coord( std::make_pair( jseat_object->x(), jseat_object->y() ) );
+			Real const curpenalty( protected_compute_penalty( seat1coord, seat2coord, penalty_value_at_one_unit ) );
+			cfn_problem_cast->add_to_twobody_penalty( guestpair, std::make_pair( guest1_choice_index, guest2_choice_index ), curpenalty );
+			write_to_tracer( "Proximity-constrained guests " + std::to_string(guest1_index) + " and " + std::to_string(guest2_index) + ", at seats " + std::to_string(seat_pair.second) + " and " + std::to_string(seat_pair.first) + ".  Penalty: " + std::to_string(curpenalty) + "." );
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////

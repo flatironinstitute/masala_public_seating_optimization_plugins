@@ -426,8 +426,8 @@ CircularTable::protected_update_seat_coordinates() {
 			seat->set_angle( curangle );
 			Real const curangle_radians( curangle / 180.0 * MASALA_PI );
 			seat->set_coordinates(
-				std::sin( curangle_radians ) * radius_,
-				std::cos( curangle_radians ) * radius_
+				std::sin( curangle_radians ) * radius_ + protected_x(),
+				std::cos( curangle_radians ) * radius_ + protected_y()
 			);
 		}
 	}

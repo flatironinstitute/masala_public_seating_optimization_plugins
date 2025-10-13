@@ -764,7 +764,7 @@ SeatingProblem::protected_print_problem_to_string() const {
 		} else {
 			ss << "\tN/A\tN/A";
 		}
-		ss << seat->x() << "\t" << seat->y() << "\t" << seat->angle_degrees();
+		ss << "\t" << seat->x() << "\t" << seat->y() << "\t" << seat->angle_degrees();
 		outstream << ss.str();
 		if( iseat < nseats-1 ) {
 			outstream << "\n";
@@ -844,7 +844,9 @@ SeatingProblem::protected_add_table(
 	
 	regenerate_seat_indices();
 
-	write_to_tracer( "Added table " + std::to_string(tables_.size() - 1) + " of type \"" + table_in->class_name() + "\", with " + std::to_string( table_in->num_seats() ) + " seats." );
+	write_to_tracer( "Added table " + std::to_string(tables_.size() - 1) + " of type \"" + table_in->class_name()
+		+ "\", at coordinates ( " + std::to_string(table_in->x()) + ", " + std::to_string(table_in->y())
+		+ "), with " + std::to_string( table_in->num_seats() ) + " seats." );
 }
 
 /// @brief Add a loose seat.  Stored directly; not cloned.  (NOT YET SUPPORTED -- THROWS.)

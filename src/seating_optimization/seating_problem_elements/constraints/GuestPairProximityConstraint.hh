@@ -166,6 +166,8 @@ public:
 	/// @brief Configure this object from a line in an input file.
 	/// @details Base class implementation throws.  Must be overridden by derived classes.  This version expects
 	/// a line of the form "GuestPairProximityConstraint <guest1_uid> <guest2_uid> <constraint_strength_at_one_unit> <falloff_type> <falloff_options...>".
+	/// Falloff types and options include:
+	/// GAUSSIAN <gaussian_sd>
 	void configure_from_input_line( std::string const & input_line ) override;
 
 public:

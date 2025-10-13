@@ -73,7 +73,7 @@ falloff_mode_enum_from_string(
 	std::string const & modestring
 ) {
 	using masala::base::Size;
-	for( Size i(1); i<static_cast<Size>(ProximityFalloffMode::N_FALLOFF_MODES); ++i ) {
+	for( Size i(1); i<=static_cast<Size>(ProximityFalloffMode::N_FALLOFF_MODES); ++i ) {
 		if( modestring == falloff_mode_string_from_enum( static_cast<ProximityFalloffMode>(i) ) ) {
 			return static_cast<ProximityFalloffMode>(i);
 		}
@@ -187,7 +187,8 @@ GuestPairProximityConstraint::get_api_definition() {
 			masala::make_shared< MasalaObjectAPISetterDefinition_OneInput< std::string const & > >(
 				"configure_from_input_line", "Configure this object from a line in an input file.  "
 				"Base class implementation throws.  Must be overridden by derived classes.  This version expects "
-				"a line of the form 'GuestPairProximityConstraint <guest1_uid> <guest2_uid> <constraint_strength_at_one_unit> <falloff_type> <falloff_options...>'.",
+				"a line of the form 'GuestPairProximityConstraint <guest1_uid> <guest2_uid> <constraint_strength_at_one_unit> <falloff_type> <falloff_options...>'.  "
+				"Falloff options include: 'GAUSSIAN <gaussian_std_dev>'.",
 				"input_line", "The line from which we are configuring this object.  Syntax depends on "
 				"derived class.  Must start with an identifier for the constraint type.",
 				false, true,
@@ -244,6 +245,8 @@ GuestPairProximityConstraint::get_api_definition() {
 /// @brief Configure this object from a line in an input file.
 /// @details Base class implementation throws.  Must be overridden by derived classes.  This version expects
 /// a line of the form "GuestPairProximityConstraint <guest1_uid> <guest2_uid> <constraint_strength_at_one_unit> <falloff_type> <falloff_options...>".
+/// Falloff types and options include:
+/// GAUSSIAN <gaussian_sd>
 void
 GuestPairProximityConstraint::configure_from_input_line(
 	std::string const & input_line
@@ -320,7 +323,7 @@ seating_optimization_masala_plugins::seating_optimization::seating_problem::Seat
 		SeatCSP iseat_object( seating_problem.seat(iseat) );
 		std::pair< Real, Real > const seat1coord( std::make_pair( iseat_object->x(), iseat_object->y() ) );
 		for( Size jseat(0); jseat < nseats; ++jseat ) {
-			if( !guest_to_allowed_seats[guest2_index][jseat] ) {
+			if( iseat == jseat || !guest_to_allowed_seats[guest2_index][jseat] ) {
 				continue;
 			}
 			Size const guest2_choice_index( guest_to_seat_index_to_guest_choice[guest2_index].at(jseat) );

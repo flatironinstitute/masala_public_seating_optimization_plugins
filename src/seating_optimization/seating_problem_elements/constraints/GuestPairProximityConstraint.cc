@@ -327,7 +327,9 @@ seating_optimization_masala_plugins::seating_optimization::seating_problem::Seat
 			std::pair< Real, Real > const seat2coord( std::make_pair( jseat_object->x(), jseat_object->y() ) );
 			Real const curpenalty( protected_compute_penalty( seat1coord, seat2coord, penalty_value_at_one_unit ) );
 			cfn_problem_cast->add_to_twobody_penalty( guestpair, std::make_pair( guest1_choice_index, guest2_choice_index ), curpenalty );
-			write_to_tracer( "Proximity-constrained guests " + std::to_string(guest1_index) + " and " + std::to_string(guest2_index) + ", at seats " + std::to_string(seat_pair.second) + " and " + std::to_string(seat_pair.first) + ".  Penalty: " + std::to_string(curpenalty) + "." );
+			write_to_tracer( "Proximity-constrained guests " + std::to_string(guest1_index) + " and " + std::to_string(guest2_index)
+				+ ", at seats " + std::to_string(iseat) + " and " + std::to_string(jseat) + ".  Penalty: " + std::to_string(curpenalty) + "."
+			);
 		}
 	}
 }
@@ -361,6 +363,16 @@ GuestPairProximityConstraint::protected_assign( SeatingElementBase const & src )
 	gaussian_sd_ = src_ptr_cast->gaussian_sd_;
 
 	Parent::protected_assign( src );
+}
+
+/// @brief Parse a Gaussian setup, of the form "GAUSSIAN <gaussian_sd>."
+void
+GuestPairProximityConstraint::protected_parse_gaussian_falloff_mode(
+	std::istringstream & ss,
+	std::string const & input_line
+) {
+	ss >> gaussian_sd_;
+	CHECK_OR_THROW_FOR_CLASS( gaussian_sd_ > 0, "protected_parse_gaussian_falloff_mode", "The Gaussian standard deviation must be greater than zero." );
 }
 
 /// @brief Compute the penalty.  Performs no mutex-locking, so should be called from a mutex-locked context.

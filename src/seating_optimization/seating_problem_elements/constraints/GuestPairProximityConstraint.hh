@@ -40,6 +40,7 @@
 #include <base/types.hh>
 #include <vector>
 #include <string>
+#include <sstream>
 
 namespace seating_optimization_masala_plugins {
 namespace seating_optimization {
@@ -198,6 +199,9 @@ protected:
 	/// @brief Assign src to this object.  Derived classes must override this, and the override must call
 	/// the parent class implementation.
 	void protected_assign( SeatingElementBase const & src ) override;
+
+	/// @brief Parse a Gaussian setup, of the form "GAUSSIAN <gaussian_sd>."
+	void protected_parse_gaussian_falloff_mode( std::istringstream & ss, std::string const & input_line );
 
 	/// @brief Compute the penalty.  Performs no mutex-locking, so should be called from a mutex-locked context.
 	masala::base::Real

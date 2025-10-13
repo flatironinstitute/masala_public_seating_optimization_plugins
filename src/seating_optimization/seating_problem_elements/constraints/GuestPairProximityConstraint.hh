@@ -46,6 +46,30 @@ namespace seating_optimization {
 namespace seating_problem_elements {
 namespace constraints {
 
+////////////////////////////////////////////////////////////////////////////////
+// ProximityFalloffMode ENUM CLASS
+////////////////////////////////////////////////////////////////////////////////
+
+/// @brief A class for the type of falloff.
+/// @details If you add to this, update falloff_mode_string_from_enum() and GuestPairProximityConstraint::configure_from_input_line().
+enum class ProximityFalloffMode {
+	INVALID_MODE = 0, // Keep this first
+	// Add modes here:
+	GAUSSIAN, // Keep this second-to-last
+	N_FALLOFF_MODES = GAUSSIAN // Keep this last.
+};
+
+/// @brief Given the falloff mode as an enum, get the string.
+std::string falloff_mode_string_from_enum( ProximityFalloffMode const mode_enum);
+
+/// @brief Given the falloff mode as a string, get the enum.
+/// @details Returns ProximityFalloffMode::INVALID_MODE if the string can't be interpreted as a proximity mode.
+ProximityFalloffMode falloff_mode_enum_from_string( std::string const & modestring );
+
+////////////////////////////////////////////////////////////////////////////////
+// GuestPairProximityConstraint CLASS
+////////////////////////////////////////////////////////////////////////////////
+
 /// @brief A GuestPairProximityConstraint.
 /// @details The GuestPairProximityConstraint class is used to indicate that two guests should be close together or should not be close together.
 /// @author Vikram K. Mulligan (vmulligan@flatironinstitute.org).
@@ -189,6 +213,9 @@ private:
 	/// @brief Constraint strength.  Defaults to 0.  Positive values indicate a penalty for two guests being side-by-side;
 	/// negative values indicate a bonus.
 	masala::base::Real constraint_strength_ = 0.0;
+
+	/// @brief The type of falloff.
+	ProximityFalloffMode falloff_mode_ = ProximityFalloffMode::GAUSSIAN;
 
 }; // class GuestPairProximityConstraint
 

@@ -47,6 +47,38 @@ namespace seating_optimization {
 namespace seating_problem_elements {
 namespace constraints {
 
+/// @brief Given the falloff mode as an enum, get the string.
+std::string
+falloff_mode_string_from_enum(
+	ProximityFalloffMode const mode_enum
+) {
+	switch(mode_enum) {
+		case ProximityFalloffMode::GAUSSIAN :
+			return "GAUSSIAN";
+		default:
+	}
+
+	MASALA_THROW( "seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints", "falloff_mode_string_from_enum",
+		"Invalid enum passed to this function."
+	);
+	return "";
+}
+
+/// @brief Given the falloff mode as a string, get the enum.
+/// @details Returns ProximityFalloffMode::INVALID_MODE if the string can't be interpreted as a proximity mode.
+ProximityFalloffMode
+falloff_mode_enum_from_string(
+	std::string const & modestring
+) {
+	using masala::base::Size;
+	for( Size i(1); i<static_cast<Size>(ProximityFalloffMode::N_FALLOFF_MODES); ++i ) {
+		if( modestring == falloff_mode_string_from_enum( static_cast<ProximityFalloffMode>(i) ) ) {
+			return static_cast<ProximityFalloffMode>(i);
+		}
+	}
+	return ProximityFalloffMode::INVALID_MODE;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTION AND DESTRUCTION
 ////////////////////////////////////////////////////////////////////////////////
@@ -217,11 +249,27 @@ GuestPairProximityConstraint::configure_from_input_line(
 	std::istringstream ss( input_line );
 	std::string linestart;
 	std::lock_guard< std::mutex > lock( mutex() );
-	TODO TODO TODO;
-	// ss >> linestart >> first_guest_uid_ >> second_guest_uid_ >> constraint_strength_;
-	// CHECK_OR_THROW_FOR_CLASS( !(ss.bad() || ss.fail()), "configure_from_input_line", "Could not parse line \"" + input_line + "\"." );
-	// CHECK_OR_THROW_FOR_CLASS( ss.eof(), "configure_from_input_line", "Extra input at end of line \"" + input_line + "\"." );
-	// CHECK_OR_THROW_FOR_CLASS( linestart == "GuestPairProximityConstraint", "configure_from_input_line", "Expected line to begin with class name (\"GuestPairProximityConstraint\")." );
+
+	ss >> linestart >> first_guest_uid_ >> second_guest_uid_ >> constraint_strength_;
+	CHECK_OR_THROW_FOR_CLASS( !(ss.bad() || ss.fail()), "configure_from_input_line", "Could not parse line \"" + input_line + "\"." );
+	CHECK_OR_THROW_FOR_CLASS( linestart == "GuestPairProximityConstraint", "configure_from_input_line", "Expected line to begin with class name (\"GuestPairProximityConstraint\")." );
+
+	std::string falloff_mode_str;
+	ss >> falloff_mode_str;
+	CHECK_OR_THROW_FOR_CLASS( !(ss.bad() || ss.fail()), "configure_from_input_line", "Could not parse line \"" + input_line + "\"." );
+
+	falloff_mode_ = falloff_mode_enum_from_string( falloff_mode_str );
+
+	switch( falloff_mode_ ) {
+		case ProximityFalloffMode::INVALID_MODE :
+			MASALA_THROW( class_namespace() + "::" + class_name(), "configure_from_input_line", "Could not parse \"" + falloff_mode_str + "\" as a valid falloff mode." );
+			break;
+		case ProximityFalloffMode::GAUSSIAN :
+			protected_parse_gaussian_falloff_mode( ss, input_line );
+			break;
+	}
+
+	CHECK_OR_THROW_FOR_CLASS( ss.eof(), "configure_from_input_line", "Extra input at end of line \"" + input_line + "\"." );
 }
 
 
@@ -304,6 +352,7 @@ GuestPairProximityConstraint::protected_assign( SeatingElementBase const & src )
 	first_guest_uid_ = src_ptr_cast->first_guest_uid_;
 	second_guest_uid_ = src_ptr_cast->second_guest_uid_;
 	constraint_strength_ = src_ptr_cast->constraint_strength_;
+	falloff_mode_ = src_ptr_cast->falloff_mode_;
 
 	Parent::protected_assign( src );
 }

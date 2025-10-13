@@ -63,6 +63,18 @@ GuestPairSameTableConstraint		uncle1_of_bride		sister1_of_groom	5.0
 GuestPairSameTableConstraint		uncle1_of_bride		sister2_of_groom	5.0
 GuestPairSameTableConstraint		uncle1_of_bride		sister3_of_groom	3.0
 
+# It's also unfavourable for the creepy uncle to be too close to his most likely targets:
+
+GuestPairProximityConstraint		uncle1_of_bride		cousin1_of_groom	5.0		GAUSSIAN	2.0
+GuestPairProximityConstraint		uncle1_of_bride		cousin2_of_groom	5.0		GAUSSIAN	2.0
+GuestPairProximityConstraint		uncle1_of_bride		sister1_of_groom	5.0		GAUSSIAN	2.0
+GuestPairProximityConstraint		uncle1_of_bride		sister2_of_groom	5.0		GAUSSIAN	2.0
+GuestPairProximityConstraint		uncle1_of_bride		sister3_of_groom	3.0		GAUSSIAN	2.0
+
+# A distance constraint.  The mother of the bride dislikes the mother of the groom.
+
+GuestPairProximityConstraint		mother_of_bride		mother_of_groom		3.0		GAUSSIAN	2.0
+
 # Add some more guest pair constraints: couples should sit together.
 
 GuestPairAdjacentSeatConstraint		bride				groom				-15.0

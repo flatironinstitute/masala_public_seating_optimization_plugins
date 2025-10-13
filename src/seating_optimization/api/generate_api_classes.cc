@@ -35,6 +35,7 @@
 #include <seating_optimization/seating_problem_elements/restraints/RestrictGuestToSeatsRestraint.hh>
 #include <seating_optimization/seating_problem_elements/constraints/Constraint.hh>
 #include <seating_optimization/seating_problem_elements/constraints/GuestPairAdjacentSeatConstraint.hh>
+#include <seating_optimization/seating_problem_elements/constraints/GuestPairProximityConstraint.hh>
 #include <seating_optimization/seating_problem_elements/constraints/GuestPairSameTableConstraint.hh>
 #include <seating_optimization/seating_problem_elements/constraints/GuestOverlapConstraint.hh>
 #include <seating_optimization/seating_problem/SeatingProblem.hh>
@@ -62,6 +63,7 @@ namespace api {
         outvec.push_back( masala::make_shared< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::restraints::RestrictGuestToSeatsRestraint >() );		
         outvec.push_back( masala::make_shared< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::Constraint >() );		
         outvec.push_back( masala::make_shared< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::GuestPairAdjacentSeatConstraint >() );		
+        outvec.push_back( masala::make_shared< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::GuestPairProximityConstraint >() );		
         outvec.push_back( masala::make_shared< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::GuestPairSameTableConstraint >() );		
         outvec.push_back( masala::make_shared< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::constraints::GuestOverlapConstraint >() );		
         outvec.push_back( masala::make_shared< seating_optimization_masala_plugins::seating_optimization::seating_problem::SeatingProblem >() );		

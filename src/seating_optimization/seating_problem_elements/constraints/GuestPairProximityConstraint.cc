@@ -358,8 +358,34 @@ GuestPairProximityConstraint::protected_assign( SeatingElementBase const & src )
 	second_guest_uid_ = src_ptr_cast->second_guest_uid_;
 	constraint_strength_at_one_unit_ = src_ptr_cast->constraint_strength_at_one_unit_;
 	falloff_mode_ = src_ptr_cast->falloff_mode_;
+	gaussian_sd_ = src_ptr_cast->gaussian_sd_;
 
 	Parent::protected_assign( src );
+}
+
+/// @brief Compute the penalty.  Performs no mutex-locking, so should be called from a mutex-locked context.
+masala::base::Real
+GuestPairProximityConstraint::protected_compute_penalty(
+	std::pair< masala::base::Real, masala::base::Real > const & seat1coord,
+	std::pair< masala::base::Real, masala::base::Real > const & seat2coord,
+	masala::base::Real penalty_value_at_one_unit
+) const {
+	using masala::base::Real;
+	switch( falloff_mode_ ) {
+		case ProximityFalloffMode::INVALID_MODE :
+			MASALA_THROW( class_namespace() + "::" + class_name(), "protected_compute_penalty", "Invalid falloff mode selected." );
+		case ProximityFalloffMode::GAUSSIAN :
+		{
+			// Not as efficient as it could be, but it doesn't matter for the paltry number of times that this function will be called.
+			Real const distsq( std::pow(seat1coord.first - seat2coord.first, 2) + std::pow(seat1coord.second - seat2coord.second, 2) );
+			Real const gaussian_sd_sq( gaussian_sd_ * gaussian_sd_ );
+			return constraint_strength_at_one_unit_ / std::exp( -1/gaussian_sd_sq ) * std::exp( -distsq / gaussian_sd_sq );
+		}
+	}
+
+	MASALA_THROW( class_namespace() + "::" + class_name(), "protected_compute_penalty", "Invalid falloff mode selected." );
+
+	return 0.0;
 }
 
 } // namespace constraints

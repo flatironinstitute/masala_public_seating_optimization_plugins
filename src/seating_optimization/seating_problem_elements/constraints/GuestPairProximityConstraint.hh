@@ -51,7 +51,8 @@ namespace constraints {
 ////////////////////////////////////////////////////////////////////////////////
 
 /// @brief A class for the type of falloff.
-/// @details If you add to this, update falloff_mode_string_from_enum() and GuestPairProximityConstraint::configure_from_input_line().
+/// @details If you add to this, update falloff_mode_string_from_enum(), GuestPairProximityConstraint::protected_compute_penalty(),
+/// and GuestPairProximityConstraint::configure_from_input_line().
 enum class ProximityFalloffMode {
 	INVALID_MODE = 0, // Keep this first
 	// Add modes here:
@@ -198,6 +199,14 @@ protected:
 	/// the parent class implementation.
 	void protected_assign( SeatingElementBase const & src ) override;
 
+	/// @brief Compute the penalty.  Performs no mutex-locking, so should be called from a mutex-locked context.
+	masala::base::Real
+	protected_compute_penalty(
+		std::pair< masala::base::Real, masala::base::Real > const & seat1coord,
+		std::pair< masala::base::Real, masala::base::Real > const & seat2coord,
+		masala::base::Real penalty_value_at_one_unit
+	) const;
+
 private:
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -216,6 +225,9 @@ private:
 
 	/// @brief The type of falloff.
 	ProximityFalloffMode falloff_mode_ = ProximityFalloffMode::GAUSSIAN;
+
+	/// @brief The standard deviation for a Gaussian.
+	masala::base::Real gaussian_sd_ = 1.0;
 
 }; // class GuestPairProximityConstraint
 

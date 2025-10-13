@@ -163,7 +163,7 @@ public:
 
 	/// @brief Configure this object from a line in an input file.
 	/// @details Base class implementation throws.  Must be overridden by derived classes.  This version expects
-	/// a line of the form "GuestPairProximityConstraint <guest1_uid> <guest2_uid> <constraint_strength> <falloff_type> <falloff_options...>".
+	/// a line of the form "GuestPairProximityConstraint <guest1_uid> <guest2_uid> <constraint_strength_at_one_unit> <falloff_type> <falloff_options...>".
 	void configure_from_input_line( std::string const & input_line ) override;
 
 public:
@@ -210,9 +210,9 @@ private:
 	/// @brief Second guest unique identifier.
 	std::string second_guest_uid_;
 
-	/// @brief Constraint strength.  Defaults to 0.  Positive values indicate a penalty for two guests being side-by-side;
+	/// @brief Constraint strength at a distance of one unit.  Defaults to 0.  Positive values indicate a penalty for two guests being side-by-side;
 	/// negative values indicate a bonus.
-	masala::base::Real constraint_strength_ = 0.0;
+	masala::base::Real constraint_strength_at_one_unit_ = 0.0;
 
 	/// @brief The type of falloff.
 	ProximityFalloffMode falloff_mode_ = ProximityFalloffMode::GAUSSIAN;

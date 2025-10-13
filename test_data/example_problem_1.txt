@@ -4,8 +4,8 @@
 
 # Defining some tables:
 
-CircularTable	-5	0	0	2	9
-CircularTable	5	0	0	2	9
+CircularTable	-3	0	0	2	9
+CircularTable	 3	0	0	2	9
 
 # Add some guests:
 

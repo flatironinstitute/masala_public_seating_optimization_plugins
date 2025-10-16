@@ -140,7 +140,7 @@ public:
 	/// @brief Set the dimensions of the room.
 	/// @param length_in The length of the table, in meters (in the north-south direction prior to rotation).  Defaults to 1.0.
 	/// @param width_in The width of the table, in meters (in the east-west direction prior to rotation).  Defaults to 1.0.
-	void set_dimensions( Real const length_in, Real const width_in );
+	void set_dimensions( masala::base::Real const length_in, masala::base::Real const width_in );
 
 public:
 

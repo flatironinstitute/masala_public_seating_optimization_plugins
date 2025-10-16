@@ -148,6 +148,10 @@ public:
 // PUBLIC WORK FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
 
+	/// @brief Get a string describing the subclass-specific details of this room.  This override writes
+	/// out "LENGTH: <length> WIDTH: <width>".
+	std::string type_specific_details_string() const override;
+
 protected:
 
 ////////////////////////////////////////////////////////////////////////////////

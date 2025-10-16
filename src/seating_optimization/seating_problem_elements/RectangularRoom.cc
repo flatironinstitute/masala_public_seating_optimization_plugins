@@ -225,6 +225,17 @@ RectangularRoom::get_api_definition() {
 			)
 		);
 
+		// Work functions:
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_ZeroInput< std::string > >(
+				"type_specific_details_string", "Get a string describing the subclass-specific details of this room.  This override writes "
+				"'LENGTH: <length> WIDTH: <width>'.",
+				true, false, true, false,
+				"type_specific_details_string", "A string describing the subclass-specific details of this room.",
+				std::bind( &RectangularRoom::type_specific_details_string, this )
+			)
+		);
+
 		api_definition() = api_def; //Make const.
 	}
 
@@ -278,6 +289,18 @@ RectangularRoom::set_dimensions(
 ////////////////////////////////////////////////////////////////////////////////
 // PUBLIC WORK FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
+
+
+/// @brief Get a string describing the subclass-specific details of this room.  This override writes
+/// out "LENGTH: <length> WIDTH: <width>".
+std::string
+RectangularRoom::type_specific_details_string() const {
+	std::lock_guard< std::mutex > lock( mutex() );
+	std::ostringstream ss;
+	ss << std::setprecision(6);
+	ss << "LENGTH:\t" << length_ << "\tWIDTH:\t" << width_;
+	return ss.str();
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PROTECTED FUNCTIONS

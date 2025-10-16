@@ -201,6 +201,17 @@ Room::get_api_definition() {
 			)
 		);
 
+		// Work functions:
+		api_def->add_work_function(
+			masala::make_shared< MasalaObjectAPIWorkFunctionDefinition_ZeroInput< std::string > >(
+				"type_specific_details_string", "Get a string describing the subclass-specific details of this room.  Base class "
+				"implementation doesn't do anything; must be implemented by derived classes.",
+				true, false, true, false,
+				"type_specific_details_string", "A string describing the subclass-specific details of this room.",
+				std::bind( &Room::type_specific_details_string, this )
+			)
+		);
+
 		api_definition() = api_def; //Make const.
 	}
 
@@ -263,6 +274,13 @@ Room::set_angle(
 // PUBLIC WORK FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
 
+/// @brief Get a string describing the subclass-specific details of this table.  Base class
+/// implementation doesn't do anything; must be implemented by derived classes.
+/*virtual*/
+std::string
+Room::type_specific_details_string() const {
+	return "";
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // PROTECTED FUNCTIONS

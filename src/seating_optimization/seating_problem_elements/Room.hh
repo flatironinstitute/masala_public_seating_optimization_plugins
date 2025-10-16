@@ -158,6 +158,9 @@ public:
 // PUBLIC WORK FUNCTIONS
 ////////////////////////////////////////////////////////////////////////////////
 
+	/// @brief Get a string describing the subclass-specific details of this room.  Base class
+	/// implementation doesn't do anything; must be implemented by derived classes.
+	virtual std::string type_specific_details_string() const;
 
 protected:
 

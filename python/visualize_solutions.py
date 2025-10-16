@@ -27,6 +27,7 @@
 
 import argparse
 import drawsvg as draw
+from math import sqrt
 
 ################################################################################
 ## FUNCTION DEFINITIONS
@@ -52,9 +53,10 @@ def read_file( filename : str )->list[str] :
     #print( outlist )
     return outlist
 
-## @brief Draw the tables.
-def draw_tables( drawing : draw.Drawing, problines : list[str] )->None :
+## @brief Draw the tables.  Return a vector of table centre coordinates.
+def draw_tables( drawing : draw.Drawing, problines : list[str] )->list[tuple[float,float]] :
     intables = False
+    table_coords = []
     for fullline in problines :
         line = fullline.strip()
         print(line)
@@ -78,9 +80,11 @@ def draw_tables( drawing : draw.Drawing, problines : list[str] )->None :
                 radius = float(linesplit[6])
                 circ = draw.Circle( x, y, radius, stroke_width=0.025, stroke="black", fill="white" )
                 drawing.append(circ)
+                table_coords.append((x,y))
                 print( "Parsed a CircularTable with center " + str(x) + ", " + str(y) + " and radius " + str(radius) + "." )
             else :
                 raise Exception( "Did not recognize table type \"" + linesplit[1] + "\"." )
+    return table_coords
 
 ## @brief Draw the seats, and return the seat coordinates.
 def draw_seats( drawing : draw.Drawing, problines : list[str] )->list[tuple[float,float]] :
@@ -114,7 +118,7 @@ def draw_seats( drawing : draw.Drawing, problines : list[str] )->list[tuple[floa
     return outlist
 
 ## @brief Add guests' names to the diagram.
-def label_guests( drawing : draw.Drawing, soln_lins : list[str], seat_coords : list[tuple[float,float]] )->None :
+def label_guests( drawing : draw.Drawing, soln_lins : list[str], seat_coords : list[tuple[float,float]], table_coords : list[tuple[float,float]] )->None :
     for fullline in soln_lins :
         line = fullline.strip()
         if line == "" :
@@ -125,8 +129,15 @@ def label_guests( drawing : draw.Drawing, soln_lins : list[str], seat_coords : l
             continue
         guestname = linesplit[2].replace("\"", "").replace(" ", "\n")
         seatindex = int(linesplit[3])
-        x,y = seat_coords[seatindex]
-        t1 = draw.Text( guestname, font_size=.15, x=x, y=y, center=True )
+        tableindex = int(linesplit[4])
+        xseat,yseat = seat_coords[seatindex]
+        xtable,ytable = table_coords[tableindex]
+        xdiff = xtable-xseat
+        ydiff = ytable-yseat
+        l = sqrt( xdiff*xdiff + ydiff*ydiff )
+        x = 0.5*xdiff/l + xseat
+        y = 0.5*ydiff/l + yseat
+        t1 = draw.Text( guestname, font_size=.15, x=x, y=y, center=True, style='text-anchor:middle; dominant-baseline:middle;')
         drawing.append(t1)
 
 ################################################################################
@@ -143,10 +154,10 @@ problines = read_file(problem_filename)
 
 for i in range(len(solution_filenames)) :
     drawing = draw.Drawing( 12, 8, origin="center" )
-    draw_tables( drawing, problines )
+    table_coords = draw_tables( drawing, problines )
     seat_coords = draw_seats( drawing, problines )
     soln_lins = read_file(solution_filenames[i])
-    label_guests( drawing, soln_lins, seat_coords )
+    label_guests( drawing, soln_lins, seat_coords, table_coords )
 
     drawing.set_pixel_scale(100)
     drawing.rasterize()

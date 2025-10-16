@@ -740,7 +740,7 @@ SeatingProblem::protected_print_problem_to_string() const {
 	outstream << "Room_index\tRoom_type\tX\tY\tAngle\tType_specific_details\n";
 	Size const nrooms( rooms_.size() );
 	for( Size iroom(0); iroom < nrooms; ++iroom ) {
-		Room const & room( *rooms_[i] );
+		Room const & room( *rooms_[iroom] );
 		std::ostringstream ss;
 		ss << std::setprecision(6);
 		ss

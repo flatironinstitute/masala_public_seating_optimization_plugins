@@ -3,7 +3,7 @@
 # he doesn't have anyone nearby to harass.
 
 # Define the room
-RectangularRoom     0.0     0.0     0.0     12.0    9.0
+RectangularRoom     0.0     0.0     0.0     9.0    12.0
 
 # Defining some tables:
 

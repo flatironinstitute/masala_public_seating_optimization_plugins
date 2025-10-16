@@ -44,16 +44,20 @@ def parse_options()->tuple[str, str, list[str]]:
     return args.output_prefix, args.problem_filename, args.solution_filenames[0]
 
 ## @brief Read the problem file.
-def read_problem_file( filename : str )->list[str] :
+def read_file( filename : str )->list[str] :
     with open(filename) as filehandle:
         outlist = filehandle.readlines
+    print( "Read file \"" + filename + "\"." )
     return outlist
 
 ################################################################################
 ## PROGRAM ENTRY POINT
 ################################################################################
 
+print( "Starting visualize_solutions.py." )
 outprefix, problem_filename, solution_filenames = parse_options()
-print( outprefix )
-print( problem_filename )
-print( solution_filenames )
+print( "outprefix =", outprefix )
+print( "problem_filename =", problem_filename )
+print( "solution_filenames =", solution_filenames )
+
+problines = read_file(problem_filename)

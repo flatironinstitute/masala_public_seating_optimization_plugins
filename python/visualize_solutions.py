@@ -18,5 +18,42 @@
 
 ## @file python/visualize_solutions.py
 ## @brief Draws seating diagrams from optimization problem descriptions and solution files.
+## @details Usage is: python3 python/visualize_solutiuons.py <output_prefix> <problem_filename> <solution_filename1> <solution_filename2> ...
 ## @author Vikram K. Mulligan
 
+################################################################################
+## IMPORTS
+################################################################################
+
+import argparse
+
+################################################################################
+## FUNCTION DEFINITIONS
+################################################################################
+
+## @brief Parse the commandline options.
+def parse_options()->tuple[str, str, list[str]]:
+    parser = argparse.ArgumentParser( prog="visualize_solutions", \
+        description="An application for drawing seating diagrams from problem definition files and solution files." \
+    )
+    parser.add_argument( "output_prefix", action="store" )
+    parser.add_argument( "problem_filename", action="store" )
+    parser.add_argument( "solution_filenames", action="append", nargs="+" )
+    args = parser.parse_args()
+
+    return args.output_prefix, args.problem_filename, args.solution_filenames[0]
+
+## @brief Read the problem file.
+def read_problem_file( filename : str )->list[str] :
+    with open(filename) as filehandle:
+        outlist = filehandle.readlines
+    return outlist
+
+################################################################################
+## PROGRAM ENTRY POINT
+################################################################################
+
+outprefix, problem_filename, solution_filenames = parse_options()
+print( outprefix )
+print( problem_filename )
+print( solution_filenames )

@@ -1,0 +1,127 @@
+# This defines the "Capulets and Montagues" problem: Romeo and Juliet are getting married, but the male
+# Capulets and Montagues hate one another and must not be near one another.
+
+# Define the room
+RectangularRoom     0.0     2.0     0.0     8.0    12.0
+
+# Defining some tables:
+
+CircularTable	0		0		20.0	1.25	6
+CircularTable	-4		0		0.0		1.25	5
+CircularTable	4		0		0.0		1.25	5
+CircularTable	-2.5	4		0.0		1.25	5
+CircularTable	2.5		4		20.0	1.25	5
+
+# The bride and groom:
+
+Guest	romeo			Romeo Montague
+Guest	juliet			Juliet Capulet
+
+# The House of Capulet:
+Guest	lord_capulet		Lord Capulet
+Guest	lady_capulet		Lady Capulet
+Guest	old_capulet			Old Capulet
+Guest	tybalt_capulet		Tybalt (House Capulet)
+Guest	juliets_nurse		Nurse (House Capulet)
+Guest	gregory_capulet		Gregory (House Capulet)
+Guest	sampson_capulet		Sampson (House Capulet)
+Guest	petruchio_capulet	Petruchio (House Capulet)
+Guest	rosaline_capulet	Rosaline (House Capulet)
+Guest	peter_capulet		Peter (House Capulet)
+Guest	anthony_capulet		Anthony (House Capulet)
+Guest	potpan_capulet		Potpan (House Capulet)
+
+# The House of Montague:
+Guest	lord_montague		Lord Montague
+Guest	lady_montague		Lady Montague
+Guest	benvolio_montague	Benvolio (House Montague)
+Guest	balthasar_montague	Balthasar (House Montague)
+Guest	abram_montague		Abram (House Montague)
+
+# Royal family:
+Guest	prince_of_verona	Prince Escalus
+Guest	count_paris			Count Paris
+Guest	mercutio			Mercutio
+
+# Others:
+
+Guest	friar_laurence		Friar Laurence
+Guest	friar_john			Friar John
+Guest	valentine			Valentine (Mercutio's cousin)
+
+# Ensure that no two guests can be assigned to the same seat.
+
+GuestOverlapConstraint  30.0
+
+# Restrain some guests to be at the first table.
+
+RestrictGuestToTableRestraint	romeo				0
+RestrictGuestToTableRestraint	juliet				0
+RestrictGuestToTableRestraint	lord_montague		0
+RestrictGuestToTableRestraint	lord_capulet		0
+RestrictGuestToTableRestraint	lady_montague		0
+RestrictGuestToTableRestraint	lady_capulet		0
+
+# The bride and groom should be together:
+GuestPairAdjacentSeatConstraint		romeo		juliet	-15.0
+
+# Couples should be together:
+GuestPairAdjacentSeatConstraint		lady_capulet	lord_capulet	-15.0
+GuestPairAdjacentSeatConstraint		lady_montague	lord_montague	-15.0
+
+# Friends like to sit nearby:
+GuestPairProximityConstraint		gregory_capulet		sampson_capulet		-5.0		GAUSSIAN	2.0
+GuestPairSameTableConstraint		gregory_capulet		sampson_capulet		-5.0
+GuestPairAdjacentSeatConstraint		gregory_capulet		sampson_capulet		-5.0
+GuestPairProximityConstraint		abram_montague		balthasar_montague	-5.0		GAUSSIAN	2.0
+GuestPairSameTableConstraint		abram_montague		balthasar_montague	-5.0
+GuestPairAdjacentSeatConstraint		abram_montague		balthasar_montague	-5.0
+GuestPairProximityConstraint		anthony_capulet		potpan_capulet		-5.0		GAUSSIAN	2.0
+GuestPairSameTableConstraint		anthony_capulet		potpan_capulet		-5.0
+GuestPairAdjacentSeatConstraint		anthony_capulet		potpan_capulet		-5.0
+GuestPairProximityConstraint		romeo				mercutio			-10.0		GAUSSIAN	3.0
+GuestPairProximityConstraint		romeo				benvolio_montague	-10.0		GAUSSIAN	3.0
+GuestPairProximityConstraint		juliet				juliets_nurse		-10.0		GAUSSIAN	3.0
+GuestPairProximityConstraint		mercutio			valentine			-5.0		GAUSSIAN	2.0
+GuestPairSameTableConstraint		mercutio			valentine			-5.0
+GuestPairAdjacentSeatConstraint		mercutio			valentine			-5.0
+
+# Animosity between pairs of guests mean that they should be widely separated:
+GuestPairAdjacentSeatConstraint		lord_capulet		lord_montague		10.0	# The men fight the most.
+GuestPairAdjacentSeatConstraint		lady_capulet		lady_montague		7.0		# The women fight a fair bit.
+GuestPairAdjacentSeatConstraint		lady_capulet		lord_montague		5.0		# The mixed pairs can behave with SOME decorum.
+GuestPairAdjacentSeatConstraint		lord_capulet		lady_montague		5.0
+GuestPairAdjacentSeatConstraint		romeo				lord_capulet		10.0
+GuestPairAdjacentSeatConstraint		romeo				lady_capulet		7.0
+GuestPairAdjacentSeatConstraint		juliet				lord_montague		7.0
+GuestPairAdjacentSeatConstraint		juliet				lady_montague		10.0
+GuestPairProximityConstraint		tybalt_capulet		mercutio			10.0		GAUSSIAN	4.0	# Tybalt DID kill Mercutio.
+GuestPairSameTableConstraint		tybalt_capulet		mercutio			10.0
+GuestPairAdjacentSeatConstraint		tybalt_capulet		mercutio			10.0
+GuestPairProximityConstraint		abram_montague		gregory_capulet		10.0		GAUSSIAN	4.0	# Abram and Balthasar fought Gregory and Sampson at the thumb-biting incident.
+GuestPairSameTableConstraint		abram_montague		gregory_capulet		10.0
+GuestPairAdjacentSeatConstraint		abram_montague		gregory_capulet		10.0
+GuestPairProximityConstraint		abram_montague		sampson_capulet		10.0		GAUSSIAN	4.0
+GuestPairSameTableConstraint		abram_montague		sampson_capulet		10.0
+GuestPairAdjacentSeatConstraint		abram_montague		sampson_capulet		10.0
+GuestPairProximityConstraint		balthasar_montague	gregory_capulet		10.0		GAUSSIAN	4.0
+GuestPairSameTableConstraint		balthasar_montague	gregory_capulet		10.0
+GuestPairAdjacentSeatConstraint		balthasar_montague	gregory_capulet		10.0
+GuestPairProximityConstraint		balthasar_montague	sampson_capulet		10.0		GAUSSIAN	4.0
+GuestPairSameTableConstraint		balthasar_montague	sampson_capulet		10.0
+GuestPairAdjacentSeatConstraint		balthasar_montague	sampson_capulet		10.0
+GuestPairProximityConstraint		prince_of_verona	romeo				10.0		GAUSSIAN	4.0	# The Prince DID banish Romeo.
+GuestPairProximityConstraint		tybalt_capulet		romeo				10.0		GAUSSIAN	4.0	# Romeo DID kill Tybalt.
+GuestPairProximityConstraint		balthasar_montague	peter_capulet		6.0			GAUSSIAN	4.0
+GuestPairSameTableConstraint		balthasar_montague	peter_capulet		6.0
+GuestPairAdjacentSeatConstraint		balthasar_montague	peter_capulet		6.0
+GuestPairProximityConstraint		abram_montague		peter_capulet		6.0			GAUSSIAN	4.0
+GuestPairSameTableConstraint		abram_montague		peter_capulet		6.0
+GuestPairAdjacentSeatConstraint		abram_montague		peter_capulet		6.0
+GuestPairProximityConstraint		friar_laurence		mercutio			6.0			GAUSSIAN	4.0 # Mercutio is uncouth, and would offend a Friar.
+GuestPairSameTableConstraint		friar_laurence		mercutio			6.0
+GuestPairAdjacentSeatConstraint		friar_laurence		mercutio			6.0
+GuestPairProximityConstraint		friar_john			mercutio			6.0			GAUSSIAN	4.0
+GuestPairSameTableConstraint		friar_john			mercutio			6.0
+GuestPairAdjacentSeatConstraint		friar_john			mercutio			6.0
+GuestPairProximityConstraint		romeo				rosaline_capulet	10.0		GAUSSIAN	5.0 # Romeo probably shouldn't be too close to Rosaline:

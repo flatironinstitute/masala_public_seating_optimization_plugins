@@ -2,6 +2,9 @@
 # make himself unsufferable around young women.  The optimization problem is to seat him so that
 # he doesn't have anyone nearby to harass.
 
+# Define the room
+RectangularRoom     0.0     0.0     0.0     12.0    9.0
+
 # Defining some tables:
 
 CircularTable	-3	0	20.0	2	9

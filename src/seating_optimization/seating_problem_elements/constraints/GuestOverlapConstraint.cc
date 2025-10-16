@@ -263,7 +263,7 @@ GuestOverlapConstraint::add_constraint_to_cfn_problem(
 					Size const guest1_choice_index( guest_to_seat_index_to_guest_choice[guest1_index].at(iseat) );
 					Size const guest2_choice_index( guest_to_seat_index_to_guest_choice[guest2_index].at(iseat) );
 					cfn_problem_cast->add_to_twobody_penalty( std::make_pair( guest1_index, guest2_index ), std::make_pair( guest1_choice_index, guest2_choice_index ), penalty_value );
-					write_to_tracer( "Constrained guests " + std::to_string(guest1_index) + " and " + std::to_string(guest2_index) + ", at seats " + std::to_string(iseat) + " and " + std::to_string(iseat) + ".  Penalty: " + std::to_string(penalty_value) + "." );
+					write_to_tracer( "Constrained overlap of guests " + std::to_string(guest1_index) + " and " + std::to_string(guest2_index) + ", at seats " + std::to_string(iseat) + " and " + std::to_string(iseat) + ".  Penalty: " + std::to_string(penalty_value) + "." );
 				}
 			}
 		}

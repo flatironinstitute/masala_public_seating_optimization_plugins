@@ -57,9 +57,9 @@ def read_file( filename : str )->list[str] :
 def rotate( p : tuple[float,float], xcen : float, ycen : float, angle : float) -> tuple[float,float] :
     x = p[0]-xcen
     y = p[1]-ycen
-    xprime = x*cos(angle) - y*sin(angle)
-    xprime = x*sin(angle) + y*cos(angle)
-    return (x,y)
+    xprime = x*cos(angle) - y*sin(angle) + xcen
+    yprime = x*sin(angle) + y*cos(angle) + ycen
+    return (xprime,yprime)
 
 ## @brief Given a rotated rectangle, get its minimum and maximum coordinates.
 def get_bounds_of_rotated_rectangle( x : float, y : float, width : float, length : float, angle : float )->tuple[float,float,float,float] :
@@ -69,6 +69,7 @@ def get_bounds_of_rotated_rectangle( x : float, y : float, width : float, length
     p2 = (x+halfwidth,y-halflength)
     p3 = (x-halfwidth,y+halflength)
     p4 = (x+halfwidth,y+halflength)
+    print(p1,p2,p3,p4)
 
     p1 = rotate(p1, x, y, angle)
     p2 = rotate(p2, x, y, angle)
@@ -129,7 +130,8 @@ def generate_rooms( problines : list[str] )->tuple[ list[draw.DrawingBasicElemen
     ywidth = maxy - miny
     xcen = minx + xwidth/2
     ycen = miny + ywidth/2
-    print( xwidth, ywidth, xcen, ycen )
+    print( "minx,miny,maxx,maxy:", minx, miny, maxx, maxy )
+    print( "xwidth,ywidth,xcen,ycen:", xwidth, ywidth, xcen, ycen )
     return outvec, xwidth, ywidth, xcen, ycen
 
         
@@ -236,8 +238,8 @@ problines = read_file(problem_filename)
 
 for i in range(len(solution_filenames)) :
     rooms, drawingwidth, drawinglength, drawingorigin_x, drawingorigin_y = generate_rooms( problines )
-    print (drawingorigin_x, drawingorigin_y)
-    drawing = draw.Drawing( drawingwidth+.5, drawinglength+.5, origin=( drawingorigin_x - (drawingwidth+.5)/2, drawingorigin_y - (drawinglength + .5)/2 ) )
+    print ( "ORIGIN", drawingorigin_x, drawingorigin_y)
+    drawing = draw.Drawing( drawingwidth+.5, drawinglength+.5, origin=( drawingorigin_x - (drawingwidth+.5)/2, drawingorigin_y - (drawinglength+.5)/2 ) )
     for room in rooms:
         drawing.append(room)
     table_coords = draw_tables( drawing, problines )

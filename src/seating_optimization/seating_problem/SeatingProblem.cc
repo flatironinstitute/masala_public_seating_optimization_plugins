@@ -850,7 +850,7 @@ SeatingProblem::protected_add_table(
 	regenerate_seat_indices();
 
 	write_to_tracer( "Added table " + std::to_string(tables_.size() - 1) + " of type \"" + table_in->class_name()
-		+ "\", at coordinates ( " + std::to_string(table_in->x()) + ", " + std::to_string(table_in->y())
+		+ "\", at coordinates (" + std::to_string(table_in->x()) + ", " + std::to_string(table_in->y())
 		+ "), with " + std::to_string( table_in->num_seats() ) + " seats." );
 }
 
@@ -863,7 +863,7 @@ SeatingProblem::protected_add_room(
 	CHECK_OR_THROW_FOR_CLASS( !finalized_, "protected_add_room", "This object must not be finalized before this function is called." );
 	rooms_.push_back( room_in );
 	write_to_tracer( "Added room " + std::to_string(rooms_.size() - 1) + " of type \"" + room_in->class_name()
-		+ "\", at coordinates ( " + std::to_string(room_in->x()) + ", " + std::to_string(room_in->y()) + "."
+		+ "\", at coordinates (" + std::to_string(room_in->x()) + ", " + std::to_string(room_in->y()) + ")."
 	);
 }
 

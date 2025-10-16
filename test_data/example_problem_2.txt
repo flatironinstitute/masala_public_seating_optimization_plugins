@@ -98,6 +98,15 @@ GuestPairAdjacentSeatConstraint		juliet				lady_montague		10.0
 GuestPairProximityConstraint		tybalt_capulet		mercutio			10.0		GAUSSIAN	4.0	# Tybalt DID kill Mercutio.
 GuestPairSameTableConstraint		tybalt_capulet		mercutio			10.0
 GuestPairAdjacentSeatConstraint		tybalt_capulet		mercutio			10.0
+GuestPairProximityConstraint		tybalt_capulet		benvolio_montague	5.0			GAUSSIAN	4.0	# Benvolio DID try to defuse the situation (though Tybalt tried to make trouble with him, too).
+GuestPairSameTableConstraint		tybalt_capulet		benvolio_montague	5.0
+GuestPairAdjacentSeatConstraint		tybalt_capulet		benvolio_montague	5.0
+GuestPairProximityConstraint		tybalt_capulet		balthasar_montague	8.0			GAUSSIAN	4.0	# Tybalt hates other Montagues too.
+GuestPairSameTableConstraint		tybalt_capulet		balthasar_montague	8.0
+GuestPairAdjacentSeatConstraint		tybalt_capulet		balthasar_montague	8.0
+GuestPairProximityConstraint		tybalt_capulet		abram_montague		8.0			GAUSSIAN	4.0
+GuestPairSameTableConstraint		tybalt_capulet		abram_montague		8.0
+GuestPairAdjacentSeatConstraint		tybalt_capulet		abram_montague		8.0
 GuestPairProximityConstraint		abram_montague		gregory_capulet		10.0		GAUSSIAN	4.0	# Abram and Balthasar fought Gregory and Sampson at the thumb-biting incident.
 GuestPairSameTableConstraint		abram_montague		gregory_capulet		10.0
 GuestPairAdjacentSeatConstraint		abram_montague		gregory_capulet		10.0
@@ -124,4 +133,36 @@ GuestPairAdjacentSeatConstraint		friar_laurence		mercutio			6.0
 GuestPairProximityConstraint		friar_john			mercutio			6.0			GAUSSIAN	4.0
 GuestPairSameTableConstraint		friar_john			mercutio			6.0
 GuestPairAdjacentSeatConstraint		friar_john			mercutio			6.0
-GuestPairProximityConstraint		romeo				rosaline_capulet	10.0		GAUSSIAN	5.0 # Romeo probably shouldn't be too close to Rosaline:
+GuestPairProximityConstraint		romeo				rosaline_capulet	10.0		GAUSSIAN	5.0 # Romeo probably shouldn't be too close to Rosaline.
+GuestPairProximityConstraint		old_capulet			balthasar_montague	3.0			GAUSSIAN	4.0 # Old capulet probably has a weak aversion to Montagues.
+GuestPairSameTableConstraint		old_capulet			balthasar_montague	3.0
+GuestPairAdjacentSeatConstraint		old_capulet			balthasar_montague	3.0
+GuestPairProximityConstraint		old_capulet			abram_montague		3.0			GAUSSIAN	4.0
+GuestPairSameTableConstraint		old_capulet			abram_montague		3.0
+GuestPairAdjacentSeatConstraint		old_capulet			abram_montague		3.0
+GuestPairProximityConstraint		old_capulet			benvolio_montague	3.0			GAUSSIAN	4.0
+GuestPairSameTableConstraint		old_capulet			benvolio_montague	3.0
+GuestPairAdjacentSeatConstraint		old_capulet			benvolio_montague	3.0
+GuestPairProximityConstraint		petruchio_capulet	balthasar_montague	3.0			GAUSSIAN	4.0 # Petruchio probably has a weak aversion to Montagues.
+GuestPairSameTableConstraint		petruchio_capulet	balthasar_montague	3.0
+GuestPairAdjacentSeatConstraint		petruchio_capulet	balthasar_montague	3.0
+GuestPairProximityConstraint		petruchio_capulet	abram_montague		3.0			GAUSSIAN	4.0 # Petruchio probably has a weak aversion to Montagues.
+GuestPairSameTableConstraint		petruchio_capulet	abram_montague		3.0
+GuestPairAdjacentSeatConstraint		petruchio_capulet	abram_montague		3.0
+GuestPairProximityConstraint		petruchio_capulet	benvolio_montague	3.0			GAUSSIAN	4.0 # Petruchio probably has a weak aversion to Montagues.
+GuestPairSameTableConstraint		petruchio_capulet	benvolio_montague	3.0
+GuestPairAdjacentSeatConstraint		petruchio_capulet	benvolio_montague	3.0
+GuestPairSameTableConstraint		prince_of_verona	potpan_capulet		10.0	# Royalty does NOT want to be seated with servants.
+GuestPairSameTableConstraint		prince_of_verona	anthony_capulet		10.0
+GuestPairSameTableConstraint		prince_of_verona	gregory_capulet		10.0
+GuestPairSameTableConstraint		prince_of_verona	sampson_capulet		10.0
+GuestPairSameTableConstraint		prince_of_verona	abram_montague		10.0
+GuestPairSameTableConstraint		prince_of_verona	balthasar_montague	10.0
+GuestPairSameTableConstraint		prince_of_verona	juliets_nurse		10.0
+GuestPairSameTableConstraint		count_paris			potpan_capulet		10.0	# Nobility does NOT want to be seated with servants.
+GuestPairSameTableConstraint		count_paris			anthony_capulet		10.0
+GuestPairSameTableConstraint		count_paris			gregory_capulet		10.0
+GuestPairSameTableConstraint		count_paris			sampson_capulet		10.0
+GuestPairSameTableConstraint		count_paris			abram_montague		10.0
+GuestPairSameTableConstraint		count_paris			balthasar_montague	10.0
+GuestPairSameTableConstraint		count_paris			juliets_nurse		10.0

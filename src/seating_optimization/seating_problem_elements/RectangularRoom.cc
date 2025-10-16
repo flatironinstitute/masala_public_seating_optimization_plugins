@@ -251,7 +251,6 @@ RectangularRoom::configure_from_input_line(
 	std::string firststring;
 	std::lock_guard< std::mutex > lock( mutex() );
 	masala::base::Real x, y, angle_degrees, length, width;
-	masala::base::Size seatcount;
 	ss >> firststring >> x >> y >> angle_degrees >> length >> width;
 	CHECK_OR_THROW_FOR_CLASS( !(ss.bad() || ss.fail()), "configure_from_input_line", "Could not parse line \"" + linetrimmed + "\"." );
 	
@@ -306,6 +305,18 @@ RectangularRoom::protected_assign( SeatingElementBase const & src ) {
 	width_ = src_ptr_cast->width_;
 
 	Parent::protected_assign( src );
+}
+
+/// @brief Set the dimensions, with no mutex lock.
+void
+RectangularRoom::protected_set_dimensions(
+	masala::base::Real const length_in,
+	masala::base::Real const width_in
+) {
+	CHECK_OR_THROW_FOR_CLASS( length_in > 0, "protected_set_dimensions", "Expected the length of the room to be a positive value." );
+	CHECK_OR_THROW_FOR_CLASS( width_in > 0, "protected_set_dimensions", "Expected the width of the room to be a positive value." );
+	length_ = length_in;
+	width_ = width_in;
 }
 
 } // namespace seating_problem_elements

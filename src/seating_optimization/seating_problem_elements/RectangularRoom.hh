@@ -162,6 +162,13 @@ protected:
 	/// the parent class implementation.
 	void protected_assign( SeatingElementBase const & src ) override;
 
+	/// @brief Set the dimensions, with no mutex lock.
+	void
+	protected_set_dimensions(
+		masala::base::Real const length_in,
+		masala::base::Real const width_in
+	);
+
 private:
 
 ////////////////////////////////////////////////////////////////////////////////

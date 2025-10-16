@@ -247,7 +247,7 @@ for i in range(len(solution_filenames)) :
     soln_lins = read_file(solution_filenames[i])
     label_guests( drawing, soln_lins, seat_coords, table_coords )
 
-    drawing.set_pixel_scale(100)
+    drawing.set_pixel_scale(200)
     drawing.rasterize()
     input_index_str = str( i ).zfill(6)
     drawing.save_png( outprefix + "_" + input_index_str + ".png" )

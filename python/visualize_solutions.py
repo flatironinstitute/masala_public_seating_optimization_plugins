@@ -82,9 +82,10 @@ def draw_tables( drawing : draw.Drawing, problines : list[str] )->None :
             else :
                 raise Exception( "Did not recognize table type \"" + linesplit[1] + "\"." )
 
-## @brief Draw the seats.        
-def draw_seats( drawing : draw.Drawing, problines : list[str] )->None :
+## @brief Draw the seats, and return the seat coordinates.
+def draw_seats( drawing : draw.Drawing, problines : list[str] )->list[tuple[float,float]] :
     inseats = False
+    outlist = []
     for fullline in problines :
         line = fullline.strip()
         if inseats == False :
@@ -108,7 +109,25 @@ def draw_seats( drawing : draw.Drawing, problines : list[str] )->None :
             r4 = draw.Rectangle(x+.35, y-.125, -.075, .25, stroke_width=0.025, stroke="black", fill="white" )
             g1 = draw.Group( [r1,r2,r3,r4], transform="rotate(" + str(180-angle) + "," + str(x) + "," + str(y) + ") translate(0,-0.2)" )
             drawing.append(g1)
+            outlist.append((x,y))
             print( "Parsed a seat with center " + str(x) + ", " + str(y) + " and angle " + str(angle) + " degrees." )
+    return outlist
+
+## @brief Add guests' names to the diagram.
+def label_guests( drawing : draw.Drawing, soln_lins : list[str], seat_coords : list[tuple[float,float]] )->None :
+    for fullline in soln_lins :
+        line = fullline.strip()
+        if line == "" :
+            continue
+        linesplit = line.split( sep="\t" )
+        assert len(linesplit) == 6
+        if linesplit[0] == "Guest_index" :
+            continue
+        guestname = linesplit[2].replace("\"", "").replace(" ", "\n")
+        seatindex = int(linesplit[3])
+        x,y = seat_coords[seatindex]
+        t1 = draw.Text( guestname, font_size=.15, x=x, y=y, center=True )
+        drawing.append(t1)
 
 ################################################################################
 ## PROGRAM ENTRY POINT
@@ -121,12 +140,17 @@ print( "problem_filename =", problem_filename )
 print( "solution_filenames =", solution_filenames )
 
 problines = read_file(problem_filename)
-drawing = draw.Drawing( 12, 8, origin="center" )
-draw_tables( drawing, problines )
-draw_seats( drawing, problines )
 
-drawing.set_pixel_scale(100)
-drawing.rasterize()
-drawing.save_png( outprefix + ".png" )
-#drawing.save_svg( outprefix + ".svg" )
-print( "Wrote \"" + outprefix + ".png\"." )
+for i in range(len(solution_filenames)) :
+    drawing = draw.Drawing( 12, 8, origin="center" )
+    draw_tables( drawing, problines )
+    seat_coords = draw_seats( drawing, problines )
+    soln_lins = read_file(solution_filenames[i])
+    label_guests( drawing, soln_lins, seat_coords )
+
+    drawing.set_pixel_scale(100)
+    drawing.rasterize()
+    input_index_str = str( i ).zfill(6)
+    drawing.save_png( outprefix + "_" + input_index_str + ".png" )
+    #drawing.save_svg( outprefix + "_" + input_index_str + ".svg" )
+    print( "Wrote \"" + outprefix + "_" + input_index_str + ".png\"." )

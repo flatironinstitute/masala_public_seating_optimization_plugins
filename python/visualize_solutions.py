@@ -119,6 +119,7 @@ def draw_seats( drawing : draw.Drawing, problines : list[str] )->list[tuple[floa
 
 ## @brief Add guests' names to the diagram.
 def label_guests( drawing : draw.Drawing, soln_lins : list[str], seat_coords : list[tuple[float,float]], table_coords : list[tuple[float,float]] )->None :
+    offset=0.5
     for fullline in soln_lins :
         line = fullline.strip()
         if line == "" :
@@ -135,9 +136,9 @@ def label_guests( drawing : draw.Drawing, soln_lins : list[str], seat_coords : l
         xdiff = xtable-xseat
         ydiff = ytable-yseat
         l = sqrt( xdiff*xdiff + ydiff*ydiff )
-        x = 0.5*xdiff/l + xseat
-        y = 0.5*ydiff/l + yseat
-        t1 = draw.Text( guestname, font_size=.15, x=x, y=y, center=True, style='text-anchor:middle; dominant-baseline:middle;')
+        x = offset*xdiff/l + xseat
+        y = offset*ydiff/l + yseat
+        t1 = draw.Text( guestname, font_size=.15, x=x, y=y, center=True, style='text-anchor:middle; dominant-baseline:bottom;')
         drawing.append(t1)
 
 ################################################################################

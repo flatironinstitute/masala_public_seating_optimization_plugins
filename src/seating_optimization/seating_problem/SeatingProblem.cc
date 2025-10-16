@@ -736,6 +736,24 @@ SeatingProblem::protected_print_problem_to_string() const {
 	}
 	outstream << "\n";
 
+	outstream << "ROOMS:\n";
+	outstream << "Room_index\tRoom_type\tX\tY\tAngle\tType_specific_details\n";
+	Size const nrooms( rooms_.size() );
+	for( Size iroom(0); iroom < nrooms; ++iroom ) {
+		Room const & room( *rooms_[i] );
+		std::ostringstream ss;
+		ss << std::setprecision(6);
+		ss
+			<< iroom
+			<< "\t" << room.class_name()
+			<< "\t" << room.x()
+			<< "\t" << room.y()
+			<< "\t" << room.angle()
+			<< "\t" << room.type_specific_details_string();
+		outstream << ss.str() << "\n";
+	}
+	outstream << "\n";
+
 	outstream << "TABLES:\n";
 	outstream << "Table_index\tTable_type\tX\tY\tAngle\tType_specific_details\n";
 	Size const ntables( tables_.size() );

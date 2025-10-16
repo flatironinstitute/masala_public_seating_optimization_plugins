@@ -71,15 +71,42 @@ def draw_tables( drawing : draw.Drawing, problines : list[str] )->None :
                 continue # Header line
             if linesplit[1] == "CircularTable" :
                 assert len(linesplit) == 7
+                tableindex = int(linesplit[0])
                 x = float(linesplit[2])
                 y = float(linesplit[3])
                 #angle = float(linesplit[4])
                 radius = float(linesplit[6])
-                circ = draw.Circle( x, y, radius, stroke_width=25, stroke="black" )
+                circ = draw.Circle( x, y, radius, stroke_width=0.025, stroke="black", fill="white" )
                 drawing.append(circ)
                 print( "Parsed a CircularTable with center " + str(x) + ", " + str(y) + " and radius " + str(radius) + "." )
             else :
                 raise Exception( "Did not recognize table type \"" + linesplit[1] + "\"." )
+
+## @brief Draw the seats.        
+def draw_seats( drawing : draw.Drawing, problines : list[str] )->None :
+    inseats = False
+    for fullline in problines :
+        line = fullline.strip()
+        if inseats == False :
+            if line == "SEATS:" :
+                inseats = True
+        else :
+            if line == "" :
+                inseats = False
+                break
+            linesplit = line.split()
+            assert len(linesplit) == 6
+            if linesplit[0] == "Global_seat_index" :
+                continue
+            seatindex = int(linesplit[0])
+            x = float(linesplit[3])
+            y = float(linesplit[4])
+            angle = float(linesplit[5])
+            r1 = draw.Rectangle(x-.25, y-.125, .5, .25, stroke_width=0.025, stroke="black", fill="white" )
+            r2 = draw.Rectangle(x-.3, y-.25, .6, .125, stroke_width=0.025, stroke="black", fill="white" )
+            g1 = draw.Group( [r1,r2], transform="rotatate(45)" )
+            drawing.append(g1)
+            print( "Parsed a seat with center " + str(x) + ", " + str(y) + " and angle " + str(angle) + " degrees." )
 
 ################################################################################
 ## PROGRAM ENTRY POINT
@@ -92,9 +119,12 @@ print( "problem_filename =", problem_filename )
 print( "solution_filenames =", solution_filenames )
 
 problines = read_file(problem_filename)
-drawing = draw.Drawing( int(6.5*300), int(4*300), origin="center" )
+drawing = draw.Drawing( 12, 8, origin="center" )
 draw_tables( drawing, problines )
+draw_seats( drawing, problines )
 
-#drawing.rasterize()
-#drawing.save_png( outprefix + ".png" )
-drawing.save_svg( outprefix + ".svg" )
+drawing.set_pixel_scale(100)
+drawing.rasterize()
+drawing.save_png( outprefix + ".png" )
+#drawing.save_svg( outprefix + ".svg" )
+print( "Wrote \"" + outprefix + ".png\"." )

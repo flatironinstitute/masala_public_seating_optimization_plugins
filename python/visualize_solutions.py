@@ -49,12 +49,15 @@ def read_file( filename : str )->list[str] :
     with open(filename) as filehandle:
         outlist = filehandle.readlines()
     print( "Read file \"" + filename + "\"." )
+    #print( outlist )
     return outlist
 
 ## @brief Draw the tables.
 def draw_tables( drawing : draw.Drawing, problines : list[str] )->None :
     intables = False
-    for line in problines :
+    for fullline in problines :
+        line = fullline.strip()
+        print(line)
         if intables == False :
             if line == "TABLES:" :
                 intables = True
@@ -72,8 +75,9 @@ def draw_tables( drawing : draw.Drawing, problines : list[str] )->None :
                 y = float(linesplit[3])
                 #angle = float(linesplit[4])
                 radius = float(linesplit[6])
-                circ = draw.Circle( x*100, y*100, radius*100, stroke_width=1, stroke="black" )
+                circ = draw.Circle( x, y, radius, stroke_width=25, stroke="black" )
                 drawing.append(circ)
+                print( "Parsed a CircularTable with center " + str(x) + ", " + str(y) + " and radius " + str(radius) + "." )
             else :
                 raise Exception( "Did not recognize table type \"" + linesplit[1] + "\"." )
 
@@ -88,9 +92,9 @@ print( "problem_filename =", problem_filename )
 print( "solution_filenames =", solution_filenames )
 
 problines = read_file(problem_filename)
-drawing = draw.Drawing( int(6.5*300), int(4*300) )
+drawing = draw.Drawing( int(6.5*300), int(4*300), origin="center" )
 draw_tables( drawing, problines )
 
-drawing.rasterize()
-drawing.save_png( outprefix + ".png" )
-#drawing.save_svg( outprefix + ".svg" )
+#drawing.rasterize()
+#drawing.save_png( outprefix + ".png" )
+drawing.save_svg( outprefix + ".svg" )

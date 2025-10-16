@@ -26,6 +26,7 @@
 ################################################################################
 
 import argparse
+import drawsvg as draw
 
 ################################################################################
 ## FUNCTION DEFINITIONS
@@ -46,9 +47,35 @@ def parse_options()->tuple[str, str, list[str]]:
 ## @brief Read the problem file.
 def read_file( filename : str )->list[str] :
     with open(filename) as filehandle:
-        outlist = filehandle.readlines
+        outlist = filehandle.readlines()
     print( "Read file \"" + filename + "\"." )
     return outlist
+
+## @brief Draw the tables.
+def draw_tables( drawing : draw.Drawing, problines : list[str] )->None :
+    intables = False
+    for line in problines :
+        if intables == False :
+            if line == "TABLES:" :
+                intables = True
+        else :
+            if line == "" :
+                intables = False
+                break
+            linesplit = line.split()
+            assert len(linesplit) > 2
+            if linesplit[0] == "Table_index" :
+                continue # Header line
+            if linesplit[1] == "CircularTable" :
+                assert len(linesplit) == 7
+                x = float(linesplit[2])
+                y = float(linesplit[3])
+                #angle = float(linesplit[4])
+                radius = float(linesplit[6])
+                circ = draw.Circle( x*100, y*100, radius*100, stroke_width=1, stroke="black" )
+                drawing.append(circ)
+            else :
+                raise Exception( "Did not recognize table type \"" + linesplit[1] + "\"." )
 
 ################################################################################
 ## PROGRAM ENTRY POINT
@@ -61,3 +88,9 @@ print( "problem_filename =", problem_filename )
 print( "solution_filenames =", solution_filenames )
 
 problines = read_file(problem_filename)
+drawing = draw.Drawing( int(6.5*300), int(4*300) )
+draw_tables( drawing, problines )
+
+drawing.rasterize()
+drawing.save_png( outprefix + ".png" )
+#drawing.save_svg( outprefix + ".svg" )

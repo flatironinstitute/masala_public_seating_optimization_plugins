@@ -28,6 +28,7 @@
 #include <seating_optimization/seating_problem_elements/Guest.hh>
 #include <seating_optimization/seating_problem_elements/Table.hh>
 #include <seating_optimization/seating_problem_elements/Seat.hh>
+#include <seating_optimization/seating_problem_elements/Room.hh>
 #include <seating_optimization/seating_problem_elements/SeatingElementBase.hh>
 #include <seating_optimization/seating_problem_elements/constraints/Constraint.hh>
 #include <seating_optimization/seating_problem_elements/restraints/Restraint.hh>
@@ -488,9 +489,13 @@ SeatingProblem::configure_from_problem_definition_file_lines(
 							SeatCSP seat( std::dynamic_pointer_cast< Seat const >(seating_element) );
 							if( seat != nullptr ) { protected_add_seat(seat); }
 							else {
-								MASALA_THROW( class_namespace() + "::" + class_name(), "configure_from_problem_definition_file_lines",
-									"Could not interpret \"" + seating_element->class_name() + "\" object as a Guest, a Table, a Seat, a Constraint, or a Restraint."
-								);
+								RoomCSP room( std::dynamic_pointer_cast< Room const >(seating_element) );
+								if( room != nullptr ) { protected_add_room(room); }
+								else {
+									MASALA_THROW( class_namespace() + "::" + class_name(), "configure_from_problem_definition_file_lines",
+										"Could not interpret \"" + seating_element->class_name() + "\" object as a Guest, a Table, a Seat, a Constraint, or a Restraint."
+									);
+								}
 							}
 						}
 					}
@@ -731,6 +736,24 @@ SeatingProblem::protected_print_problem_to_string() const {
 	}
 	outstream << "\n";
 
+	outstream << "ROOMS:\n";
+	outstream << "Room_index\tRoom_type\tX\tY\tAngle\tType_specific_details\n";
+	Size const nrooms( rooms_.size() );
+	for( Size iroom(0); iroom < nrooms; ++iroom ) {
+		Room const & room( *rooms_[iroom] );
+		std::ostringstream ss;
+		ss << std::setprecision(6);
+		ss
+			<< iroom
+			<< "\t" << room.class_name()
+			<< "\t" << room.x()
+			<< "\t" << room.y()
+			<< "\t" << room.angle()
+			<< "\t" << room.type_specific_details_string();
+		outstream << ss.str() << "\n";
+	}
+	outstream << "\n";
+
 	outstream << "TABLES:\n";
 	outstream << "Table_index\tTable_type\tX\tY\tAngle\tType_specific_details\n";
 	Size const ntables( tables_.size() );
@@ -845,8 +868,21 @@ SeatingProblem::protected_add_table(
 	regenerate_seat_indices();
 
 	write_to_tracer( "Added table " + std::to_string(tables_.size() - 1) + " of type \"" + table_in->class_name()
-		+ "\", at coordinates ( " + std::to_string(table_in->x()) + ", " + std::to_string(table_in->y())
+		+ "\", at coordinates (" + std::to_string(table_in->x()) + ", " + std::to_string(table_in->y())
 		+ "), with " + std::to_string( table_in->num_seats() ) + " seats." );
+}
+
+/// @brief Add a room.  Primarily for visualization
+/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
+void
+SeatingProblem::protected_add_room(
+	seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::RoomCSP const & room_in
+) {
+	CHECK_OR_THROW_FOR_CLASS( !finalized_, "protected_add_room", "This object must not be finalized before this function is called." );
+	rooms_.push_back( room_in );
+	write_to_tracer( "Added room " + std::to_string(rooms_.size() - 1) + " of type \"" + room_in->class_name()
+		+ "\", at coordinates (" + std::to_string(room_in->x()) + ", " + std::to_string(room_in->y()) + ")."
+	);
 }
 
 /// @brief Add a loose seat.  Stored directly; not cloned.  (NOT YET SUPPORTED -- THROWS.)
@@ -908,6 +944,14 @@ SeatingProblem::protected_make_independent() {
 			tables_[i] = new_table;
 		}
 	}
+	if( !rooms_.empty() ) {
+		for( Size i(0); i<rooms_.size(); ++i ) {
+			RoomSP new_room( std::dynamic_pointer_cast< Room >( rooms_[i]->clone() ) );
+			CHECK_OR_THROW_FOR_CLASS( new_room != nullptr, "protected_make_independent", "Unable to clone room " + std::to_string(i) + "." );
+			new_room->make_independent();
+			rooms_[i] = new_room;
+		}
+	}
 	if( !constraints_.empty() ) {
 		for( Size i(0); i<constraints_.size(); ++i ) {
 			ConstraintSP new_constraint( std::dynamic_pointer_cast< Constraint >( constraints_[i]->clone() ) );
@@ -938,6 +982,7 @@ SeatingProblem::protected_assign(
 	guests_ = src.guests_;
 	guests_by_index_ = src.guests_by_index_;
 	tables_ = src.tables_;
+	rooms_ = src.rooms_;
 	seat_indices_ = src.seat_indices_;
 	seats_by_index_ = src.seats_by_index_;
 	constraints_ = src.constraints_;

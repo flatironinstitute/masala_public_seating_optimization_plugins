@@ -38,6 +38,7 @@
 #include <seating_optimization/seating_problem_elements/Guest.fwd.hh>
 #include <seating_optimization/seating_problem_elements/Table.fwd.hh>
 #include <seating_optimization/seating_problem_elements/Seat.fwd.hh>
+#include <seating_optimization/seating_problem_elements/Room.fwd.hh>
 #include <seating_optimization/seating_problem_elements/constraints/Constraint.fwd.hh>
 #include <seating_optimization/seating_problem_elements/restraints/Restraint.fwd.hh>
 #include <seating_optimization/seating_problem/SeatingSolution.fwd.hh>
@@ -281,6 +282,13 @@ protected:
 		seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::TableCSP const & table_in
 	);
 
+	/// @brief Add a room.  Primarily for visualization
+	/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
+	void
+	protected_add_room(
+		seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::RoomCSP const & room_in
+	);
+
 	/// @brief Add a loose seat.  Stored directly; not cloned.  (NOT YET SUPPORTED -- THROWS.)
 	/// @note This version performs no mutex locking.  It should be called from a mutex-locked context.
 	void
@@ -344,6 +352,9 @@ private:
 
 	/// @brief The tables, stored by index.
 	std::vector< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::TableCSP > tables_;
+
+	/// @brief The rooms, stored by index.  Primarily for visualization
+	std::vector< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::RoomCSP > rooms_;
 
 	/// @brief The zero-based absolute indices of the seats.
 	std::map< seating_optimization_masala_plugins::seating_optimization::seating_problem_elements::SeatCSP, masala::base::Size > seat_indices_;

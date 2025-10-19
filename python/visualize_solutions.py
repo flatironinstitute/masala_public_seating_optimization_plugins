@@ -190,10 +190,10 @@ def draw_seats( drawing : draw.Drawing, problines : list[str] )->list[tuple[floa
             x = float(linesplit[3])
             y = float(linesplit[4])
             angle = float(linesplit[5])
-            r1 = draw.Rectangle(x-.225, y-.125, .45, .25, stroke_width=0.025, stroke="black", fill="white" )
-            r2 = draw.Rectangle(x-.35, y-.25, .7, .125   , stroke_width=0.025, stroke="black", fill="white" )
-            r3 = draw.Rectangle(x-.35, y-.125, .075, .25, stroke_width=0.025, stroke="black", fill="white" )
-            r4 = draw.Rectangle(x+.35, y-.125, -.075, .25, stroke_width=0.025, stroke="black", fill="white" )
+            r1 = draw.Rectangle(x-.15, y-.125, .3, .25, stroke_width=0.025, stroke="black", fill="white" )
+            r2 = draw.Rectangle(x-.25, y-.25, .5, .125   , stroke_width=0.025, stroke="black", fill="white" )
+            r3 = draw.Rectangle(x-.25, y-.125, .075, .25, stroke_width=0.025, stroke="black", fill="white" )
+            r4 = draw.Rectangle(x+.25, y-.125, -.075, .25, stroke_width=0.025, stroke="black", fill="white" )
             g1 = draw.Group( [r1,r2,r3,r4], transform="rotate(" + str(180-angle) + "," + str(x) + "," + str(y) + ") translate(0,-0.2)" )
             drawing.append(g1)
             outlist.append((x,y))
@@ -202,7 +202,7 @@ def draw_seats( drawing : draw.Drawing, problines : list[str] )->list[tuple[floa
 
 ## @brief Add guests' names to the diagram.
 def label_guests( drawing : draw.Drawing, soln_lins : list[str], seat_coords : list[tuple[float,float]], table_coords : list[tuple[float,float]] )->None :
-    offset=0.5
+    offset=0.25
     for fullline in soln_lins :
         line = fullline.strip()
         if line == "" :
@@ -221,7 +221,7 @@ def label_guests( drawing : draw.Drawing, soln_lins : list[str], seat_coords : l
         l = sqrt( xdiff*xdiff + ydiff*ydiff )
         x = offset*xdiff/l + xseat
         y = offset*ydiff/l + yseat
-        t1 = draw.Text( guestname, font_size=.15, x=x, y=y, center=True, style='text-anchor:middle; dominant-baseline:bottom;')
+        t1 = draw.Text( guestname, font_size=.075, x=x, y=y, center=True, style='text-anchor:middle; dominant-baseline:bottom;')
         drawing.append(t1)
 
 ################################################################################

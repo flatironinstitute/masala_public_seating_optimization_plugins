@@ -459,7 +459,8 @@ load_dwave_cfn_optimizer(
 	bool const use_layout_embedding,
 	std::string const & dwave_solver_name,
 	masala::base::Real const dwave_onenode_penalty_cap,
-	masala::base::Real const dwave_twonode_penalty_cap
+	masala::base::Real const dwave_twonode_penalty_cap,
+	DWaveMappingType const mapping_type
 ) {
 	using namespace masala::base::managers::engine;
 	using namespace masala::base::managers::plugin_module;
@@ -479,7 +480,7 @@ load_dwave_cfn_optimizer(
 	MasalaObjectAPIDefinitionCSP opt_api_def( optimizer->get_api_definition_for_inner_class().lock() );
 	CHECK_OR_THROW( opt_api_def != nullptr, appname, "load_dwave_cfn_optimizer", "Could not get an API definition for the " + optimizer->inner_class_name() + " optimizer." );
 
-	{
+	if( mapping_type == DWaveMappingType::APPROXIMATE_BINARY ) {
 		// Set the preferred data representation:
 		MasalaDataRepresentationAPISP template_dr(
 			MasalaDataRepresentationManager::get_instance()->create_data_representation_by_short_name( "ApproximateBinaryQUBOProblem", false )
@@ -566,6 +567,10 @@ load_dwave_cfn_optimizer(
 		}
 
 		set_setter<MasalaDataRepresentationAPICSP const &>( tracerman, appname, *opt_api_def, "set_template_preferred_cfn_data_representation", template_dr );
+	} else if( mapping_type == DWaveMappingType::DOMAIN_WALL ) {
+		TODO TODO TODO;
+	} else if( mapping_type == DWaveMappingType::ONE_HOT ) {
+		TODO TODO TODO;
 	}
 
 	set_const_bool_setter( tracerman, appname, *opt_api_def, "set_greedy", do_greedy );

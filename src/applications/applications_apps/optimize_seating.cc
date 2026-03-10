@@ -69,6 +69,15 @@
 using masala::base::Size;
 using masala::base::Real;
 
+/// @brief Define the mapping type to use.
+enum class DWaveMappingType {
+	INVALID_TYPE = 0, // Keep first.
+	ONE_HOT,
+	DOMAIN_WALL,
+	APPROXIMATE_BINARY, // Keep second-to-last.
+	N_MAPPING_TYPES=APPROXIMATE_BINARY // Keep last.
+};
+
 /// @brief Load all Masala plugins.
 void
 load_masala_plugins(

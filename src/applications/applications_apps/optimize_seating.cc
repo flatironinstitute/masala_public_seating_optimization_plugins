@@ -586,6 +586,7 @@ load_dwave_cfn_optimizer(
 
 		set_setter<Real>( tracerman, appname, *dwqp_api_def, "set_onenode_penalty_cap", dwave_onenode_penalty_cap );
 		set_setter<Real>( tracerman, appname, *dwqp_api_def, "set_twonode_penalty_cap", dwave_twonode_penalty_cap );
+		set_const_bool_setter( tracerman, appname, *dwqp_api_def, "set_compute_qubit_effective_fields", true );
 
 		set_setter<MasalaDataRepresentationAPICSP const &>( tracerman, appname, *opt_api_def, "set_template_preferred_cfn_data_representation", template_dr );
 	} else if( mapping_type == DWaveMappingType::ONE_HOT ) {
@@ -606,6 +607,7 @@ load_dwave_cfn_optimizer(
 
 		set_setter<Real>( tracerman, appname, *ohqp_api_def, "set_onenode_penalty_cap", dwave_onenode_penalty_cap );
 		set_setter<Real>( tracerman, appname, *ohqp_api_def, "set_twonode_penalty_cap", dwave_twonode_penalty_cap );
+		set_const_bool_setter( tracerman, appname, *ohqp_api_def, "set_compute_qubit_effective_fields", true );
 
 		set_setter<MasalaDataRepresentationAPICSP const &>( tracerman, appname, *opt_api_def, "set_template_preferred_cfn_data_representation", template_dr );
 	} else {

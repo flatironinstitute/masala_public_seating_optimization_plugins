@@ -607,6 +607,8 @@ load_dwave_cfn_optimizer(
 		set_setter<Real>( tracerman, appname, *ohqp_api_def, "set_twonode_penalty_cap", dwave_twonode_penalty_cap );
 
 		set_setter<MasalaDataRepresentationAPICSP const &>( tracerman, appname, *opt_api_def, "set_template_preferred_cfn_data_representation", template_dr );
+	} else {
+		MASALA_THROW( appname, "load_dwave_cfn_optimizer", "Unsupported D-Wave mapping type." );
 	}
 
 	set_const_bool_setter( tracerman, appname, *opt_api_def, "set_greedy", do_greedy );
@@ -654,7 +656,8 @@ load_optimizer_settings(
 	int const dwave_onenode_penalty_cap_specified,
 	masala::base::Real const dwave_onenode_penalty_cap,
 	int const dwave_twonode_penalty_cap_specified,
-	masala::base::Real const dwave_twonode_penalty_cap
+	masala::base::Real const dwave_twonode_penalty_cap,
+	DWaveMappingType const dwave_mapping_type
 ) {
 	// Initial checks:
 	if( !( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" || optimizer_name == "MonteCarloCostFunctionNetworkOptimizer" ) ) {
@@ -689,7 +692,7 @@ load_optimizer_settings(
 		);
 	} else if( optimizer_name == "DWaveQuantumQUBOProblemOptimizer" ) {
 		CHECK_OR_THROW( dwave_solver_name_specified, appname, "load_optimizer_settings", "A D-Wave solver must be specified (-dwave_solver_name commandline option) to use the DWaveQuantumQUBOProblemOptimizer." );
-		return load_dwave_cfn_optimizer( tracerman, appname, dwave_samples, solutions_to_store_per_problem, dwave_annealing_time, do_greedy, dwave_use_layout_embedding, dwave_solver_name, dwave_onenode_penalty_cap, dwave_twonode_penalty_cap );
+		return load_dwave_cfn_optimizer( tracerman, appname, dwave_samples, solutions_to_store_per_problem, dwave_annealing_time, do_greedy, dwave_use_layout_embedding, dwave_solver_name, dwave_onenode_penalty_cap, dwave_twonode_penalty_cap, dwave_mapping_type );
 	} else {
 		MASALA_THROW( appname, "load_optimizer_settings", "Did not recognize \"" + optimizer_name + "\" as an allowed optimizer.  "
 			"Supported optimizers are: " + masala::base::utility::container::container_to_string( allowed_optimizer_names, ", " ) + "."

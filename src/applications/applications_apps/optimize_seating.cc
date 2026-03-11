@@ -72,6 +72,7 @@ using masala::base::Real;
 /// @brief Define the mapping type to use.
 enum class DWaveMappingType {
 	INVALID_TYPE = 0, // Keep first.
+	UNSPECIFIED,
 	ONE_HOT,
 	DOMAIN_WALL,
 	APPROXIMATE_BINARY, // Keep second-to-last.
@@ -1112,6 +1113,13 @@ main(
 		"DWaveQuantumQUBOProblemOptimizer"
 	};
 
+	// Allowed D-Wave mapping types:
+	std::vector< std::string > const allowed_dwave_mapping_types{
+		"ApproximateBinaryQUBOProblem",
+		"DomainWallQUBOProblem",
+		"OneHotQUBOProblem"
+	};
+
 	// Options that we will load:
 	std::vector< std::string > masala_plugin_paths;
 	std::string optimizer_name, probfile_name, dwave_solver_name;
@@ -1125,6 +1133,7 @@ main(
 	masala::base::Real dwave_onenode_penalty_cap( 100.0 );
 	masala::base::Real dwave_twonode_penalty_cap( 100.0 );
 	bool do_greedy( true ), dwave_use_layout_embedding( true );
+	DWaveMappingType dwave_mapping_type( DWaveMappingType::UNSPECIFIED );
 
 	// Masala tracer manager:
 	MasalaTracerManagerHandle tracerman( MasalaTracerManager::get_instance() );
@@ -1140,6 +1149,7 @@ main(
 		!load_options(
 			argc, argv, tracerman, appname,
 			allowed_optimizer_names, masala_plugin_paths, optimizer_name,
+			allowed_dwave_mapping_types, dwave_mapping_type,
 			classical_mc_steps, total_threads, classical_attempts_per_problem,
 			solutions_to_store_per_problem, flattening_boltzmann_temperature, do_greedy,
 			probfile_name,
@@ -1176,7 +1186,8 @@ main(
 			do_greedy_specified, do_greedy,
 			dwave_samples_specified, dwave_samples, dwave_annealing_time_specified, dwave_annelaing_time,
 			dwave_use_layout_embedding_specified, dwave_use_layout_embedding, dwave_solver_name_specified, dwave_solver_name,
-			dwave_onenode_penalty_cap_specified, dwave_onenode_penalty_cap, dwave_twonode_penalty_cap_specified, dwave_twonode_penalty_cap
+			dwave_onenode_penalty_cap_specified, dwave_onenode_penalty_cap, dwave_twonode_penalty_cap_specified, dwave_twonode_penalty_cap,
+			dwave_mapping_type
 		)
 	);
 

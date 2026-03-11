@@ -568,9 +568,45 @@ load_dwave_cfn_optimizer(
 
 		set_setter<MasalaDataRepresentationAPICSP const &>( tracerman, appname, *opt_api_def, "set_template_preferred_cfn_data_representation", template_dr );
 	} else if( mapping_type == DWaveMappingType::DOMAIN_WALL ) {
-		TODO TODO TODO;
+		// Set the preferred data representation:
+		MasalaDataRepresentationAPISP template_dr(
+			MasalaDataRepresentationManager::get_instance()->create_data_representation_by_short_name( "DomainWallQUBOProblem", false )
+		);
+		CHECK_OR_THROW( template_dr != nullptr && template_dr->inner_class_name() == "DomainWallQUBOProblem",
+			appname,"load_dwave_cfn_optimizer", "Could not create an DomainWallQUBOProblem "
+			"from the Masala data representation manager.  Has the Quantum Computing Masala Plugins "
+			"library path been passed to the -masala_plugins commandling option?"
+		);
+		tracerman->write_to_tracer( appname + "::load_mc_cfn_optimizer", "Created a " + template_dr->inner_class_name() + " template data representation." );
+
+		// Configure:
+		MasalaObjectAPIDefinitionCSP dwqp_api_def( template_dr->get_api_definition_for_inner_class().lock() );
+		CHECK_OR_THROW( dwqp_api_def != nullptr, appname, "load_dwave_cfn_optimizer", "Could not get an API definition for the " + template_dr->inner_class_name() + " optimizer." );
+
+		set_setter<Real>( tracerman, appname, *dwqp_api_def, "set_onenode_penalty_cap", dwave_onenode_penalty_cap );
+		set_setter<Real>( tracerman, appname, *dwqp_api_def, "set_twonode_penalty_cap", dwave_twonode_penalty_cap );
+
+		set_setter<MasalaDataRepresentationAPICSP const &>( tracerman, appname, *opt_api_def, "set_template_preferred_cfn_data_representation", template_dr );
 	} else if( mapping_type == DWaveMappingType::ONE_HOT ) {
-		TODO TODO TODO;
+		// Set the preferred data representation:
+		MasalaDataRepresentationAPISP template_dr(
+			MasalaDataRepresentationManager::get_instance()->create_data_representation_by_short_name( "OneHotQUBOProblem", false )
+		);
+		CHECK_OR_THROW( template_dr != nullptr && template_dr->inner_class_name() == "OneHotQUBOProblem",
+			appname,"load_dwave_cfn_optimizer", "Could not create an OneHotQUBOProblem "
+			"from the Masala data representation manager.  Has the Quantum Computing Masala Plugins "
+			"library path been passed to the -masala_plugins commandling option?"
+		);
+		tracerman->write_to_tracer( appname + "::load_mc_cfn_optimizer", "Created a " + template_dr->inner_class_name() + " template data representation." );
+
+		// Configure:
+		MasalaObjectAPIDefinitionCSP ohqp_api_def( template_dr->get_api_definition_for_inner_class().lock() );
+		CHECK_OR_THROW( ohqp_api_def != nullptr, appname, "load_dwave_cfn_optimizer", "Could not get an API definition for the " + template_dr->inner_class_name() + " optimizer." );
+
+		set_setter<Real>( tracerman, appname, *ohqp_api_def, "set_onenode_penalty_cap", dwave_onenode_penalty_cap );
+		set_setter<Real>( tracerman, appname, *ohqp_api_def, "set_twonode_penalty_cap", dwave_twonode_penalty_cap );
+
+		set_setter<MasalaDataRepresentationAPICSP const &>( tracerman, appname, *opt_api_def, "set_template_preferred_cfn_data_representation", template_dr );
 	}
 
 	set_const_bool_setter( tracerman, appname, *opt_api_def, "set_greedy", do_greedy );

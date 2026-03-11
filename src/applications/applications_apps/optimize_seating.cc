@@ -658,6 +658,7 @@ load_optimizer_settings(
 	masala::base::Real const dwave_onenode_penalty_cap,
 	int const dwave_twonode_penalty_cap_specified,
 	masala::base::Real const dwave_twonode_penalty_cap,
+	std::vector< std::string > const & allowed_dwave_mappings,
 	DWaveMappingType const dwave_mapping_type
 ) {
 	// Initial checks:
@@ -675,6 +676,7 @@ load_optimizer_settings(
 		);
 	}
 	if( !(optimizer_name == "DWaveQuantumQUBOProblemOptimizer") ) {
+		CHECK_OR_THROW( dwave_mapping_type == DWaveMappingType::UNSPECIFIED, appname, "load_optimizer_settings", "A D-Wave mapping was specified, but the optimizer is not the DWaveQuantumQUBOProblemOptimizer." );
 		CHECK_OR_THROW( !dwave_samples_specified, appname, "load_optimizer_settings", "A D-Wave sample count was specified, but the optimizer is not the DWaveQuantumQUBOProblemOptimizer." );
 		CHECK_OR_THROW( !dwave_annealing_time_specified, appname, "load_optimizer_settings", "A D-Wave annealing time was specified, but the optimizer is not the DWaveQuantumQUBOProblemOptimizer." );
 		CHECK_OR_THROW( !dwave_use_layout_embedding_specified, appname, "load_optimizer_settings", "A D-Wave embedding type was specified, but the optimizer is not the DWaveQuantumQUBOProblemOptimizer." );
@@ -692,6 +694,11 @@ load_optimizer_settings(
 			solutions_to_store_per_problem, flattening_boltzmann_temperature, do_greedy, false
 		);
 	} else if( optimizer_name == "DWaveQuantumQUBOProblemOptimizer" ) {
+		CHECK_OR_THROW( (dwave_mapping_type != DWaveMappingType::INVALID_TYPE) && (dwave_mapping_type != DWaveMappingType::UNSPECIFIED), appname,
+			"load_optimizer_settings", "If the DWaveQuantumQUBOProblemOptimizer is used, then a D-Wave mapping type must be specified with the "
+			"-dwave_mapping_type commandline option.  Allowed types are: " + masala::base::utility::container::container_to_string( allowed_dwave_mappings, ", " )
+			+ "."
+		);
 		CHECK_OR_THROW( dwave_solver_name_specified, appname, "load_optimizer_settings", "A D-Wave solver must be specified (-dwave_solver_name commandline option) to use the DWaveQuantumQUBOProblemOptimizer." );
 		return load_dwave_cfn_optimizer( tracerman, appname, dwave_samples, solutions_to_store_per_problem, dwave_annealing_time, do_greedy, dwave_use_layout_embedding, dwave_solver_name, dwave_onenode_penalty_cap, dwave_twonode_penalty_cap, dwave_mapping_type );
 	} else {
@@ -1187,7 +1194,7 @@ main(
 			dwave_samples_specified, dwave_samples, dwave_annealing_time_specified, dwave_annelaing_time,
 			dwave_use_layout_embedding_specified, dwave_use_layout_embedding, dwave_solver_name_specified, dwave_solver_name,
 			dwave_onenode_penalty_cap_specified, dwave_onenode_penalty_cap, dwave_twonode_penalty_cap_specified, dwave_twonode_penalty_cap,
-			dwave_mapping_type
+			allowed_dwave_mapping_types, dwave_mapping_type
 		)
 	);
 

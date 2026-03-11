@@ -719,6 +719,9 @@ load_options(
 	std::vector< std::string > const & allowed_optimizer_names,
 	std::vector< std::string > & masala_plugin_paths,
 	std::string & optimizer_name,
+	std::vector< std::string > const & allowed_dwave_mapping_types,
+	int & dwave_mapping_type_specified,
+	DWaveMappingType & dwave_mapping_type,
 	masala::base::Size & classical_mc_steps,
 	masala::base::Size & total_threads,
 	masala::base::Size & classical_attempts_per_problem,
@@ -773,7 +776,8 @@ load_options(
 		{"dwave_use_layout_embedding", required_argument, &dwave_use_layout_embedding_specified, 1},
 		{"dwave_solver_name", required_argument, &dwave_solver_name_specified, 1},
 		{"dwave_onenode_penalty_cap", required_argument, &dwave_onenode_penalty_cap_specified, 1},
-		{"dwave_twonode_penalty_cap", required_argument, &dwave_twonode_penalty_cap_specified, 1}
+		{"dwave_twonode_penalty_cap", required_argument, &dwave_twonode_penalty_cap_specified, 1},
+		{"dwave_mapping_type", required_argument, &dwave_mapping_type_specified, 1}
 	};
 	std::map< std::string, std::string > const help_messages{
 		{"h", "Print a help message and exit."},
@@ -806,7 +810,10 @@ load_options(
 		{"dwave_use_layout_embedding", "If true, we use Layout embedding; if false, we use MinorMiner embedding.  Defaults to true." },
 		{"dwave_solver_name", "The name of the solver.  Required input if the D-Wave is used." },
 		{"dwave_onenode_penalty_cap", "The cap on the one-node penalty values.  Only used to limit dynamic range if the D-Wave is used.  Defaults to 100.0." },
-		{"dwave_twonode_penalty_cap", "The cap on the two-node penalty values.  Only used to limit dynamic range if the D-Wave is used.  Defaults to 100.0." }
+		{"dwave_twonode_penalty_cap", "The cap on the two-node penalty values.  Only used to limit dynamic range if the D-Wave is used.  Defaults to 100.0." },
+		{"dwave_mapping_type", "The D-Wave mapping type to use.  Only used if the D-Wave is used.  Allowed mappings include: "
+			+ masala::base::utility::container::container_to_string( allowed_dwave_mapping_types, ", " ) + "."
+		}
 	};
 
 	int option_index;
@@ -910,6 +917,16 @@ load_options(
 			ss >> dwave_twonode_penalty_cap;
 			CHECK_OR_THROW( ss.eof() && !(ss.bad() || ss.fail() ), appname, "load_options", "Could not parse \"" + std::string(optarg) + "\" as a floating-point number." );
 			CHECK_OR_THROW( dwave_twonode_penalty_cap > 0, appname, "load_options", "The D-Wave two-node penalty cap must be positive." );
+		} else if( curname == "dwave_mapping_type" ) {
+			std::string const mapping_string( optarg );
+			std::map< std::string, DWaveMappingType > const mapping_type_map{
+				{ "ApproximateBinaryQUBOProblem", DWaveMappingType::APPROXIMATE_BINARY },
+				{ "OneHotQUBOProblem", DWaveMappingType::ONE_HOT },
+				{ "DomainWallQUBOProblem", DWaveMappingType::DOMAIN_WALL }
+			};
+			std::map< std::string, DWaveMappingType >::const_iterator it( mapping_type_map.find( mapping_string ) );
+			CHECK_OR_THROW( it != mapping_type_map.end(), appname, "load_options", "\"" + mapping_string + "\" is not a valid D-Wave mapping type.  Allowed types are: " + masala::base::utility::container::container_to_string( allowed_dwave_mapping_types, ", " ) + "." );
+			dwave_mapping_type = it->second;
 		} else {
 			MASALA_THROW( appname, "load_options", "Unknown command-line option \"" + curname + "\"." );
 		}
@@ -1112,6 +1129,7 @@ main(
 	int dwave_solver_name_specified(0);
 	int dwave_onenode_penalty_cap_specified(0);
 	int dwave_twonode_penalty_cap_specified(0);
+	int dwave_mapping_type_specified(0);
 
 	// Allowed optimizer names:
 	std::vector< std::string > const allowed_optimizer_names{
@@ -1156,7 +1174,7 @@ main(
 		!load_options(
 			argc, argv, tracerman, appname,
 			allowed_optimizer_names, masala_plugin_paths, optimizer_name,
-			allowed_dwave_mapping_types, dwave_mapping_type,
+			allowed_dwave_mapping_types, dwave_mapping_type_specified, dwave_mapping_type,
 			classical_mc_steps, total_threads, classical_attempts_per_problem,
 			solutions_to_store_per_problem, flattening_boltzmann_temperature, do_greedy,
 			probfile_name,

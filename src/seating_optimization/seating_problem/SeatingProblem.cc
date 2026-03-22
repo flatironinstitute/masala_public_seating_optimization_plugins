@@ -51,6 +51,7 @@
 #include <numeric/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem.hh>
 
 // Numeric API headers:
+#include <numeric_api/base_classes/optimization/cost_function_network/PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem.hh>
 #include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem_API.hh>
 #include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationSolution_API.hh>
 
@@ -611,6 +612,9 @@ SeatingProblem::set_up_cfn_problem(
 		write_to_tracer( ss.str() );
 	}
 
+	// "Prime" the solutions object: ensure that each choice starts with a one-body penalty of zero.
+	prime_choices( guest_choice_to_seat_index, *inner_problem );
+
 	for( auto const & constraint : constraints_copy ) {
 		constraint->add_constraint_to_cfn_problem( *this, allowed_seats, seat_index_to_guest_choice, *inner_problem, 1.0 );
 	}
@@ -1010,6 +1014,30 @@ SeatingProblem::regenerate_seat_indices() {
 			seat_indices_[curseat] = counter;
 			seats_by_index_[counter] = curseat;
 			++counter;
+		}
+	}
+}
+
+/// @brief "Prime" all of the choices at all of the nodes to set their one-body penalties to zero.
+void
+SeatingProblem::prime_choices(
+	std::vector< std::map< masala::base::Size,  masala::base::Size > > const & guest_choice_to_seat_index,
+	masala::numeric::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem & problem
+) const {
+	using masala::base::Size;
+	using namespace masala::numeric_api::base_classes::optimization::cost_function_network;
+
+	PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem * problem_cast(
+		dynamic_cast< PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem * >( &problem )
+	);
+	CHECK_OR_THROW_FOR_CLASS( problem_cast != nullptr, "prime_choices", "Could not interpret a CFN problem of "
+		"type " + problem.class_name() + " as a PluginPairwisePrecomputedCostFunctionNetworkOptimizationProblem."
+	);
+
+	for( Size iguest(0); iguest <= guest_choice_to_seat_index.size(); ++iguest ){
+		problem.set_minimum_number_of_choices_at_node( iguest, guest_choice_to_seat_index[iguest].size() );
+		for( auto const & entry : guest_choice_to_seat_index[iguest] ) {
+			problem_cast->set_onebody_penalty( iguest, entry.first, 0 );
 		}
 	}
 }

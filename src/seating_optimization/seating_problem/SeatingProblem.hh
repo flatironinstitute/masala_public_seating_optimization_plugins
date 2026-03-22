@@ -30,6 +30,9 @@
 // Parent header:
 #include <base/managers/plugin_module/MasalaPlugin.hh>
 
+// Numeric headers:
+#include <numeric/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem.fwd.hh>
+
 // Numeric API headers:
 #include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationProblem_API.fwd.hh>
 #include <numeric_api/auto_generated_api/optimization/cost_function_network/CostFunctionNetworkOptimizationSolution_API.fwd.hh>
@@ -327,6 +330,13 @@ private:
 	/// @brief Update the list of seat indices (from scratch).
 	/// @details The seat_indices_ map is cleared and repopulated by this operation.  No mutex locking
 	void regenerate_seat_indices();
+
+	/// @brief "Prime" all of the choices at all of the nodes to set their one-body penalties to zero.
+	void
+	prime_choices(
+		std::vector< std::map< masala::base::Size,  masala::base::Size > > const & guest_choice_to_seat_index,
+		masala::numeric::optimization::cost_function_network::CostFunctionNetworkOptimizationProblem & problem
+	) const;
 
 private:
 

@@ -1035,7 +1035,6 @@ SeatingProblem::prime_choices(
 	);
 
 	for( Size iguest(0); iguest < guest_choice_to_seat_index.size(); ++iguest ){
-		problem.set_minimum_number_of_choices_at_node( iguest, guest_choice_to_seat_index[iguest].size() );
 		for( auto const & entry : guest_choice_to_seat_index[iguest] ) {
 			problem_cast->set_onebody_penalty( iguest, entry.first, 0 );
 		}

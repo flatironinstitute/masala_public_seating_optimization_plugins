@@ -69,6 +69,16 @@
 using masala::base::Size;
 using masala::base::Real;
 
+/// @brief Define the mapping type to use.
+enum class DWaveMappingType {
+	INVALID_TYPE = 0, // Keep first.
+	UNSPECIFIED,
+	ONE_HOT,
+	DOMAIN_WALL,
+	APPROXIMATE_BINARY, // Keep second-to-last.
+	N_MAPPING_TYPES=APPROXIMATE_BINARY // Keep last.
+};
+
 /// @brief Load all Masala plugins.
 void
 load_masala_plugins(
@@ -450,7 +460,8 @@ load_dwave_cfn_optimizer(
 	bool const use_layout_embedding,
 	std::string const & dwave_solver_name,
 	masala::base::Real const dwave_onenode_penalty_cap,
-	masala::base::Real const dwave_twonode_penalty_cap
+	masala::base::Real const dwave_twonode_penalty_cap,
+	DWaveMappingType const mapping_type
 ) {
 	using namespace masala::base::managers::engine;
 	using namespace masala::base::managers::plugin_module;
@@ -470,7 +481,7 @@ load_dwave_cfn_optimizer(
 	MasalaObjectAPIDefinitionCSP opt_api_def( optimizer->get_api_definition_for_inner_class().lock() );
 	CHECK_OR_THROW( opt_api_def != nullptr, appname, "load_dwave_cfn_optimizer", "Could not get an API definition for the " + optimizer->inner_class_name() + " optimizer." );
 
-	{
+	if( mapping_type == DWaveMappingType::APPROXIMATE_BINARY ) {
 		// Set the preferred data representation:
 		MasalaDataRepresentationAPISP template_dr(
 			MasalaDataRepresentationManager::get_instance()->create_data_representation_by_short_name( "ApproximateBinaryQUBOProblem", false )
@@ -557,6 +568,50 @@ load_dwave_cfn_optimizer(
 		}
 
 		set_setter<MasalaDataRepresentationAPICSP const &>( tracerman, appname, *opt_api_def, "set_template_preferred_cfn_data_representation", template_dr );
+	} else if( mapping_type == DWaveMappingType::DOMAIN_WALL ) {
+		// Set the preferred data representation:
+		MasalaDataRepresentationAPISP template_dr(
+			MasalaDataRepresentationManager::get_instance()->create_data_representation_by_short_name( "DomainWallQUBOProblem", false )
+		);
+		CHECK_OR_THROW( template_dr != nullptr && template_dr->inner_class_name() == "DomainWallQUBOProblem",
+			appname,"load_dwave_cfn_optimizer", "Could not create an DomainWallQUBOProblem "
+			"from the Masala data representation manager.  Has the Quantum Computing Masala Plugins "
+			"library path been passed to the -masala_plugins commandling option?"
+		);
+		tracerman->write_to_tracer( appname + "::load_mc_cfn_optimizer", "Created a " + template_dr->inner_class_name() + " template data representation." );
+
+		// Configure:
+		MasalaObjectAPIDefinitionCSP dwqp_api_def( template_dr->get_api_definition_for_inner_class().lock() );
+		CHECK_OR_THROW( dwqp_api_def != nullptr, appname, "load_dwave_cfn_optimizer", "Could not get an API definition for the " + template_dr->inner_class_name() + " optimizer." );
+
+		set_setter<Real>( tracerman, appname, *dwqp_api_def, "set_onenode_penalty_cap", dwave_onenode_penalty_cap );
+		set_setter<Real>( tracerman, appname, *dwqp_api_def, "set_twonode_penalty_cap", dwave_twonode_penalty_cap );
+		set_const_bool_setter( tracerman, appname, *dwqp_api_def, "set_compute_qubit_effective_fields", true );
+
+		set_setter<MasalaDataRepresentationAPICSP const &>( tracerman, appname, *opt_api_def, "set_template_preferred_cfn_data_representation", template_dr );
+	} else if( mapping_type == DWaveMappingType::ONE_HOT ) {
+		// Set the preferred data representation:
+		MasalaDataRepresentationAPISP template_dr(
+			MasalaDataRepresentationManager::get_instance()->create_data_representation_by_short_name( "OneHotQUBOProblem", false )
+		);
+		CHECK_OR_THROW( template_dr != nullptr && template_dr->inner_class_name() == "OneHotQUBOProblem",
+			appname,"load_dwave_cfn_optimizer", "Could not create an OneHotQUBOProblem "
+			"from the Masala data representation manager.  Has the Quantum Computing Masala Plugins "
+			"library path been passed to the -masala_plugins commandling option?"
+		);
+		tracerman->write_to_tracer( appname + "::load_mc_cfn_optimizer", "Created a " + template_dr->inner_class_name() + " template data representation." );
+
+		// Configure:
+		MasalaObjectAPIDefinitionCSP ohqp_api_def( template_dr->get_api_definition_for_inner_class().lock() );
+		CHECK_OR_THROW( ohqp_api_def != nullptr, appname, "load_dwave_cfn_optimizer", "Could not get an API definition for the " + template_dr->inner_class_name() + " optimizer." );
+
+		set_setter<Real>( tracerman, appname, *ohqp_api_def, "set_onenode_penalty_cap", dwave_onenode_penalty_cap );
+		set_setter<Real>( tracerman, appname, *ohqp_api_def, "set_twonode_penalty_cap", dwave_twonode_penalty_cap );
+		set_const_bool_setter( tracerman, appname, *ohqp_api_def, "set_compute_qubit_effective_fields", true );
+
+		set_setter<MasalaDataRepresentationAPICSP const &>( tracerman, appname, *opt_api_def, "set_template_preferred_cfn_data_representation", template_dr );
+	} else {
+		MASALA_THROW( appname, "load_dwave_cfn_optimizer", "Unsupported D-Wave mapping type." );
 	}
 
 	set_const_bool_setter( tracerman, appname, *opt_api_def, "set_greedy", do_greedy );
@@ -604,7 +659,9 @@ load_optimizer_settings(
 	int const dwave_onenode_penalty_cap_specified,
 	masala::base::Real const dwave_onenode_penalty_cap,
 	int const dwave_twonode_penalty_cap_specified,
-	masala::base::Real const dwave_twonode_penalty_cap
+	masala::base::Real const dwave_twonode_penalty_cap,
+	std::vector< std::string > const & allowed_dwave_mappings,
+	DWaveMappingType const dwave_mapping_type
 ) {
 	// Initial checks:
 	if( !( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" || optimizer_name == "MonteCarloCostFunctionNetworkOptimizer" ) ) {
@@ -621,6 +678,7 @@ load_optimizer_settings(
 		);
 	}
 	if( !(optimizer_name == "DWaveQuantumQUBOProblemOptimizer") ) {
+		CHECK_OR_THROW( dwave_mapping_type == DWaveMappingType::UNSPECIFIED, appname, "load_optimizer_settings", "A D-Wave mapping was specified, but the optimizer is not the DWaveQuantumQUBOProblemOptimizer." );
 		CHECK_OR_THROW( !dwave_samples_specified, appname, "load_optimizer_settings", "A D-Wave sample count was specified, but the optimizer is not the DWaveQuantumQUBOProblemOptimizer." );
 		CHECK_OR_THROW( !dwave_annealing_time_specified, appname, "load_optimizer_settings", "A D-Wave annealing time was specified, but the optimizer is not the DWaveQuantumQUBOProblemOptimizer." );
 		CHECK_OR_THROW( !dwave_use_layout_embedding_specified, appname, "load_optimizer_settings", "A D-Wave embedding type was specified, but the optimizer is not the DWaveQuantumQUBOProblemOptimizer." );
@@ -638,8 +696,13 @@ load_optimizer_settings(
 			solutions_to_store_per_problem, flattening_boltzmann_temperature, do_greedy, false
 		);
 	} else if( optimizer_name == "DWaveQuantumQUBOProblemOptimizer" ) {
+		CHECK_OR_THROW( (dwave_mapping_type != DWaveMappingType::INVALID_TYPE) && (dwave_mapping_type != DWaveMappingType::UNSPECIFIED), appname,
+			"load_optimizer_settings", "If the DWaveQuantumQUBOProblemOptimizer is used, then a D-Wave mapping type must be specified with the "
+			"-dwave_mapping_type commandline option.  Allowed types are: " + masala::base::utility::container::container_to_string( allowed_dwave_mappings, ", " )
+			+ "."
+		);
 		CHECK_OR_THROW( dwave_solver_name_specified, appname, "load_optimizer_settings", "A D-Wave solver must be specified (-dwave_solver_name commandline option) to use the DWaveQuantumQUBOProblemOptimizer." );
-		return load_dwave_cfn_optimizer( tracerman, appname, dwave_samples, solutions_to_store_per_problem, dwave_annealing_time, do_greedy, dwave_use_layout_embedding, dwave_solver_name, dwave_onenode_penalty_cap, dwave_twonode_penalty_cap );
+		return load_dwave_cfn_optimizer( tracerman, appname, dwave_samples, solutions_to_store_per_problem, dwave_annealing_time, do_greedy, dwave_use_layout_embedding, dwave_solver_name, dwave_onenode_penalty_cap, dwave_twonode_penalty_cap, dwave_mapping_type );
 	} else {
 		MASALA_THROW( appname, "load_optimizer_settings", "Did not recognize \"" + optimizer_name + "\" as an allowed optimizer.  "
 			"Supported optimizers are: " + masala::base::utility::container::container_to_string( allowed_optimizer_names, ", " ) + "."
@@ -658,6 +721,9 @@ load_options(
 	std::vector< std::string > const & allowed_optimizer_names,
 	std::vector< std::string > & masala_plugin_paths,
 	std::string & optimizer_name,
+	std::vector< std::string > const & allowed_dwave_mapping_types,
+	int & dwave_mapping_type_specified,
+	DWaveMappingType & dwave_mapping_type,
 	masala::base::Size & classical_mc_steps,
 	masala::base::Size & total_threads,
 	masala::base::Size & classical_attempts_per_problem,
@@ -712,7 +778,8 @@ load_options(
 		{"dwave_use_layout_embedding", required_argument, &dwave_use_layout_embedding_specified, 1},
 		{"dwave_solver_name", required_argument, &dwave_solver_name_specified, 1},
 		{"dwave_onenode_penalty_cap", required_argument, &dwave_onenode_penalty_cap_specified, 1},
-		{"dwave_twonode_penalty_cap", required_argument, &dwave_twonode_penalty_cap_specified, 1}
+		{"dwave_twonode_penalty_cap", required_argument, &dwave_twonode_penalty_cap_specified, 1},
+		{"dwave_mapping_type", required_argument, &dwave_mapping_type_specified, 1}
 	};
 	std::map< std::string, std::string > const help_messages{
 		{"h", "Print a help message and exit."},
@@ -745,7 +812,10 @@ load_options(
 		{"dwave_use_layout_embedding", "If true, we use Layout embedding; if false, we use MinorMiner embedding.  Defaults to true." },
 		{"dwave_solver_name", "The name of the solver.  Required input if the D-Wave is used." },
 		{"dwave_onenode_penalty_cap", "The cap on the one-node penalty values.  Only used to limit dynamic range if the D-Wave is used.  Defaults to 100.0." },
-		{"dwave_twonode_penalty_cap", "The cap on the two-node penalty values.  Only used to limit dynamic range if the D-Wave is used.  Defaults to 100.0." }
+		{"dwave_twonode_penalty_cap", "The cap on the two-node penalty values.  Only used to limit dynamic range if the D-Wave is used.  Defaults to 100.0." },
+		{"dwave_mapping_type", "The D-Wave mapping type to use.  Only used if the D-Wave is used.  Allowed mappings include: "
+			+ masala::base::utility::container::container_to_string( allowed_dwave_mapping_types, ", " ) + "."
+		}
 	};
 
 	int option_index;
@@ -849,6 +919,16 @@ load_options(
 			ss >> dwave_twonode_penalty_cap;
 			CHECK_OR_THROW( ss.eof() && !(ss.bad() || ss.fail() ), appname, "load_options", "Could not parse \"" + std::string(optarg) + "\" as a floating-point number." );
 			CHECK_OR_THROW( dwave_twonode_penalty_cap > 0, appname, "load_options", "The D-Wave two-node penalty cap must be positive." );
+		} else if( curname == "dwave_mapping_type" ) {
+			std::string const mapping_string( optarg );
+			std::map< std::string, DWaveMappingType > const mapping_type_map{
+				{ "ApproximateBinaryQUBOProblem", DWaveMappingType::APPROXIMATE_BINARY },
+				{ "OneHotQUBOProblem", DWaveMappingType::ONE_HOT },
+				{ "DomainWallQUBOProblem", DWaveMappingType::DOMAIN_WALL }
+			};
+			std::map< std::string, DWaveMappingType >::const_iterator it( mapping_type_map.find( mapping_string ) );
+			CHECK_OR_THROW( it != mapping_type_map.end(), appname, "load_options", "\"" + mapping_string + "\" is not a valid D-Wave mapping type.  Allowed types are: " + masala::base::utility::container::container_to_string( allowed_dwave_mapping_types, ", " ) + "." );
+			dwave_mapping_type = it->second;
 		} else {
 			MASALA_THROW( appname, "load_options", "Unknown command-line option \"" + curname + "\"." );
 		}
@@ -1051,12 +1131,20 @@ main(
 	int dwave_solver_name_specified(0);
 	int dwave_onenode_penalty_cap_specified(0);
 	int dwave_twonode_penalty_cap_specified(0);
+	int dwave_mapping_type_specified(0);
 
 	// Allowed optimizer names:
 	std::vector< std::string > const allowed_optimizer_names{
 		"HillFlatteningMonteCarloCostFunctionNetworkOptimizer",
 		"MonteCarloCostFunctionNetworkOptimizer",
 		"DWaveQuantumQUBOProblemOptimizer"
+	};
+
+	// Allowed D-Wave mapping types:
+	std::vector< std::string > const allowed_dwave_mapping_types{
+		"ApproximateBinaryQUBOProblem",
+		"DomainWallQUBOProblem",
+		"OneHotQUBOProblem"
 	};
 
 	// Options that we will load:
@@ -1072,6 +1160,7 @@ main(
 	masala::base::Real dwave_onenode_penalty_cap( 100.0 );
 	masala::base::Real dwave_twonode_penalty_cap( 100.0 );
 	bool do_greedy( true ), dwave_use_layout_embedding( true );
+	DWaveMappingType dwave_mapping_type( DWaveMappingType::UNSPECIFIED );
 
 	// Masala tracer manager:
 	MasalaTracerManagerHandle tracerman( MasalaTracerManager::get_instance() );
@@ -1087,6 +1176,7 @@ main(
 		!load_options(
 			argc, argv, tracerman, appname,
 			allowed_optimizer_names, masala_plugin_paths, optimizer_name,
+			allowed_dwave_mapping_types, dwave_mapping_type_specified, dwave_mapping_type,
 			classical_mc_steps, total_threads, classical_attempts_per_problem,
 			solutions_to_store_per_problem, flattening_boltzmann_temperature, do_greedy,
 			probfile_name,
@@ -1123,7 +1213,8 @@ main(
 			do_greedy_specified, do_greedy,
 			dwave_samples_specified, dwave_samples, dwave_annealing_time_specified, dwave_annelaing_time,
 			dwave_use_layout_embedding_specified, dwave_use_layout_embedding, dwave_solver_name_specified, dwave_solver_name,
-			dwave_onenode_penalty_cap_specified, dwave_onenode_penalty_cap, dwave_twonode_penalty_cap_specified, dwave_twonode_penalty_cap
+			dwave_onenode_penalty_cap_specified, dwave_onenode_penalty_cap, dwave_twonode_penalty_cap_specified, dwave_twonode_penalty_cap,
+			allowed_dwave_mapping_types, dwave_mapping_type
 		)
 	);
 

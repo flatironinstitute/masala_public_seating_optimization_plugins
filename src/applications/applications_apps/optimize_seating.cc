@@ -461,7 +461,9 @@ load_dwave_cfn_optimizer(
 	std::string const & dwave_solver_name,
 	masala::base::Real const dwave_onenode_penalty_cap,
 	masala::base::Real const dwave_twonode_penalty_cap,
-	DWaveMappingType const mapping_type
+	DWaveMappingType const mapping_type,
+	masala::base::Size const approx_binary_extra_qubits,
+	bool const dwave_use_inhomogen_driving
 ) {
 	using namespace masala::base::managers::engine;
 	using namespace masala::base::managers::plugin_module;
@@ -507,7 +509,8 @@ load_dwave_cfn_optimizer(
 		set_setter<bool>( tracerman, appname, *abqp_api_def, "set_use_weighted_linear_algebra", true );
 		set_setter<std::string const &>( tracerman, appname, *abqp_api_def, "set_linear_algebra_approach", "col_pivoting_householder_qr_decomp" );
 		set_setter<Size>( tracerman, appname, *abqp_api_def, "set_cpu_threads_to_request", 0 );
-		set_const_bool_setter( tracerman, appname, *abqp_api_def, "set_compute_qubit_effective_fields", true );
+		set_setter<Size>( tracerman, appname, *abqp_api_def, "set_extra_qubits_per_register", approx_binary_extra_qubits );
+		set_const_bool_setter( tracerman, appname, *abqp_api_def, "set_compute_qubit_effective_fields", dwave_use_inhomogen_driving );
 
 		// Configure minimization engine:
 		{
@@ -586,7 +589,7 @@ load_dwave_cfn_optimizer(
 
 		set_setter<Real>( tracerman, appname, *dwqp_api_def, "set_onenode_penalty_cap", dwave_onenode_penalty_cap );
 		set_setter<Real>( tracerman, appname, *dwqp_api_def, "set_twonode_penalty_cap", dwave_twonode_penalty_cap );
-		set_const_bool_setter( tracerman, appname, *dwqp_api_def, "set_compute_qubit_effective_fields", true );
+		set_const_bool_setter( tracerman, appname, *dwqp_api_def, "set_compute_qubit_effective_fields", dwave_use_inhomogen_driving );
 
 		set_setter<MasalaDataRepresentationAPICSP const &>( tracerman, appname, *opt_api_def, "set_template_preferred_cfn_data_representation", template_dr );
 	} else if( mapping_type == DWaveMappingType::ONE_HOT ) {
@@ -607,7 +610,7 @@ load_dwave_cfn_optimizer(
 
 		set_setter<Real>( tracerman, appname, *ohqp_api_def, "set_onenode_penalty_cap", dwave_onenode_penalty_cap );
 		set_setter<Real>( tracerman, appname, *ohqp_api_def, "set_twonode_penalty_cap", dwave_twonode_penalty_cap );
-		set_const_bool_setter( tracerman, appname, *ohqp_api_def, "set_compute_qubit_effective_fields", true );
+		set_const_bool_setter( tracerman, appname, *ohqp_api_def, "set_compute_qubit_effective_fields", dwave_use_inhomogen_driving );
 
 		set_setter<MasalaDataRepresentationAPICSP const &>( tracerman, appname, *opt_api_def, "set_template_preferred_cfn_data_representation", template_dr );
 	} else {
@@ -615,7 +618,7 @@ load_dwave_cfn_optimizer(
 	}
 
 	set_const_bool_setter( tracerman, appname, *opt_api_def, "set_greedy", do_greedy );
-	set_const_bool_setter( tracerman, appname, *opt_api_def, "set_inhomog_trans_field", true );
+	set_const_bool_setter( tracerman, appname, *opt_api_def, "set_inhomog_trans_field", dwave_use_inhomogen_driving );
 	set_setter<bool>( tracerman, appname, *opt_api_def, "set_remove_output_files", false );
 	set_setter<Real const>( tracerman, appname, *opt_api_def, "set_annealing_time", annealing_time );
 	set_setter<Size>( tracerman, appname, *opt_api_def, "set_n_solutions_to_store_per_problem", solutions_to_store_per_problem );
@@ -661,7 +664,11 @@ load_optimizer_settings(
 	int const dwave_twonode_penalty_cap_specified,
 	masala::base::Real const dwave_twonode_penalty_cap,
 	std::vector< std::string > const & allowed_dwave_mappings,
-	DWaveMappingType const dwave_mapping_type
+	DWaveMappingType const dwave_mapping_type,
+	masala::base::Size const approx_binary_extra_qubits,
+	int const approx_binary_extra_qubits_specified,
+	bool const dwave_use_inhomogen_driving,
+	int const dwave_use_inhomogen_driving_specified
 ) {
 	// Initial checks:
 	if( !( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" || optimizer_name == "MonteCarloCostFunctionNetworkOptimizer" ) ) {
@@ -685,6 +692,7 @@ load_optimizer_settings(
 		CHECK_OR_THROW( !dwave_solver_name_specified, appname, "load_optimizer_settings", "A D-Wave solver name was specified, but the optimizer is not the DWaveQuantumQUBOProblemOptimizer." );
 		CHECK_OR_THROW( !dwave_onenode_penalty_cap_specified, appname, "load_optimizer_settings", "A D-Wave one-node penalty cap was specified, but the optimizer is not the DWaveQuantumQUBOProblemOptimizer." );
 		CHECK_OR_THROW( !dwave_twonode_penalty_cap_specified, appname, "load_optimizer_settings", "A D-Wave two-node penalty cap was specified, but the optimizer is not the DWaveQuantumQUBOProblemOptimizer." );
+		CHECK_OR_THROW( !dwave_use_inhomogen_driving_specified, appname, "load_optimizer_settings", "Inhomogeneous driving was specified, but the optimizer is not the DWaveQuantumQUBOProblemOptimizer." );
 	}
 
 	if( optimizer_name == "HillFlatteningMonteCarloCostFunctionNetworkOptimizer" ) {
@@ -702,11 +710,18 @@ load_optimizer_settings(
 			+ "."
 		);
 		CHECK_OR_THROW( dwave_solver_name_specified, appname, "load_optimizer_settings", "A D-Wave solver must be specified (-dwave_solver_name commandline option) to use the DWaveQuantumQUBOProblemOptimizer." );
-		return load_dwave_cfn_optimizer( tracerman, appname, dwave_samples, solutions_to_store_per_problem, dwave_annealing_time, do_greedy, dwave_use_layout_embedding, dwave_solver_name, dwave_onenode_penalty_cap, dwave_twonode_penalty_cap, dwave_mapping_type );
+		return load_dwave_cfn_optimizer( tracerman, appname, dwave_samples, solutions_to_store_per_problem, dwave_annealing_time, do_greedy,
+			dwave_use_layout_embedding, dwave_solver_name, dwave_onenode_penalty_cap, dwave_twonode_penalty_cap, dwave_mapping_type,
+			approx_binary_extra_qubits, dwave_use_inhomogen_driving
+		);
 	} else {
 		MASALA_THROW( appname, "load_optimizer_settings", "Did not recognize \"" + optimizer_name + "\" as an allowed optimizer.  "
 			"Supported optimizers are: " + masala::base::utility::container::container_to_string( allowed_optimizer_names, ", " ) + "."
 		);
+	}
+
+	if( dwave_mapping_type != DWaveMappingType::APPROXIMATE_BINARY ) {
+		CHECK_OR_THROW( !approx_binary_extra_qubits_specified, appname, "load_optimizer_settings", "Extra qubits for the approximate binary representation were specified, but the data representation type is not the ApproximateBinaryQUBOProblem data representation." );
 	}
 	return nullptr;
 } 
@@ -752,7 +767,11 @@ load_options(
 	int & dwave_onenode_penalty_cap_specified,
 	masala::base::Real & dwave_onenode_penalty_cap,
 	int & dwave_twonode_penalty_cap_specified,
-	masala::base::Real & dwave_twonode_penalty_cap
+	masala::base::Real & dwave_twonode_penalty_cap,
+	masala::base::Size & approx_binary_extra_qubits,
+	int & approx_binary_extra_qubits_specified,
+	bool & dwave_use_inhomogen_driving,
+	int & dwave_use_inhomogen_driving_specified
 ) {
 	using namespace masala::base::utility::container;
 	using namespace masala::base::utility::string;
@@ -781,7 +800,7 @@ load_options(
 		{"dwave_twonode_penalty_cap", required_argument, &dwave_twonode_penalty_cap_specified, 1},
 		{"dwave_mapping_type", required_argument, &dwave_mapping_type_specified, 1},
 		{"approximate_binary_extra_qubits", required_argument, &approx_binary_extra_qubits_specified, 1 },
-		{"dwave_use_inhomogeneous_driving", required_argument, &use_inhomogen_driving_specified, 1}
+		{"dwave_use_inhomogeneous_driving", required_argument, &dwave_use_inhomogen_driving_specified, 1}
 	};
 	std::map< std::string, std::string > const help_messages{
 		{"h", "Print a help message and exit."},
@@ -940,9 +959,9 @@ load_options(
 		} else if(curname == "dwave_use_inhomogeneous_driving") {
 			std::string const layoutstring( optarg );
 			if( layoutstring == "TRUE" ) {
-				dwave_use_inhomogeneous_driving = true;
+				dwave_use_inhomogen_driving = true;
 			} else if( layoutstring == "FALSE" ) {
-				dwave_use_inhomogeneous_driving = false;
+				dwave_use_inhomogen_driving = false;
 			} else {
 				MASALA_THROW( appname, "load_options", "Could not parse \"" + std::string(optarg) + "\" as a Boolean.  Must be either TRUE or FALSE." );
 			}
@@ -1149,6 +1168,8 @@ main(
 	int dwave_onenode_penalty_cap_specified(0);
 	int dwave_twonode_penalty_cap_specified(0);
 	int dwave_mapping_type_specified(0);
+	int approx_binary_extra_qubits_specified(0);
+	int dwave_use_inhomogen_driving_specified(0);
 
 	// Allowed optimizer names:
 	std::vector< std::string > const allowed_optimizer_names{
@@ -1171,12 +1192,13 @@ main(
 	masala::base::Size total_threads( 1 );
 	masala::base::Size classical_attempts_per_problem( 1 );
 	masala::base::Size solutions_to_store_per_problem( 1 );
+	masala::base::Size approx_binary_extra_qubits( 0 );
 	masala::base::Size dwave_samples( 1000 );
 	masala::base::Real flattening_boltzmann_temperature( 10.0 );
 	masala::base::Real dwave_annelaing_time( 20.0 );
 	masala::base::Real dwave_onenode_penalty_cap( 100.0 );
 	masala::base::Real dwave_twonode_penalty_cap( 100.0 );
-	bool do_greedy( true ), dwave_use_layout_embedding( true );
+	bool do_greedy( true ), dwave_use_layout_embedding( true ), dwave_use_inhomogen_driving(true);
 	DWaveMappingType dwave_mapping_type( DWaveMappingType::UNSPECIFIED );
 
 	// Masala tracer manager:
@@ -1203,7 +1225,8 @@ main(
 			probfile_name_specified,
 			dwave_samples_specified, dwave_samples, dwave_annealing_time_specified, dwave_annelaing_time,
 			dwave_use_layout_embedding_specified, dwave_use_layout_embedding, dwave_solver_name_specified, dwave_solver_name,
-			dwave_onenode_penalty_cap_specified, dwave_onenode_penalty_cap, dwave_twonode_penalty_cap_specified, dwave_twonode_penalty_cap
+			dwave_onenode_penalty_cap_specified, dwave_onenode_penalty_cap, dwave_twonode_penalty_cap_specified, dwave_twonode_penalty_cap,
+			approx_binary_extra_qubits, approx_binary_extra_qubits_specified, dwave_use_inhomogen_driving, dwave_use_inhomogen_driving_specified
 		)
 	) {
 		return 0;
@@ -1231,7 +1254,8 @@ main(
 			dwave_samples_specified, dwave_samples, dwave_annealing_time_specified, dwave_annelaing_time,
 			dwave_use_layout_embedding_specified, dwave_use_layout_embedding, dwave_solver_name_specified, dwave_solver_name,
 			dwave_onenode_penalty_cap_specified, dwave_onenode_penalty_cap, dwave_twonode_penalty_cap_specified, dwave_twonode_penalty_cap,
-			allowed_dwave_mapping_types, dwave_mapping_type
+			allowed_dwave_mapping_types, dwave_mapping_type,
+			approx_binary_extra_qubits, approx_binary_extra_qubits_specified, dwave_use_inhomogen_driving, dwave_use_inhomogen_driving_specified
 		)
 	);
 

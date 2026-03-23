@@ -779,7 +779,9 @@ load_options(
 		{"dwave_solver_name", required_argument, &dwave_solver_name_specified, 1},
 		{"dwave_onenode_penalty_cap", required_argument, &dwave_onenode_penalty_cap_specified, 1},
 		{"dwave_twonode_penalty_cap", required_argument, &dwave_twonode_penalty_cap_specified, 1},
-		{"dwave_mapping_type", required_argument, &dwave_mapping_type_specified, 1}
+		{"dwave_mapping_type", required_argument, &dwave_mapping_type_specified, 1},
+		{"approximate_binary_extra_qubits", required_argument, &approx_binary_extra_qubits_specified, 1 },
+		{"dwave_use_inhomogeneous_driving", required_argument, &use_inhomogen_driving_specified, 1}
 	};
 	std::map< std::string, std::string > const help_messages{
 		{"h", "Print a help message and exit."},
@@ -815,7 +817,9 @@ load_options(
 		{"dwave_twonode_penalty_cap", "The cap on the two-node penalty values.  Only used to limit dynamic range if the D-Wave is used.  Defaults to 100.0." },
 		{"dwave_mapping_type", "The D-Wave mapping type to use.  Only used if the D-Wave is used.  Allowed mappings include: "
 			+ masala::base::utility::container::container_to_string( allowed_dwave_mapping_types, ", " ) + "."
-		}
+		},
+		{"approximate_binary_extra_qubits", "If the approximate binary data representation is used, this is the number of extra qubits to use.  Default 0." },
+		{"dwave_use_inhomogeneous_driving", "Should inhomogeneous driving be used?  Default true.  Only used if the D-Wave is used." }
 	};
 
 	int option_index;
@@ -929,6 +933,19 @@ load_options(
 			std::map< std::string, DWaveMappingType >::const_iterator it( mapping_type_map.find( mapping_string ) );
 			CHECK_OR_THROW( it != mapping_type_map.end(), appname, "load_options", "\"" + mapping_string + "\" is not a valid D-Wave mapping type.  Allowed types are: " + masala::base::utility::container::container_to_string( allowed_dwave_mapping_types, ", " ) + "." );
 			dwave_mapping_type = it->second;
+		} else if(curname == "approximate_binary_extra_qubits") {
+			std::istringstream ss( optarg );
+			ss >> approx_binary_extra_qubits;
+			CHECK_OR_THROW( ss.eof() && !(ss.bad() || ss.fail() ), appname, "load_options", "Could not parse \"" + std::string(optarg) + "\" as a non-negative integer." );
+		} else if(curname == "dwave_use_inhomogeneous_driving") {
+			std::string const layoutstring( optarg );
+			if( layoutstring == "TRUE" ) {
+				dwave_use_inhomogeneous_driving = true;
+			} else if( layoutstring == "FALSE" ) {
+				dwave_use_inhomogeneous_driving = false;
+			} else {
+				MASALA_THROW( appname, "load_options", "Could not parse \"" + std::string(optarg) + "\" as a Boolean.  Must be either TRUE or FALSE." );
+			}
 		} else {
 			MASALA_THROW( appname, "load_options", "Unknown command-line option \"" + curname + "\"." );
 		}

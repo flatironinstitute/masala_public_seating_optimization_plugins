@@ -10,13 +10,13 @@ RectangularRoom     0.0     0.0     0.0     5.0    5.0
 
 CircularTable	0	0	0.0 2.0 4
 
-# Add our four guests.  Avery and Basil are friends; Charlie and Leslie are friends; Avery
-# and Leslie are friends.  Basil and Charlie hate one another:
+# Add our four guests.  Avery and Basil are friends; Charlie and Dawson are friends; Avery
+# and Dawson are friends.  Basil and Charlie hate one another:
 
 Guest	avery	Avery Andersen
-Guest	basil	Basil Fawlty
-Guest	charlie	Charlie McClintock
-Guest	leslie	Leslie Laurent
+Guest	basil	Basil Bandersnatch
+Guest	charlie	Charlie Clapborne
+Guest	dawson	Dawson DeVille
 
 # Ensure that no two guests can be assigned to the same seat:
 
@@ -26,6 +26,6 @@ GuestOverlapConstraint  30.0
 
 GuestPairAdjacentSeatConstraint		avery		basil	-5.0
 GuestPairAdjacentSeatConstraint		avery		charlie	-5.0
-GuestPairAdjacentSeatConstraint		charlie		leslie	-5.0
+GuestPairAdjacentSeatConstraint		charlie		dawson	-5.0
 GuestPairAdjacentSeatConstraint		basil		charlie	5.0
 

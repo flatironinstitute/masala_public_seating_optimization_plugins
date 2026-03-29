@@ -1,0 +1,31 @@
+# This defines the simple "friends and enemies" problem: two pairs of friends are sitting together, but
+# one of each pair form a pair of enemies, who should be seated as far from one another as possible
+# (across the table).  The solution is trivial and discoverable by inspection, but it serves as a good
+# simplest test case.
+
+# Define the room
+RectangularRoom     0.0     0.0     0.0     5.0    5.0
+
+# Set up the table:
+
+CircularTable	0	0	0.0 2.0 4
+
+# Add our four guests.  Avery and Basil are friends; Charlie and Leslie are friends; Avery
+# and Leslie are friends.  Basil and Charlie hate one another:
+
+Guest	avery	Avery Andersen
+Guest	basil	Basil Fawlty
+Guest	charlie	Charlie McClintock
+Guest	leslie	Leslie Laurent
+
+# Ensure that no two guests can be assigned to the same seat:
+
+GuestOverlapConstraint  30.0
+
+# Add some guest pair constraints establishing the relationships above:
+
+GuestPairAdjacentSeatConstraint		avery		basil	-5.0
+GuestPairAdjacentSeatConstraint		avery		charlie	-5.0
+GuestPairAdjacentSeatConstraint		charlie		leslie	-5.0
+GuestPairAdjacentSeatConstraint		basil		charlie	5.0
+

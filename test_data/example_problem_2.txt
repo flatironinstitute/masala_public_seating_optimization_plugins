@@ -1,0 +1,49 @@
+# This defines the "odd man out" problem, another very simple test problem.  Given two
+# tables, one with four seats and the other with one, the challenge is to select (a) the
+# arrangement of the four people around the four-seat table, and (b) the identity of the
+# person at the one-seat table.  This problem has eight solutions: four clockwise arrangements
+# of Amelia, Bob, Chandra, and Dinesh around the four-seat table (with Emilio at the one-seat table),
+# and cour counter-clockwise arrangements of Amelia, Bob, Chandra, and Dinesh around the
+# four-seat table (with Emilio at the one-seat table).
+
+# Define the room
+RectangularRoom		0.0		0.0		0.0		5.0		10.0
+
+# Set up the table:
+
+CircularTable	2.5		0	45.0 	2.0 	4
+CircularTable	-2.5	0	270.0 	1.0 	1
+
+# Add our five guests.
+
+Guest	amelia	Amelia Lee
+Guest	bob		Bob Lewis
+Guest	chandra	Chandra Patel
+Guest	dinesh	Dinesh Sharma
+Guest   emilio  Emilio Sanchez
+
+# Ensure that no two guests can be assigned to the same seat:
+
+GuestOverlapConstraint  30.0
+
+# Add some guest pair constraints establishing that Amelia and Bob are friends,
+# Bob and Chandra are friends, Chandra and Dinesh are friends, and Dinesh and Amelia
+# are friends.  Emilio is friends with both Amelia and Chandra, but Emilio and Bob hate
+# one another, as do Emilio and Dinesh.  It's very favourable to have people who like
+# one another next to one another, very unfavourable to have people who dislike one
+# another next to one another, and somewhat unfavourable to have people who dislike
+# one another at the same table.
+
+GuestPairAdjacentSeatConstraint		amelia		bob		-10.0
+GuestPairAdjacentSeatConstraint		bob			chandra	-10.0
+GuestPairAdjacentSeatConstraint		chandra		dinesh	-10.0
+GuestPairAdjacentSeatConstraint		dinesh		amelia	-10.0
+GuestPairAdjacentSeatConstraint		emilio		amelia	-10.0
+GuestPairAdjacentSeatConstraint		emilio		chandra	-10.0
+GuestPairAdjacentSeatConstraint		emilio		bob		10.0
+GuestPairAdjacentSeatConstraint		emilio		dinesh	10.0
+
+GuestPairSameTableConstraint		emilio   	bob		5.0
+GuestPairSameTableConstraint		emilio   	dinesh	5.0
+
+

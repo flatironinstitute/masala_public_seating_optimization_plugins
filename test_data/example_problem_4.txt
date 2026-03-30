@@ -85,6 +85,9 @@ GuestPairProximityConstraint		juliet				juliets_nurse		-10.0		GAUSSIAN	3.0
 GuestPairProximityConstraint		mercutio			valentine			-5.0		GAUSSIAN	2.0
 GuestPairSameTableConstraint		mercutio			valentine			-5.0
 GuestPairAdjacentSeatConstraint		mercutio			valentine			-5.0
+GuestPairProximityConstraint		mercutio			benvolio_montague	-5.0		GAUSSIAN	2.0
+GuestPairSameTableConstraint		mercutio			benvolio_montague	-5.0
+GuestPairAdjacentSeatConstraint		mercutio			benvolio_montague	-5.0
 
 # Animosity between pairs of guests mean that they should be widely separated:
 GuestPairAdjacentSeatConstraint		lord_capulet		lord_montague		10.0	# The men fight the most.

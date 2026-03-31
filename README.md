@@ -123,6 +123,10 @@ A seating optimization problem may have any number of guests.  Note that if ther
 
 A `Restraint` is are hard prohibitions on assigning a particular seat to a particular guest.  Since that particular seat assignment isn't even considered, a `Restraint` simplifies the problem, making it easier for a solver to optimize.  The `Restraint` class is a pure virtual base class with two derived classes: `RestrictGuestToSeatsRestraint` (which prohibits consideration of any seat but for those listed for a particular guest) and `RestrictGuestToTableRestraint` (which prohibits consideration of any seat but those at the table indicated for a particular guest).
 
+Any number of restraints may be defined for a seating optimization problem.
+
+#### Defining a RestrictGuestToSeatsRestraint
+
 The syntax for a `RestrictGuestToSeatsRestraint` is:
 
 ```
@@ -131,6 +135,8 @@ RestrictGuestToSeatsRestraint <SHORT_GUEST_NAMESTRING> <SEAT_GLOBAL_INDEX_1> <OP
 
 Global seat indices are zero-based and based on the order in which seats or tables were defined.  The short guest namestring must have previously been defined as part of a `Guest` setup line.
 
+#### Defining a RestrictGuestToTableRestraint
+
 The syntax for a `RestrictGuestToTableRestraint` is:
 
 ```
@@ -138,3 +144,49 @@ RestrictGuestToTableRestraint <SHORT_GUEST_NAMESTRING> <TABLE_INDEX>
 ```
 
 The table index is zero-based (matching the order in which tables were defined), and as before, the short guest namestring must have previously been defined as part of a `Guest` setup line.
+
+### Defining Constraints
+
+Unlike a `Restraint`, which simplifies the problem, a `Constraint` in no way reduces the number of combinatorial permutations that will be considered.  Instead, a `Constraint` simply defines a bonus or a penalty for particular seat assignments or seat assignment combinations.  The `Constraint` base class is pure virtual.  Derived classes include the `GuestOverlapConstraint` (which discourages multiple guests from being assigned to the same seat), the `GuestPairAdjacentSeatConstraint` (which encourages or discourages a particular pair of guests to be seated next to one another), the `GuestPairSameTableConstraint` (which encourages or discourages a particular pair of guests to be seated at the same table), and the `GuestPairProximityConstraint` (which encourages or discourages a particular pair of guests to be seated near one another in physical space).
+
+Any number of constraints may be defined for a seating optimization problem.
+
+#### Defining the GuestOverlapConstraint
+
+A `GuestOverlapConstraint` should be defined for just about any seating optimization problem, since it is almost always undesirable to have guests sitting on one another's laps -- or, at least, the optimization problem that must be solved for that sort of get-together is outside of the scope of this project.  The `GuestOverlapConstraint` provides a constant penalty for any two guests being assigned to the same seat.  Its syntax is:
+
+```
+GuestOverlapConstraint <CONSTRAINT_STRENGTH>
+```
+
+The constraint strength should be set to a positive value to _discourage_ duplicate assignments.  Since this applies globally to all guests and to all seats, there is no need to provide any additional information.  Although there is nothing preventing multiple guest overlap constraints from being defined, since they are additive, the effect would be no different than adding a single guest overlap constraint with a penalty value that was the sum of the penalty values of the several guest overlap constraints.
+
+#### Defining a GuestPairAdjacentSeatConstraint
+
+A `GuestPairAdjacentSeatConstraint` provides a bonus (negative value) or penalty (positive value) if a particular pair of guests is seated at any pair of adjacent seats.  The syntax is:
+
+```
+GuestPairAdjacentSeatConstraint <SHORT_GUEST_1_NAMESTRING> <SHORT_GUEST_2_NAMESTRING> <BONUS_OR_PENALTY_VALUE>
+```
+
+The short guest namestrings must have been defined previously in `Guest` lines.
+
+#### Defining a GuestPairSameTableConstraint
+
+A `GuestPairSameTableConstraint` provides a bonus (negative value) or penalty (positive value) if a particular pair of guests is seated at any two seats at the same table, for any of the tables that have been defined.  The syntax is:
+
+```
+GuestPairSameTableConstraint <SHORT_GUEST_1_NAMESTRING> <SHORT_GUEST_2_NAMESTRING> <BONUS_OR_PENALTY_VALUE>
+```
+
+Again, the short guest namestrings must have been defined previously in `Guest` lines.
+
+#### Defining a GuestPairProximityConstraint
+
+A `GuestPairProximityConstraint` provides a bonus (negative value) or penalty (positive value) if a particular pair of guests is seated nearby in space, whether or not they are at the same table or in adjacent seats.  It requires the definition of a distance function used to scale the constraint strength; currently the only falloff function that is implemented is the `GAUSSIAN` function.  The syntax is:
+
+```
+GuestPairProximityConstraint <SHORT_GUEST_1_NAMESTRING> <SHORT_GUEST_2_NAMESTRING> <BONUS_OR_PENALTY_VALUE_AT_ONE_UNIT_DISTANCE> GAUSSIAN <GAUSSIAN_STANDARD_DEVIATION>
+```
+
+Once again, the short guest namestrings must have been defined previously in `Guest` lines.

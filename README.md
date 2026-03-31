@@ -82,7 +82,7 @@ Only a single `Room` may be defined for a given seating optimization problem.
 The `Table` class is a pure virtual base class.  Derived classes define tables of particular shapes.  Currently, only the `CircularTable` class is implemented, with input syntax as follows:
 
 ```
-CircularTable <CENTRE_X> <CENTRE_Y> <ANGLE_DEGREES> <RADIUS> <SEAT_COUNT> <OPTIONAL_SEAT_TO_OMIT_1> <OPTIONAL_SEAT_TO_OMIT_2> <OPTIONAL_SEAT_TO_OMIT_3>...
+CircularTable <CENTRE_X> <CENTRE_Y> <ANGLE_DEGREES> <RADIUS> <SEAT_COUNT> <OPTIONAL_SEAT_TO_OMIT_1> <OPTIONAL_SEAT_TO_OMIT_2> <OPTIONAL_SEAT_TO_OMIT_3> ...
 ```
 
 Although the table itself is circular, it may be rotated to shift the seats around.  In the unrotated case, seats are numbered from the top, clockwise around the table.  Rotation shifts the seats clockwise.  As an example, the following defines a circular table with four seats, located at (1.0, -1.0), with a radius of 1.5 meters, and with four evenly-spaced seats, the southernmost of which is omitted, and with all seats rotated 15 degrees clockwise:
@@ -100,3 +100,21 @@ Seat <CENTRE_X> <CENTRE_Y> <ANGLE_DEGREES>
 ```
 
 A seating optimization problem may have as many tables and seats as the user wishes.  Each guest will be assigned one seat, which means that if there are more seats than there are guests, some seats will remain unassigned.
+
+### Defining Guests
+
+A seating optimization problem must have at least one `Guest` (and a nontrivial problem will have many).  A `Guest` is a person who must be assigned a seat.  Note that the name "guest" is not meant to imply a relationship to the event: in the case of wedding seating optimization, the bride(s) and/or the groom(s) are considered "guests" along with all the people whom they invite to their wedding.
+
+A `Guest` must be assigned a short name string containing no whitespace, used for subsequent setup of constraints, and a full name that may contain whitespace, used for user-facing outputs.  The syntax for defining a `Guest` is:
+
+```
+Guest <SHORT_NAMESTRING> <FULL_NAME_1> <FULL_NAME_2> <FULL_NAME_3> ...
+```
+
+For instance, to define a guest named "John Jacob Jingleheimer Schmidt", we would write:
+
+```
+Guest jjj_schmidt John Jacob Jingleheimer Schmidt
+```
+
+A seating optimization problem may have any number of guests.  Note that if there are more guests than seats, some seats will inevitably be occupied by more than one guest, so a sensible problem has at least as many seats as guests.

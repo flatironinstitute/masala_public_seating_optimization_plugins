@@ -69,9 +69,26 @@ The `Room` class is a pure virtual base class.  Derived classes define rooms of 
 RectangularRoom <CENTRE_X> <CENTRE_Y> <ANGLE_DEGREES> <LENGTH> <WIDTH>
 ```
 
-For instance, to define a room centred at (1.5,2.3), with a length (y dimension) of 5 meters and a width (x dimension) of 9 meters, rotated by 10 degrees, one would write the following:
+For instance, to define a room centred at (1.5,2.3), with a length (y dimension) of 5 meters and a width (x dimension) of 9 meters, rotated by 10 degrees clockwise, one would write the following:
 
 ```
 RectangularRoom 1.5 2.3 10.0 5.0 9.0
 ```
 
+Only a single `Room` may be defined for a given seating optimization problem.
+
+### Defining Tables
+
+The `Table` class is a pure virtual base class.  Derived classes define tables of particular shapes.  Currently, only the `CircularTable` class is implemented, with input syntax as follows:
+
+```
+CircularTable <CENTRE_X> <CENTRE_Y> <ANGLE_DEGREES> <RADIUS> <SEAT_COUNT> <OPTIONAL_SEAT_TO_OMIT_1> <OPTIONAL_SEAT_TO_OMIT_2> <OPTIONAL_SEAT_TO_OMIT_3>...
+```
+
+Although the table itself is circular, it may be rotated to shift the chairs around.  In the unrotated case, seats are numbered from the top, clockwise around the table.  Rotation shifts the seats clockwise.  As an example, the following defines a circular table with four seats, located at (1.0, -1.0), with a radius of 1.5 meters, and with four evenly-spaced chairs, the southernmost of which is omitted, and with all seats rotated 15 degrees clockwise:
+
+```
+CircularTable 1.0 -1.0 15.0 1.5 4 2
+```
+
+Note that the local indices of the seats around the table are, clockwise from the northernmost, 0, 1, 2 and 3.  The arguments for omitting chairs are optional: by default, no chairs are omitted.

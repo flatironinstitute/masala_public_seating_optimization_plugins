@@ -48,3 +48,30 @@ doxygen Doxyfile.src
 ```
 
 (Note that Doxygen must be installed.) Documentation will be addded to the `html_docs/` directory.  Delete this directory to recompile documentation from scratch.
+
+## Input file format
+
+Example input files are in the `test_data` subdirectory.  Input files allow users to define a seating optimization problem, which consists of the following seating optimization elements:
+
+- The _Room_ defines the space in which tables are laid out.  It is intended for visualization purposes.
+- _Seats_ hold Guests.  They are arranged around _Tables_.
+- _Guests_ are the people who must be seated.
+- _Restraints_ limit particular guests to certain seats.  They simplify the optimization problem by eliminating certain assignments completely.
+- _Constraints_ give bonuses or penalties for seating guests in certain seats, or pairs of guests in certain seats in relation to one another.
+
+More information on the syntax for defining each of these is found below.
+
+### Defining the Room
+
+The `Room` class is a pure virtual base class.  Derived classes define rooms of particular shapes.  Currently, the only shape implemented is a rectangular room, implemented in the `RectangularRoom` class.  The syntax for defining a `RectangularRoom` is as follows:
+
+```
+RectangularRoom <CENTRE_X> <CENTRE_Y> <ANGLE_DEGREES> <LENGTH> <WIDTH>
+```
+
+For instance, to define a room centred at (1.5,2.3), with a length (y dimension) of 5 meters and a width (x dimension) of 9 meters, rotated by 10 degrees, one would write the following:
+
+```
+RectangularRoom 1.5 2.3 10.0 5.0 9.0
+```
+

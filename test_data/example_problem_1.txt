@@ -1,93 +1,31 @@
-# This defines the "creepy uncle" scenario: Vincent P. Amato is a bit of a jerk, who tends to
-# make himself unsufferable around young women.  The optimization problem is to seat him so that
-# he doesn't have anyone nearby to harass.
+# This defines the simple "friends and enemies" problem: two pairs of friends are sitting together, but
+# one of each pair form a pair of enemies, who should be seated as far from one another as possible
+# (across the table).  The solution is trivial and discoverable by inspection, but it serves as a good
+# simplest test case.
 
 # Define the room
-RectangularRoom     0.0     0.0     0.0     9.0    12.0
+RectangularRoom     0.0     0.0     0.0     5.0    5.0
 
-# Defining some tables:
+# Set up the table:
 
-CircularTable	-3	0	20.0	2	9
-CircularTable	 3	0	0.0	    2	9
+CircularTable	0	0	0.0 2.0 4
 
-# Add some guests:
+# Add our four guests.  Avery and Basil are friends; Charlie and Dawson are friends; Avery
+# and Dawson are friends.  Basil and Charlie hate one another:
 
-Guest	bride				Ella Delangelo
-Guest	groom				James Patrick Josephson
-Guest	mother_of_bride		Lisa Delangelo
-Guest	father_of_bride		Georgio C. Delangelo
-Guest	mother_of_groom		Elaine P. Josephson
-Guest	father_of_groom		Fredrick Michael Josephson
-Guest	uncle_of_groom		Howard Josephson
-Guest	aunt_of_groom		Sarah Josephson
-Guest	uncle1_of_bride		Vincent P. Amato # This fellow is the problem.
-Guest	uncle2_of_bride		Alberto M. Amato
-Guest	aunt_of_bride		Jane S. Amato
-Guest	sister1_of_groom	Tina Marie Josephson
-Guest	sister2_of_groom	Louise Kay Josephson
-Guest	sister3_of_groom	Florence Jane Marple
-Guest	br_in_law_of_groom	Nigel Marple
-Guest	cousin1_of_groom	Clara Josephson
-Guest	cousin2_of_groom	Laura Josephson
+Guest	avery	Avery Andersen
+Guest	basil	Basil Bandersnatch
+Guest	charlie	Charlie Clapborne
+Guest	dawson	Dawson DeVille
 
-# Ensure that no two guests can be assigned to the same seat.
+# Ensure that no two guests can be assigned to the same seat:
 
 GuestOverlapConstraint  30.0
 
-# Restrain some guests to be at the first table.
+# Add some guest pair constraints establishing the relationships above:
 
-RestrictGuestToSeatsRestraint	bride		9 10 11
-RestrictGuestToSeatsRestraint	groom		9 10 11
-RestrictGuestToTableRestraint	bride			1
-RestrictGuestToTableRestraint	groom			1
-RestrictGuestToTableRestraint	mother_of_bride		1
-RestrictGuestToTableRestraint	father_of_bride		1
-RestrictGuestToTableRestraint	mother_of_groom		1
-RestrictGuestToTableRestraint	father_of_groom		1
+GuestPairAdjacentSeatConstraint		avery		basil	-5.0
+GuestPairAdjacentSeatConstraint		avery		charlie	-5.0
+GuestPairAdjacentSeatConstraint		charlie		dawson	-5.0
+GuestPairAdjacentSeatConstraint		basil		charlie	5.0
 
-# Add some guest pair constraints: it's unfavourable for the creepy uncle to sit next to
-# any of the young women to whom he is not related.
-
-GuestPairAdjacentSeatConstraint		uncle1_of_bride		cousin1_of_groom	10.0
-GuestPairAdjacentSeatConstraint		uncle1_of_bride		cousin2_of_groom	10.0
-GuestPairAdjacentSeatConstraint		uncle1_of_bride		sister1_of_groom	10.0
-GuestPairAdjacentSeatConstraint		uncle1_of_bride		sister2_of_groom	10.0
-GuestPairAdjacentSeatConstraint		uncle1_of_bride		sister3_of_groom	8.0		# The uncle is slightly less inclined to harass married women.
-GuestPairAdjacentSeatConstraint		uncle1_of_bride		mother_of_groom		5.0		# The uncle is less inclined to harass older women.
-GuestPairAdjacentSeatConstraint		uncle1_of_bride		aunt_of_groom		5.0		# The uncle is less inclined to harass older women.
-GuestPairAdjacentSeatConstraint		uncle1_of_bride		aunt_of_bride		2.0		# The uncle is only somewhat of an irritant to his sister-in-law.
-GuestPairAdjacentSeatConstraint		uncle1_of_bride		br_in_law_of_groom	3.0		# The groom's brother-in-law is hotheaded in the face of perceived boorishness.
-
-# It's also unfavourable for the creepy uncle to be at the same table as his most likely targets:
-
-GuestPairSameTableConstraint		uncle1_of_bride		cousin1_of_groom	5.0
-GuestPairSameTableConstraint		uncle1_of_bride		cousin2_of_groom	5.0
-GuestPairSameTableConstraint		uncle1_of_bride		sister1_of_groom	5.0
-GuestPairSameTableConstraint		uncle1_of_bride		sister2_of_groom	5.0
-GuestPairSameTableConstraint		uncle1_of_bride		sister3_of_groom	3.0
-
-# It's also unfavourable for the creepy uncle to be too close to his most likely targets:
-
-GuestPairProximityConstraint		uncle1_of_bride		cousin1_of_groom	5.0		GAUSSIAN	2.0
-GuestPairProximityConstraint		uncle1_of_bride		cousin2_of_groom	5.0		GAUSSIAN	2.0
-GuestPairProximityConstraint		uncle1_of_bride		sister1_of_groom	5.0		GAUSSIAN	2.0
-GuestPairProximityConstraint		uncle1_of_bride		sister2_of_groom	5.0		GAUSSIAN	2.0
-GuestPairProximityConstraint		uncle1_of_bride		sister3_of_groom	3.0		GAUSSIAN	2.0
-
-# A distance constraint.  The mother of the bride dislikes the mother of the groom.
-
-GuestPairProximityConstraint		mother_of_bride		mother_of_groom		3.0		GAUSSIAN	2.0
-
-# Add some more guest pair constraints: couples should sit together.
-
-GuestPairAdjacentSeatConstraint		bride				groom				-15.0
-GuestPairAdjacentSeatConstraint		mother_of_bride		father_of_bride		-10.0
-GuestPairAdjacentSeatConstraint		mother_of_groom		father_of_groom		-10.0
-GuestPairAdjacentSeatConstraint		uncle_of_groom		aunt_of_groom		-10.0
-GuestPairAdjacentSeatConstraint		uncle2_of_bride		aunt_of_bride		-10.0
-GuestPairAdjacentSeatConstraint		sister3_of_groom	br_in_law_of_groom	-10.0
-
-# Add some more guest pair constraints: the immediate family should be together, though this can't be fully satisfied.
-GuestPairSameTableConstraint    groom   sister1_of_groom    -3.0
-GuestPairSameTableConstraint    groom   sister2_of_groom    -3.0
-GuestPairSameTableConstraint    groom   sister3_of_groom    -3.0

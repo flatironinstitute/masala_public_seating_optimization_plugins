@@ -48,3 +48,145 @@ doxygen Doxyfile.src
 ```
 
 (Note that Doxygen must be installed.) Documentation will be addded to the `html_docs/` directory.  Delete this directory to recompile documentation from scratch.
+
+## Input file format
+
+Example input files are in the `test_data` subdirectory.  Input files allow users to define a seating optimization problem, which consists of the following seating optimization elements:
+
+- The _Room_ defines the space in which tables are laid out.  It is intended for visualization purposes.
+- _Seats_ hold Guests.  They are arranged around _Tables_.
+- _Guests_ are the people who must be seated.
+- _Restraints_ limit particular guests to certain seats.  They simplify the optimization problem by eliminating certain assignments completely.
+- _Constraints_ give bonuses or penalties for seating guests in certain seats, or pairs of guests in certain seats in relation to one another.
+
+More information on the syntax for defining each of these is found below.
+
+### Defining the Room
+
+The `Room` class is a pure virtual base class.  Derived classes define rooms of particular shapes.  Currently, the only shape implemented is a rectangular room, implemented in the `RectangularRoom` class.  The syntax for defining a `RectangularRoom` is as follows:
+
+```
+RectangularRoom <CENTRE_X> <CENTRE_Y> <ANGLE_DEGREES> <LENGTH> <WIDTH>
+```
+
+For instance, to define a room centred at (1.5,2.3), with a length (y dimension) of 5 meters and a width (x dimension) of 9 meters, rotated by 10 degrees clockwise, one would write the following:
+
+```
+RectangularRoom 1.5 2.3 10.0 5.0 9.0
+```
+
+Only a single `Room` may be defined for a given seating optimization problem.
+
+### Defining Seats and Tables
+
+The `Table` class is a pure virtual base class.  Derived classes define tables of particular shapes.  Currently, only the `CircularTable` class is implemented, with input syntax as follows:
+
+```
+CircularTable <CENTRE_X> <CENTRE_Y> <ANGLE_DEGREES> <RADIUS> <SEAT_COUNT> <OPTIONAL_SEAT_LOCAL_INDEX_TO_OMIT_1> <OPTIONAL_SEAT_LOCAL_INDEX_TO_OMIT_2> <OPTIONAL_SEAT_LOCAL_INDEX_TO_OMIT_3> ...
+```
+
+Although the table itself is circular, it may be rotated to shift the seats around.  In the unrotated case, seats are numbered from the top, clockwise around the table.  Rotation shifts the seats clockwise.  As an example, the following defines a circular table with four seats, located at (1.0, -1.0), with a radius of 1.5 meters, and with four evenly-spaced seats, the southernmost of which is omitted, and with all seats rotated 15 degrees clockwise:
+
+```
+CircularTable 1.0 -1.0 15.0 1.5 4 2
+```
+
+Note that the local indices of the seats around the table are, clockwise from the northernmost, 0, 1, 2 and 3.  The arguments for omitting seats are optional: by default, no seats are omitted.
+
+Standalone `Seat` objects, with no associated `Table`, may also be defined using the following syntax:
+
+```
+Seat <CENTRE_X> <CENTRE_Y> <ANGLE_DEGREES>
+```
+
+A seating optimization problem may have as many tables and seats as the user wishes.  Each guest will be assigned one seat, which means that if there are more seats than there are guests, some seats will remain unassigned.
+
+### Defining Guests
+
+A seating optimization problem must have at least one `Guest` (and a nontrivial problem will have many).  A `Guest` is a person who must be assigned a seat.  Note that the name "guest" is not meant to imply a relationship to the event: in the case of wedding seating optimization, the bride(s) and/or the groom(s) are considered "guests" along with all the people whom they invite to their wedding.
+
+A `Guest` must be assigned a short name string containing no whitespace, used for subsequent setup of constraints, and a full name that may contain whitespace, used for user-facing outputs.  The syntax for defining a `Guest` is:
+
+```
+Guest <SHORT_GUEST_NAMESTRING> <FULL_NAME_1> <FULL_NAME_2> <FULL_NAME_3> ...
+```
+
+For instance, to define a guest named "John Jacob Jingleheimer Schmidt", we would write:
+
+```
+Guest jjj_schmidt John Jacob Jingleheimer Schmidt
+```
+
+A seating optimization problem may have any number of guests.  Note that if there are more guests than seats, some seats will inevitably be occupied by more than one guest, so a sensible problem has at least as many seats as guests.
+
+### Defining Restraints
+
+A `Restraint` is are hard prohibitions on assigning a particular seat to a particular guest.  Since that particular seat assignment isn't even considered, a `Restraint` simplifies the problem, making it easier for a solver to optimize.  The `Restraint` class is a pure virtual base class with two derived classes: `RestrictGuestToSeatsRestraint` (which prohibits consideration of any seat but for those listed for a particular guest) and `RestrictGuestToTableRestraint` (which prohibits consideration of any seat but those at the table indicated for a particular guest).
+
+Any number of restraints may be defined for a seating optimization problem.
+
+#### Defining a RestrictGuestToSeatsRestraint
+
+The syntax for a `RestrictGuestToSeatsRestraint` is:
+
+```
+RestrictGuestToSeatsRestraint <SHORT_GUEST_NAMESTRING> <SEAT_GLOBAL_INDEX_1> <OPTIONAL_SEAT_GLOBAL_INDEX_2> <OPTIONAL_SEAT_GLOBAL_INDEX_3> ...
+```
+
+Global seat indices are zero-based and based on the order in which seats or tables were defined.  The short guest namestring must have previously been defined as part of a `Guest` setup line.
+
+#### Defining a RestrictGuestToTableRestraint
+
+The syntax for a `RestrictGuestToTableRestraint` is:
+
+```
+RestrictGuestToTableRestraint <SHORT_GUEST_NAMESTRING> <TABLE_INDEX>
+```
+
+The table index is zero-based (matching the order in which tables were defined), and as before, the short guest namestring must have previously been defined as part of a `Guest` setup line.
+
+### Defining Constraints
+
+Unlike a `Restraint`, which simplifies the problem, a `Constraint` in no way reduces the number of combinatorial permutations that will be considered.  Instead, a `Constraint` simply defines a bonus or a penalty for particular seat assignments or seat assignment combinations.  The `Constraint` base class is pure virtual.  Derived classes include the `GuestOverlapConstraint` (which discourages multiple guests from being assigned to the same seat), the `GuestPairAdjacentSeatConstraint` (which encourages or discourages a particular pair of guests to be seated next to one another), the `GuestPairSameTableConstraint` (which encourages or discourages a particular pair of guests to be seated at the same table), and the `GuestPairProximityConstraint` (which encourages or discourages a particular pair of guests to be seated near one another in physical space).
+
+Any number of constraints may be defined for a seating optimization problem.
+
+#### Defining the GuestOverlapConstraint
+
+A `GuestOverlapConstraint` should be defined for just about any seating optimization problem, since it is almost always undesirable to have guests sitting on one another's laps -- or, at least, the optimization problem that must be solved for that sort of get-together is outside of the scope of this project.  The `GuestOverlapConstraint` provides a constant penalty for any two guests being assigned to the same seat.  Its syntax is:
+
+```
+GuestOverlapConstraint <CONSTRAINT_STRENGTH>
+```
+
+The constraint strength should be set to a positive value to _discourage_ duplicate assignments.  Since this applies globally to all guests and to all seats, there is no need to provide any additional information.  Although there is nothing preventing multiple guest overlap constraints from being defined, since they are additive, the effect would be no different than adding a single guest overlap constraint with a penalty value that was the sum of the penalty values of the several guest overlap constraints.
+
+#### Defining a GuestPairAdjacentSeatConstraint
+
+A `GuestPairAdjacentSeatConstraint` provides a bonus (negative value) or penalty (positive value) if a particular pair of guests is seated at any pair of adjacent seats.  The syntax is:
+
+```
+GuestPairAdjacentSeatConstraint <SHORT_GUEST_1_NAMESTRING> <SHORT_GUEST_2_NAMESTRING> <BONUS_OR_PENALTY_VALUE>
+```
+
+The short guest namestrings must have been defined previously in `Guest` lines.
+
+#### Defining a GuestPairSameTableConstraint
+
+A `GuestPairSameTableConstraint` provides a bonus (negative value) or penalty (positive value) if a particular pair of guests is seated at any two seats at the same table, for any of the tables that have been defined.  The syntax is:
+
+```
+GuestPairSameTableConstraint <SHORT_GUEST_1_NAMESTRING> <SHORT_GUEST_2_NAMESTRING> <BONUS_OR_PENALTY_VALUE>
+```
+
+Again, the short guest namestrings must have been defined previously in `Guest` lines.
+
+#### Defining a GuestPairProximityConstraint
+
+A `GuestPairProximityConstraint` provides a bonus (negative value) or penalty (positive value) if a particular pair of guests is seated nearby in space, whether or not they are at the same table or in adjacent seats.  It requires the definition of a distance function used to scale the constraint strength; currently the only falloff function that is implemented is the `GAUSSIAN` function.  The syntax is:
+
+```
+GuestPairProximityConstraint <SHORT_GUEST_1_NAMESTRING> <SHORT_GUEST_2_NAMESTRING> <BONUS_OR_PENALTY_VALUE_AT_ONE_UNIT_DISTANCE> GAUSSIAN <GAUSSIAN_STANDARD_DEVIATION>
+```
+
+Once again, the short guest namestrings must have been defined previously in `Guest` lines.

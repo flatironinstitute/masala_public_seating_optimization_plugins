@@ -77,7 +77,7 @@ RectangularRoom 1.5 2.3 10.0 5.0 9.0
 
 Only a single `Room` may be defined for a given seating optimization problem.
 
-### Defining Tables
+### Defining Seats and Tables
 
 The `Table` class is a pure virtual base class.  Derived classes define tables of particular shapes.  Currently, only the `CircularTable` class is implemented, with input syntax as follows:
 
@@ -85,10 +85,18 @@ The `Table` class is a pure virtual base class.  Derived classes define tables o
 CircularTable <CENTRE_X> <CENTRE_Y> <ANGLE_DEGREES> <RADIUS> <SEAT_COUNT> <OPTIONAL_SEAT_TO_OMIT_1> <OPTIONAL_SEAT_TO_OMIT_2> <OPTIONAL_SEAT_TO_OMIT_3>...
 ```
 
-Although the table itself is circular, it may be rotated to shift the chairs around.  In the unrotated case, seats are numbered from the top, clockwise around the table.  Rotation shifts the seats clockwise.  As an example, the following defines a circular table with four seats, located at (1.0, -1.0), with a radius of 1.5 meters, and with four evenly-spaced chairs, the southernmost of which is omitted, and with all seats rotated 15 degrees clockwise:
+Although the table itself is circular, it may be rotated to shift the seats around.  In the unrotated case, seats are numbered from the top, clockwise around the table.  Rotation shifts the seats clockwise.  As an example, the following defines a circular table with four seats, located at (1.0, -1.0), with a radius of 1.5 meters, and with four evenly-spaced seats, the southernmost of which is omitted, and with all seats rotated 15 degrees clockwise:
 
 ```
 CircularTable 1.0 -1.0 15.0 1.5 4 2
 ```
 
-Note that the local indices of the seats around the table are, clockwise from the northernmost, 0, 1, 2 and 3.  The arguments for omitting chairs are optional: by default, no chairs are omitted.
+Note that the local indices of the seats around the table are, clockwise from the northernmost, 0, 1, 2 and 3.  The arguments for omitting seats are optional: by default, no seats are omitted.
+
+Standalone `Seat` objects, with no associated `Table`, may also be defined using the following syntax:
+
+```
+Seat <CENTRE_X> <CENTRE_Y> <ANGLE_DEGREES>
+```
+
+A seating optimization problem may have as many tables and seats as the user wishes.  Each guest will be assigned one seat, which means that if there are more seats than there are guests, some seats will remain unassigned.

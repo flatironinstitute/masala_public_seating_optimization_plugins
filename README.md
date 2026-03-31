@@ -82,7 +82,7 @@ Only a single `Room` may be defined for a given seating optimization problem.
 The `Table` class is a pure virtual base class.  Derived classes define tables of particular shapes.  Currently, only the `CircularTable` class is implemented, with input syntax as follows:
 
 ```
-CircularTable <CENTRE_X> <CENTRE_Y> <ANGLE_DEGREES> <RADIUS> <SEAT_COUNT> <OPTIONAL_SEAT_TO_OMIT_1> <OPTIONAL_SEAT_TO_OMIT_2> <OPTIONAL_SEAT_TO_OMIT_3> ...
+CircularTable <CENTRE_X> <CENTRE_Y> <ANGLE_DEGREES> <RADIUS> <SEAT_COUNT> <OPTIONAL_SEAT_LOCAL_INDEX_TO_OMIT_1> <OPTIONAL_SEAT_LOCAL_INDEX_TO_OMIT_2> <OPTIONAL_SEAT_LOCAL_INDEX_TO_OMIT_3> ...
 ```
 
 Although the table itself is circular, it may be rotated to shift the seats around.  In the unrotated case, seats are numbered from the top, clockwise around the table.  Rotation shifts the seats clockwise.  As an example, the following defines a circular table with four seats, located at (1.0, -1.0), with a radius of 1.5 meters, and with four evenly-spaced seats, the southernmost of which is omitted, and with all seats rotated 15 degrees clockwise:
@@ -108,7 +108,7 @@ A seating optimization problem must have at least one `Guest` (and a nontrivial 
 A `Guest` must be assigned a short name string containing no whitespace, used for subsequent setup of constraints, and a full name that may contain whitespace, used for user-facing outputs.  The syntax for defining a `Guest` is:
 
 ```
-Guest <SHORT_NAMESTRING> <FULL_NAME_1> <FULL_NAME_2> <FULL_NAME_3> ...
+Guest <SHORT_GUEST_NAMESTRING> <FULL_NAME_1> <FULL_NAME_2> <FULL_NAME_3> ...
 ```
 
 For instance, to define a guest named "John Jacob Jingleheimer Schmidt", we would write:
@@ -118,3 +118,23 @@ Guest jjj_schmidt John Jacob Jingleheimer Schmidt
 ```
 
 A seating optimization problem may have any number of guests.  Note that if there are more guests than seats, some seats will inevitably be occupied by more than one guest, so a sensible problem has at least as many seats as guests.
+
+### Defining Restraints
+
+A `Restraint` is are hard prohibitions on assigning a particular seat to a particular guest.  Since that particular seat assignment isn't even considered, a `Restraint` simplifies the problem, making it easier for a solver to optimize.  The `Restraint` class is a pure virtual base class with two derived classes: `RestrictGuestToSeatsRestraint` (which prohibits consideration of any seat but for those listed for a particular guest) and `RestrictGuestToTableRestraint` (which prohibits consideration of any seat but those at the table indicated for a particular guest).
+
+The syntax for a `RestrictGuestToSeatsRestraint` is:
+
+```
+RestrictGuestToSeatsRestraint <SHORT_GUEST_NAMESTRING> <SEAT_GLOBAL_INDEX_1> <OPTIONAL_SEAT_GLOBAL_INDEX_2> <OPTIONAL_SEAT_GLOBAL_INDEX_3> ...
+```
+
+Global seat indices are zero-based and based on the order in which seats or tables were defined.  The short guest namestring must have previously been defined as part of a `Guest` setup line.
+
+The syntax for a `RestrictGuestToTableRestraint` is:
+
+```
+RestrictGuestToTableRestraint <SHORT_GUEST_NAMESTRING> <TABLE_INDEX>
+```
+
+The table index is zero-based (matching the order in which tables were defined), and as before, the short guest namestring must have previously been defined as part of a `Guest` setup line.

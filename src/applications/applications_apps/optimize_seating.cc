@@ -830,7 +830,7 @@ load_options(
 		},
 		{"dwave_samples", "The number of samples for the D-Wave to perform.  Defaults to 1000." },
 		{"dwave_annealing_time", "The D-wave annealing time, in microseconds.  Defaults to 20.0" },
-		{"dwave_use_layout_embedding", "If true, we use Layout embedding; if false, we use MinorMiner embedding.  Defaults to true." },
+		{"dwave_use_layout_embedding", "If true, we use Layout embedding; if false, we use MinorMiner embedding.  Defaults to false." },
 		{"dwave_solver_name", "The name of the solver.  Required input if the D-Wave is used." },
 		{"dwave_onenode_penalty_cap", "The cap on the one-node penalty values.  Only used to limit dynamic range if the D-Wave is used.  Defaults to 100.0." },
 		{"dwave_twonode_penalty_cap", "The cap on the two-node penalty values.  Only used to limit dynamic range if the D-Wave is used.  Defaults to 100.0." },
@@ -1198,7 +1198,7 @@ main(
 	masala::base::Real dwave_annelaing_time( 20.0 );
 	masala::base::Real dwave_onenode_penalty_cap( 100.0 );
 	masala::base::Real dwave_twonode_penalty_cap( 100.0 );
-	bool do_greedy( true ), dwave_use_layout_embedding( true ), dwave_use_inhomogen_driving(true);
+	bool do_greedy( true ), dwave_use_layout_embedding( false ), dwave_use_inhomogen_driving(true);
 	DWaveMappingType dwave_mapping_type( DWaveMappingType::UNSPECIFIED );
 
 	// Masala tracer manager:

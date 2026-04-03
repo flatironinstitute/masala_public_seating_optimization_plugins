@@ -90,36 +90,35 @@ RestrictGuestToTableRestraint	friend11_in_couple4				0
 RestrictGuestToTableRestraint	friend5_in_couple2		3
 RestrictGuestToTableRestraint	friend6_in_couple2			3
 
-RestrictGuestToSeatsRestraint	aunt1_of_groom		1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	uncle1_of_groom			1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	aunt2_of_groom		1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend1			1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend2_in_couple1		1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend3_in_couple1		1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	father_of_bride		1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	partner_of_father_of_bride			1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend4		1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend5_in_couple2		1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend6_in_couple2			1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend7_in_couple3			1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend8_in_couple3				1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	son_of_couple3				1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend9				1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend10_in_couple4				1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend11_in_couple4				1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend12				1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend13			1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend14				1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend15_in_couple5			1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend16_in_couple5		1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend17_in_couple6			1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend18_in_couple6			1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend19_in_couple7			1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend20_in_couple7		1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend21_in_couple8			1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	friend22_in_couple8		1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-RestrictGuestToSeatsRestraint	son_of_couple8			1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
-
+RestrictGuestToSeatsRestraint	aunt1_of_groom		0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	uncle1_of_groom			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	aunt2_of_groom		0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend1			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend2_in_couple1		0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend3_in_couple1		0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	father_of_bride		0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	partner_of_father_of_bride			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend4		0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend5_in_couple2		0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend6_in_couple2			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend7_in_couple3			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend8_in_couple3				0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	son_of_couple3				0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend9				0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend10_in_couple4				0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend11_in_couple4				0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend12				0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend13			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend14				0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend15_in_couple5			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend16_in_couple5		0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend17_in_couple6			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend18_in_couple6			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend19_in_couple7			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend20_in_couple7		0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend21_in_couple8			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend22_in_couple8		0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	son_of_couple8			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
 
 
 ################################################################################

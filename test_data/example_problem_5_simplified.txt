@@ -28,7 +28,7 @@ Guest	friend8_in_couple3		Friend 8 (Couple 3)
 Guest	son_of_couple3			Son of Couple 3
 Guest	friend9				Friend 9
 Guest	friend10_in_couple4		Friend 10 (Couple 4)
-Guest	friend11_in_couple4		Friend 11 (Couple 5)
+Guest	friend11_in_couple4		Friend 11 (Couple 4)
 Guest	friend12			Friend 12
 Guest	friend13			Friend 13
 Guest	friend14			Friend 14

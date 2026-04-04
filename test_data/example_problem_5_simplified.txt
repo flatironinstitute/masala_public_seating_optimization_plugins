@@ -1,0 +1,228 @@
+# File: example_problem_5.txt
+# Description: The actual seating optimization problem for the wedding of Karie A. Nicholas and Vikram K. Mulligan.
+
+# The bride and groom:
+Guest	bride	Bride (K.A.N.)
+Guest	groom	Groom (V.K.M.)
+
+# Our guests:
+Guest	mother_of_groom			Mother of Groom
+Guest	father_of_groom			Father of Groom
+Guest	sister_of_groom			Sister of Groom
+Guest	brother_in_law_of_groom		Brother-in-law of Groom
+Guest	mother_of_bride			Mother of Bride
+Guest	son_of_bride			Son of Bride
+Guest	aunt1_of_groom			Aunt 1 of Groom
+Guest	uncle1_of_groom			Uncle 1 of Groom
+Guest	aunt2_of_groom			Aunt 2 of Groom
+Guest	friend1				Friend 1
+Guest	friend2_in_couple1		Friend 2 (Couple 1)
+Guest	friend3_in_couple1		Friend 3 (Couple 1)
+Guest	father_of_bride			Father of Bride
+Guest	partner_of_father_of_bride	Partner of Father of Bride
+Guest	friend4				Friend 4
+Guest	friend5_in_couple2		Friend 5 (Couple 2)
+Guest	friend6_in_couple2		Friend 6 (Couple 2)
+Guest	friend7_in_couple3		Friend 7 (Couple 3)
+Guest	friend8_in_couple3		Friend 8 (Couple 3)
+Guest	son_of_couple3			Son of Couple 3
+Guest	friend9				Friend 9
+Guest	friend10_in_couple4		Friend 10 (Couple 4)
+Guest	friend11_in_couple4		Friend 11 (Couple 5)
+Guest	friend12			Friend 12
+Guest	friend13			Friend 13
+Guest	friend14			Friend 14
+Guest	friend15_in_couple5		Friend 15 (Couple 5)
+Guest	friend16_in_couple5		Friend 16 (Couple 5)
+Guest	friend17_in_couple6		Friend 17 (Couple 6)
+Guest	friend18_in_couple6		Friend 18 (Couple 6)
+Guest	friend19_in_couple7		Friend 19 (Couple 7)
+Guest	friend20_in_couple7		Friend 20 (Couple 7)
+Guest	friend21_in_couple8		Friend 21 (Couple 8)
+Guest	friend22_in_couple8		Friend 22 (Couple 8)
+Guest	son_of_couple8			Son of Couple 8
+
+# The room:
+RectangularRoom		0.0		0.0		0.0		10.668		28.3972
+
+# The tables:
+CircularTable	5.254625	0		0		0.762	8
+CircularTable	2.10185		0		25.714		0.762	7
+CircularTable	8.4074		0		-25.714		0.762	7
+CircularTable	5.254625	3.152775	25.714		0.762	7
+CircularTable	5.254625	-3.152775	22.5		0.762	8
+
+# The pillars:
+# (We will use small tables with no chairs just as visualization aids.)
+CircularTable	-10.50925 	2.57175		0	0.35	0
+CircularTable	-6.30555 	2.57175		0	0.35	0
+CircularTable	-2.10185 	2.57175		0	0.35	0
+CircularTable	2.10185 	2.57175		0	0.35	0
+CircularTable	8.4074 		2.57175		0	0.35	0
+CircularTable	12.6111 	2.57175		0	0.35	0
+CircularTable	-10.50925 	-2.57175	0	0.35	0
+CircularTable	-6.30555 	-2.57175	0	0.35	0
+CircularTable	-2.10185 	-2.57175	0	0.35	0
+CircularTable	2.10185 	-2.57175	0	0.35	0
+CircularTable	8.4074 		-2.57175	0	0.35	0
+CircularTable	12.6111 	-2.57175	0	0.35	0
+
+################################################################################
+## RESTRAINTS
+################################################################################
+
+RestrictGuestToSeatsRestraint	groom				32
+RestrictGuestToSeatsRestraint	bride				33
+RestrictGuestToTableRestraint	groom				4
+RestrictGuestToTableRestraint	bride				4
+RestrictGuestToTableRestraint	son_of_bride			4
+RestrictGuestToTableRestraint	sister_of_groom			4
+RestrictGuestToTableRestraint	brother_in_law_of_groom		4
+RestrictGuestToTableRestraint	mother_of_bride			4
+RestrictGuestToTableRestraint	father_of_groom			4
+RestrictGuestToTableRestraint	mother_of_groom			4
+
+RestrictGuestToTableRestraint	father_of_bride		0
+RestrictGuestToTableRestraint	partner_of_father_of_bride			0
+RestrictGuestToTableRestraint	friend9				0
+RestrictGuestToTableRestraint	friend10_in_couple4				0
+RestrictGuestToTableRestraint	friend11_in_couple4				0
+RestrictGuestToTableRestraint	friend5_in_couple2		3
+RestrictGuestToTableRestraint	friend6_in_couple2			3
+
+RestrictGuestToSeatsRestraint	aunt1_of_groom		0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	uncle1_of_groom			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	aunt2_of_groom		0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend1			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend2_in_couple1		0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend3_in_couple1		0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	father_of_bride		0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	partner_of_father_of_bride			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend4		0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend5_in_couple2		0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend6_in_couple2			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend7_in_couple3			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend8_in_couple3				0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	son_of_couple3				0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend9				0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend10_in_couple4				0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend11_in_couple4				0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend12				0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend13			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend14				0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend15_in_couple5			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend16_in_couple5		0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend17_in_couple6			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend18_in_couple6			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend19_in_couple7			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend20_in_couple7		0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend21_in_couple8			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	friend22_in_couple8		0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+RestrictGuestToSeatsRestraint	son_of_couple8			0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28
+
+
+################################################################################
+## CONSTRAINTS
+################################################################################
+
+# No two guests in the same seat:
+GuestOverlapConstraint	30.0
+
+# Couples should sit together:
+GuestPairAdjacentSeatConstraint		bride			groom				-15.0
+GuestPairAdjacentSeatConstraint		mother_of_groom		father_of_groom			-15.0
+GuestPairAdjacentSeatConstraint		sister_of_groom		brother_in_law_of_groom		-15.0
+GuestPairAdjacentSeatConstraint		father_of_bride		partner_of_father_of_bride	-15.0
+GuestPairSameTableConstraint		father_of_bride		partner_of_father_of_bride	-15.0
+GuestPairAdjacentSeatConstraint		aunt1_of_groom		uncle1_of_groom			-15.0
+GuestPairSameTableConstraint		aunt1_of_groom		uncle1_of_groom			-15.0
+GuestPairAdjacentSeatConstraint		friend2_in_couple1	friend3_in_couple1		-15.0
+GuestPairSameTableConstraint		friend2_in_couple1	friend3_in_couple1		-15.0
+GuestPairAdjacentSeatConstraint		friend5_in_couple2	friend6_in_couple2		-15.0
+GuestPairSameTableConstraint		friend5_in_couple2	friend6_in_couple2		-15.0
+GuestPairAdjacentSeatConstraint		friend7_in_couple3	friend8_in_couple3		-15.0
+GuestPairAdjacentSeatConstraint		friend7_in_couple3	son_of_couple3			-15.0
+GuestPairAdjacentSeatConstraint		friend8_in_couple3	son_of_couple3			-15.0
+GuestPairSameTableConstraint		friend7_in_couple3	friend8_in_couple3		-15.0
+GuestPairSameTableConstraint		friend7_in_couple3	son_of_couple3			-15.0
+GuestPairSameTableConstraint		friend8_in_couple3	son_of_couple3			-15.0
+GuestPairAdjacentSeatConstraint		friend10_in_couple4	friend11_in_couple4		-15.0
+GuestPairSameTableConstraint		friend10_in_couple4	friend11_in_couple4		-15.0
+GuestPairAdjacentSeatConstraint		friend16_in_couple5	friend15_in_couple5		-15.0
+GuestPairSameTableConstraint		friend16_in_couple5	friend15_in_couple5		-15.0
+GuestPairAdjacentSeatConstraint		friend20_in_couple7	friend19_in_couple7		-15.0
+GuestPairSameTableConstraint		friend20_in_couple7	friend19_in_couple7		-15.0
+GuestPairAdjacentSeatConstraint		friend17_in_couple6	friend18_in_couple6		-15.0
+GuestPairSameTableConstraint		friend17_in_couple6	friend18_in_couple6		-15.0
+GuestPairAdjacentSeatConstraint		friend22_in_couple8	friend21_in_couple8		-15.0
+GuestPairAdjacentSeatConstraint		son_of_couple8		friend21_in_couple8		-15.0
+GuestPairAdjacentSeatConstraint		son_of_couple8		friend22_in_couple8		-15.0
+GuestPairSameTableConstraint		son_of_couple8		friend21_in_couple8		-5.0
+GuestPairSameTableConstraint		son_of_couple8		friend22_in_couple8		-5.0
+GuestPairSameTableConstraint		son_of_couple3		friend7_in_couple3		-5.0
+GuestPairSameTableConstraint		son_of_couple3		friend8_in_couple3		-5.0
+GuestPairSameTableConstraint		aunt2_of_groom		uncle1_of_groom			-5.0
+GuestPairSameTableConstraint		aunt2_of_groom		aunt1_of_groom			-5.0
+
+# Head table constraints:
+GuestPairSameTableConstraint		bride			groom				-10.0
+GuestPairSameTableConstraint		bride			mother_of_bride			-10.0
+GuestPairSameTableConstraint		bride			son_of_bride			-10.0
+GuestPairSameTableConstraint		groom			sister_of_groom			-10.0
+GuestPairSameTableConstraint		groom			father_of_groom			-10.0
+GuestPairSameTableConstraint		groom			mother_of_groom			-10.0
+GuestPairSameTableConstraint		groom			brother_in_law_of_groom		-10.0
+GuestPairAdjacentSeatConstraint		mother_of_bride		son_of_bride			-5.0
+GuestPairAdjacentSeatConstraint		bride			son_of_bride			-7.0
+GuestPairAdjacentSeatConstraint		groom			sister_of_groom			-7.0
+
+# While the bride's father isn't at the head table, he shouldn't be too far from the bride:
+GuestPairProximityConstraint		bride			father_of_bride			-3.0		GAUSSIAN	8.0
+GuestPairProximityConstraint		bride			father_of_bride			3.0		GAUSSIAN	2.0
+
+# Distance constraints:
+# One guest can't be vaccinated for real medical reasons, and must be far from elderly, vulnerable people:
+GuestPairProximityConstraint		friend5_in_couple2	father_of_groom			10.0		GAUSSIAN	5.0
+GuestPairProximityConstraint		friend5_in_couple2	mother_of_groom			8.0		GAUSSIAN	5.0
+GuestPairProximityConstraint		friend5_in_couple2	aunt1_of_groom			8.0		GAUSSIAN	5.0
+GuestPairProximityConstraint		friend5_in_couple2	uncle1_of_groom			8.0		GAUSSIAN	5.0
+GuestPairProximityConstraint		friend5_in_couple2	father_of_bride			10.0		GAUSSIAN	5.0
+GuestPairProximityConstraint		friend5_in_couple2	mother_of_bride			8.0		GAUSSIAN	5.0
+GuestPairProximityConstraint		friend5_in_couple2	friend9				10.0		GAUSSIAN	5.0
+GuestPairProximityConstraint		friend5_in_couple2	partner_of_father_of_bride	8.0		GAUSSIAN	5.0
+GuestPairProximityConstraint		friend5_in_couple2	aunt2_of_groom			10.0		GAUSSIAN	5.0
+GuestPairProximityConstraint		friend5_in_couple2	friend21_in_couple8		10.0		GAUSSIAN	5.0
+
+# Compatibility constraints based on similarities or differences of guests' personalities or interests:
+GuestPairSameTableConstraint		friend4			friend19_in_couple7		-4.0
+GuestPairAdjacentSeatConstraint		friend4			friend19_in_couple7		-4.0
+GuestPairProximityConstraint		friend4			son_of_couple8			-3.0		GAUSSIAN	1.0
+GuestPairSameTableConstraint		friend4			son_of_couple8			-3.0
+GuestPairAdjacentSeatConstraint		friend4			son_of_couple8			-1.0
+GuestPairProximityConstraint		friend19_in_couple7	son_of_couple8			-3.0		GAUSSIAN	1.0
+GuestPairSameTableConstraint		friend19_in_couple7	son_of_couple8			-3.0
+GuestPairSameTableConstraint		father_of_bride		father_of_groom			4.0
+GuestPairSameTableConstraint		father_of_bride		mother_of_groom			4.0
+GuestPairSameTableConstraint		father_of_bride		sister_of_groom			4.0
+GuestPairSameTableConstraint		father_of_bride		brother_in_law_of_groom		4.0
+GuestPairSameTableConstraint		father_of_bride		uncle1_of_groom			3.0
+GuestPairSameTableConstraint		father_of_bride		aunt1_of_groom			4.0
+GuestPairSameTableConstraint		father_of_bride		aunt2_of_groom			2.0
+GuestPairSameTableConstraint		father_of_bride		friend15_in_couple5		2.0
+GuestPairSameTableConstraint		father_of_bride		friend19_in_couple7		2.0
+GuestPairSameTableConstraint		father_of_bride		friend20_in_couple7		2.0
+GuestPairSameTableConstraint		friend1			friend12			-1.0
+GuestPairSameTableConstraint		friend1			friend2_in_couple1		-1.0
+GuestPairSameTableConstraint		friend13		friend9				-5.0
+GuestPairAdjacentSeatConstraint		friend13		friend9				-2.0
+GuestPairSameTableConstraint		friend9			friend10_in_couple4		-5.0
+GuestPairSameTableConstraint		friend9			friend11_in_couple4		-5.0
+GuestPairAdjacentSeatConstraint		friend9			friend10_in_couple4		-5.0
+GuestPairAdjacentSeatConstraint 	friend9			friend11_in_couple4		-5.0
+GuestPairSameTableConstraint		friend14		friend12			-3.0
+GuestPairAdjacentSeatConstraint		friend14		friend12			-2.0
+GuestPairSameTableConstraint		friend14		friend13			-3.0
+GuestPairAdjacentSeatConstraint		friend14		friend13			-2.0
+GuestPairSameTableConstraint		friend12		friend13			-3.0
+GuestPairAdjacentSeatConstraint		friend12		friend13			-2.0
+

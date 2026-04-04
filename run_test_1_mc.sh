@@ -1,0 +1,1 @@
+./bin/optimize_seating -masala_plugins $MASALA_STANDARD_PLUGINS -optimizer_name MonteCarloCostFunctionNetworkOptimizer -total_threads 1 -classical_attempts_per_problem 1 -solutions_to_store_per_problem 100 -problem_file test_data/example_problem_1.txt -classical_mc_steps 1000000

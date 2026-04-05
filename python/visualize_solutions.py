@@ -214,7 +214,8 @@ def label_guests( drawing : draw.Drawing, soln_lins : list[str], seat_coords : l
         if line == "" :
             continue
         linesplit = line.split( sep="\t" )
-        assert len(linesplit) == 6
+        print( linesplit )
+        assert len(linesplit) == 6, str(len(linesplit)) + "Line: " + line
         if linesplit[0] == "Guest_index" :
             continue
         guestname = linesplit[2].replace("\"", "").replace(" ", "\n")

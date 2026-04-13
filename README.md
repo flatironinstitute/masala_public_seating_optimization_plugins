@@ -221,3 +221,11 @@ GuestPairProximityConstraint <SHORT_GUEST_1_NAMESTRING> <SHORT_GUEST_2_NAMESTRIN
 ```
 
 Once again, the short guest namestrings must have been defined previously in `Guest` lines.
+
+## Citing this work
+
+If you use this software, please cite:
+
+```
+K.A. Nicholas and V.K. Mulligan.  (2026). "Entangled happily ever after: Wedding reception seating mapped to classical and quantum optimizers".  Manuscript under review.
+```

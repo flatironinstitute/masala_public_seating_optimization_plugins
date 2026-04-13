@@ -1,5 +1,7 @@
 # Seating Optimization Masala Plugins
 
+![Masala logo](logos/MASALA_Logo_Seating_Optimization_sm.png)
+
 ## Version
 
 The Seating Optimization Masala Plugins library is currently version 0.1 (alpha).

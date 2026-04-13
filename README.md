@@ -8,9 +8,10 @@ The Seating Optimization Masala Plugins library is currently version 0.1 (alpha)
 
 Plugins for the Masala software suite that allow Masala to optimize seating arrangements at events like weddings, using Masala classical or quantum optimizers. 
 
-## Author
+## Authors
 
-- Vikram K. Mulligan, Research Scientist, Center for Computational Biology, Flatiron Institute (vmulligan@flatironinstitute.org)
+- Vikram K. Mulligan, Research Scientist, Center for Computational Biology, Flatiron Institute (vmulligan@flatironinstitute.org).
+- Karie A. Nicholas, Director of Evaluation and Impact, Foudantion for Health Care Quality (knicholas@qualityhealth.org).
 
 ## Setup
 

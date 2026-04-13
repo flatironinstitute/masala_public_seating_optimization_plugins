@@ -30,6 +30,12 @@ import drawsvg as draw
 from math import sqrt, sin, cos
 
 ################################################################################
+## GLOBAL SETTINGS
+################################################################################
+
+use_svg_output = True
+
+################################################################################
 ## FUNCTION DEFINITIONS
 ################################################################################
 
@@ -193,7 +199,7 @@ def draw_seats( drawing : draw.Drawing, problines : list[str] )->list[tuple[floa
             r1 = draw.Rectangle(x-.15, y-.125, .3, .25, stroke_width=0.025, stroke="black", fill="white" )
             r2 = draw.Rectangle(x-.25, y-.25, .5, .125   , stroke_width=0.025, stroke="black", fill="white" )
             r3 = draw.Rectangle(x-.25, y-.125, .075, .25, stroke_width=0.025, stroke="black", fill="white" )
-            r4 = draw.Rectangle(x+.25, y-.125, -.075, .25, stroke_width=0.025, stroke="black", fill="white" )
+            r4 = draw.Rectangle(x+.175, y-.125, .075, .25, stroke_width=0.025, stroke="black", fill="white" )
             g1 = draw.Group( [r1,r2,r3,r4], transform="rotate(" + str(180-angle) + "," + str(x) + "," + str(y) + ") translate(0,-0.2)" )
             drawing.append(g1)
             outlist.append((x,y))
@@ -208,7 +214,8 @@ def label_guests( drawing : draw.Drawing, soln_lins : list[str], seat_coords : l
         if line == "" :
             continue
         linesplit = line.split( sep="\t" )
-        assert len(linesplit) == 6
+        print( linesplit )
+        assert len(linesplit) == 6, str(len(linesplit)) + "Line: " + line
         if linesplit[0] == "Guest_index" :
             continue
         guestname = linesplit[2].replace("\"", "").replace(" ", "\n")
@@ -221,7 +228,11 @@ def label_guests( drawing : draw.Drawing, soln_lins : list[str], seat_coords : l
         l = sqrt( xdiff*xdiff + ydiff*ydiff )
         x = offset*xdiff/l + xseat
         y = offset*ydiff/l + yseat
-        t1 = draw.Text( guestname, font_size=.075, x=x, y=y, center=True, style='text-anchor:middle; dominant-baseline:bottom;')
+        if use_svg_output :
+            font_size = 0.1
+        else :
+            font_size = 0.075
+        t1 = draw.Text( guestname, font_size=font_size, x=x, y=y, center=True, style='text-anchor:middle; dominant-baseline:bottom;')
         drawing.append(t1)
 
 ################################################################################
@@ -247,9 +258,12 @@ for i in range(len(solution_filenames)) :
     soln_lins = read_file(solution_filenames[i])
     label_guests( drawing, soln_lins, seat_coords, table_coords )
 
-    drawing.set_pixel_scale(200)
-    drawing.rasterize()
     input_index_str = str( i ).zfill(6)
-    drawing.save_png( outprefix + "_" + input_index_str + ".png" )
-    #drawing.save_svg( outprefix + "_" + input_index_str + ".svg" )
-    print( "Wrote \"" + outprefix + "_" + input_index_str + ".png\"." )
+    drawing.set_pixel_scale(100)
+    if use_svg_output == True :
+        drawing.save_svg( outprefix + "_" + input_index_str + ".svg")
+        print( "Wrote \"" + outprefix + "_" + input_index_str + ".svg\"." )
+    else :
+        drawing.rasterize()
+        drawing.save_png( outprefix + "_" + input_index_str + ".png" )
+        print( "Wrote \"" + outprefix + "_" + input_index_str + ".png\"." )

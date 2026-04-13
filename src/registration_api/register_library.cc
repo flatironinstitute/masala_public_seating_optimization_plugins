@@ -36,8 +36,22 @@ void
 register_library() {
     using namespace masala::base::managers::version;
     using masala::base::Size;
-    masala::base::managers::tracer::MasalaTracerManager::get_instance()->write_to_tracer(
+    masala::base::managers::tracer::MasalaTracerManagerHandle tm( masala::base::managers::tracer::MasalaTracerManager::get_instance() );
+    tm->write_to_tracer(
         "seating_optimization_masala_plugins::registration_api::register_library", "Registering seating optimization Masala plugins."
+    );
+    tm->add_destruction_message(
+        "SEATING_OPTIMIZATION_MASALA_PLUGINS",
+        {  //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+            "This run of Masala used the Seating Optimization Masala",
+            "Plugins library.  This library's citation is: K.A.     ",
+            "Nicholas and V.K. Mulligan.  (2026).  Entangled happily",
+            "ever after: Wedding reception seating mapped to        ",
+            "classical and quantum optimizers.  Manuscript under    ",
+            "review.                                                ",
+            "                                                       "
+        },
+        "seating_optimization_masala_plugins_citation_message"
     );
 
     MasalaModuleVersionInfoSP module_version_info(

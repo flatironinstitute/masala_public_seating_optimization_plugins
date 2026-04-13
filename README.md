@@ -10,7 +10,7 @@ Plugins for the Masala software suite that allow Masala to optimize seating arra
 
 ## Authors
 
-- Vikram K. Mulligan, Research Scientist, Center for Computational Biology, Flatiron Institute (vmulligan@flatironinstitute.org).
+- Vikram K. Mulligan, Research Scientist, Co-head of Biomolecular Design Group, Center for Computational Biology, Flatiron Institute (vmulligan@flatironinstitute.org).
 - Karie A. Nicholas, Director of Evaluation and Impact, Foudantion for Health Care Quality (knicholas@qualityhealth.org).
 
 ## Setup
@@ -21,6 +21,9 @@ Plugins for the Masala software suite that allow Masala to optimize seating arra
 4.  Set up a simlink to the external/ directory.  For instance: `ln -s ~/my_projects/masala/external ~/my_projects/seating_optimization_masala_plugins/`
 5.  Set up a simlink to the code\_templates/ directory.  For instance: `ln -s ~/my_projects/masala/code_templates ~/my_projects/seating_optimization_masala_plugins/`
 6.  Run the buildme.sh script (`./buildme.sh`) to compile and link the Masala seating optimization plugin library.
+
+- Note that default compilation is in release mode.
+- To compile in debug mode, edit cmake/CMakeLists.txt and change `SET( MODE release )` to `SET( MODE debug )`.
 
 ## Unit Testing
 
@@ -35,11 +38,6 @@ Note that some tests require the following environment variables to be set:
 `MASALA_STANDARD_PLUGINS`: This should point to the (top-level) directory that countains the Masala standard plugins repository.
 `MASALA_SEATING_OPTIMIZATION_PLUGINS`: This should point to the top-level directory containing this repository.
 
-## Compilation
-
-- Note that default compilation is in release mode.
-- To compile in debug mode, edit cmake/CMakeLists.txt and change `SET( MODE release )` to `SET( MODE debug )`.
-
 ## Building Doxygen code documentation
 
 All source code (both manually-written sub-libraries and auto-generated API sub-libraries) is documented with Doxygen tags.  To generate Doxygen HTML documentation, first, follow the instructions above to build Masala's Core library and the Seating Optimization Masala Plugins library.  Second, build Doxygen documentation with:
@@ -49,6 +47,38 @@ doxygen Doxyfile.src
 ```
 
 (Note that Doxygen must be installed.) Documentation will be addded to the `html_docs/` directory.  Delete this directory to recompile documentation from scratch.
+
+## Running seating optimization problems
+
+The `bin/optimize_seating` application runs seating optimization problems using an available Masala CFN optimizer.  To see the list of available options, run `./bin/optimize_seating -h`.  This currently produces the following output:
+
+```
+Starting optimize_seating application.
+Application created 15 August 2025 by Vikram K. Mulligan, Biomolecular Design Group, Center for Computational Biology, Flatiron Institute, in collaboration with Karie A. Nicholas, Foundation for Health Care Quality.
+Please write to vmulligan@flatironinstitute.org for questions.
+Parsed -h option.
+The following options may be set:
+-approximate_binary_extra_qubits	If the approximate binary data representation is used, this is the number of extra qubits to use.  Default 0.
+-classical_attempts_per_problem	The number of attempts (Monte Carlo trajectories) that classical optimizers, such as the MonteCarloCostFunctionNetworkOptimizer or the HillFlatteningMonteCarloCostFunctionNetworkOptimizer, will run.  Defaults to 1 if not specified.
+-classical_mc_steps	The number of Monte Carlo steps per attempt that classical optimizers, such as the MonteCarloCostFunctionNetworkOptimizer or the HillFlatteningMonteCarloCostFunctionNetworkOptimizer, will make.  Defaults to 1,000,000 if not specified.
+-do_greedy	Should solutions be greedily refined?  This is an option for all optimizers; must be TRUE or FALSE.  Defaults to TRUE.
+-dwave_annealing_time	The D-wave annealing time, in microseconds.  Defaults to 20.0
+-dwave_mapping_type	The D-Wave mapping type to use.  Only used if the D-Wave is used.  Allowed mappings include: ApproximateBinaryQUBOProblem, DomainWallQUBOProblem, OneHotQUBOProblem.
+-dwave_onenode_penalty_cap	The cap on the one-node penalty values.  Only used to limit dynamic range if the D-Wave is used.  Defaults to 100.0.
+-dwave_samples	The number of samples for the D-Wave to perform.  Defaults to 1000.
+-dwave_solver_name	The name of the solver.  Required input if the D-Wave is used.
+-dwave_twonode_penalty_cap	The cap on the two-node penalty values.  Only used to limit dynamic range if the D-Wave is used.  Defaults to 100.0.
+-dwave_use_inhomogeneous_driving	Should inhomogeneous driving be used?  Default true.  Only used if the D-Wave is used.
+-dwave_use_layout_embedding	If true, we use Layout embedding; if false, we use MinorMiner embedding.  Defaults to false.
+-flattening_boltzmann_temperature	The Boltzmann temperature to use for flattening the solution score landscape, if the HillFlatteningMonteCarloCostFunctionNetworkOptimizer is used.  Defaults to 10.0.
+-h	Print a help message and exit.
+-help	Print a help message and exit.
+-masala_plugins	The paths to the masala plugins that will be loaded, as a comma-separated list.
+-optimizer_name	The name of the optimizer to use to solve the seating optimization problem.  Currently supported optimizers include: HillFlatteningMonteCarloCostFunctionNetworkOptimizer, MonteCarloCostFunctionNetworkOptimizer, DWaveQuantumQUBOProblemOptimizer.
+-problem_file	The name (with absolute or relative path) of the file defining the seating optimization problem to solve.  Required input.
+-solutions_to_store_per_problem	The maximum number of solutions to return, for any optimizer.  Defaults to 1.
+-total_threads	The number of threads to launch.  Defaults to 1.  Zero means to launch one thread per CPU core on the node.
+```
 
 ## Input file format
 

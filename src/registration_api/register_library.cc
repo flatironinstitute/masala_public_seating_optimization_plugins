@@ -42,14 +42,15 @@ register_library() {
     );
     tm->add_destruction_message(
         "SEATING_OPTIMIZATION_MASALA_PLUGINS",
-        {  //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-            "This run of Masala used the Seating Optimization Masala",
-            "Plugins library.  This library's citation is: K.A.     ",
-            "Nicholas and V.K. Mulligan.  (2026).  Entangled happily",
-            "ever after: Wedding reception seating mapped to        ",
-            "classical and quantum optimizers.  Manuscript under    ",
-            "review.                                                ",
-            "                                                       "
+        {  //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+            "This run of Masala used the Seating        ",
+            "Optimization Masala Plugins library.  This ",
+            "library's citation is: K.A. Nicholas and   ",
+            "V.K. Mulligan.  (2026).  Entangled happily ",
+            "ever after: Wedding reception seating      ",
+            "mapped to classical and quantum optimizers.",
+            "Manuscript under review.                   ",
+            "                                           "
         },
         "seating_optimization_masala_plugins_citation_message"
     );

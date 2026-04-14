@@ -35,7 +35,7 @@ The Seating Optimization Masala Plugins library must be linked against the Masal
 
 To run unit tests, use the following commands after compiling:
 
-./build/seating_optimization_tests`
+`./build/seating_optimization_tests`
 `./build/registration_tests`
 
 Note that some tests require the following environment variables to be set:

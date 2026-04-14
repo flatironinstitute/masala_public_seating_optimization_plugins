@@ -1,10 +1,10 @@
-# Seating Optimization Masala Plugins
+# Masala Seating Optimization Plugins
 
-<img src="logos/MASALA_Logo_Seating_Optimization_vsm.png" alt="Seating Optimization Masala Plugins logo" width="512"/>
+<img src="logos/MASALA_Logo_Seating_Optimization_vsm.png" alt="Masala Seating Optimization Plugins logo" width="512"/>
 
 ## Version
 
-The Seating Optimization Masala Plugins library is currently version 1.0.
+The Masala Seating Optimization Plugins library is currently version 1.0.
 
 ## Description
 
@@ -12,7 +12,7 @@ Plugins for the Masala software suite that allow Masala to optimize seating arra
 
 ## Dependencies
 
-The Seating Optimization Masala Plugins library must be linked against the Masala Core library, available from [https://github.com/flatironinstitute/masala_public](https://github.com/flatironinstitute/masala_public).  It can load plugin optimizers found in the Standard Masala Plugins library, available from https://github.com/flatironinstitute/masala_public_standard_plugins](https://github.com/flatironinstitute/masala_public_standard_plugins), or from the Quantum Computing Masala Plugins library, which will be released publicly in the near future.
+The Masala Seating Optimization Plugins library must be linked against the Masala Core library, available from [https://github.com/flatironinstitute/masala_public](https://github.com/flatironinstitute/masala_public).  It can load plugin optimizers found in the Standard Masala Plugins library, available from https://github.com/flatironinstitute/masala_public_standard_plugins](https://github.com/flatironinstitute/masala_public_standard_plugins), or from the Quantum Computing Masala Plugins library, which will be released publicly in the near future.
 
 ## Authors
 
@@ -46,7 +46,7 @@ Note that some tests require the following environment variables to be set:
 
 ## Building Doxygen code documentation
 
-All source code (both manually-written sub-libraries and auto-generated API sub-libraries) is documented with Doxygen tags.  To generate Doxygen HTML documentation, first, follow the instructions above to build Masala's Core library and the Seating Optimization Masala Plugins library.  Second, build Doxygen documentation with:
+All source code (both manually-written sub-libraries and auto-generated API sub-libraries) is documented with Doxygen tags.  To generate Doxygen HTML documentation, first, follow the instructions above to build Masala's Core library and the Masala Seating Optimization Plugins library.  Second, build Doxygen documentation with:
 
 ```
 doxygen Doxyfile.src

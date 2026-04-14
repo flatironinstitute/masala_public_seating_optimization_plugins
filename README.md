@@ -54,6 +54,8 @@ doxygen Doxyfile.src
 
 (Note that Doxygen must be installed.) Documentation will be addded to the `html_docs/` directory.  Delete this directory to recompile documentation from scratch.
 
+Doxygen documentation for the current version of this repository is available from [https://users.flatironinstitute.org/~vmulligan/doxygen/masala_seating_optimization_plugins_doxygen/index.html](https://users.flatironinstitute.org/~vmulligan/doxygen/masala_seating_optimization_plugins_doxygen/index.html).
+
 ## Running seating optimization problems
 
 The `bin/optimize_seating` application runs seating optimization problems using an available Masala CFN optimizer.  To see the list of available options, run `./bin/optimize_seating -h`.  This currently produces the following output:

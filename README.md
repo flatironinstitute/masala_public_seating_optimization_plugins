@@ -1,6 +1,6 @@
 # Seating Optimization Masala Plugins
 
-![Masala logo](logos/MASALA_Logo_Seating_Optimization_vsm.png)
+<img src="logos/MASALA_Logo_Seating_Optimization_vsm.png" alt="Seating Optimization Masala Plugins logo" width="512"/>
 
 ## Version
 

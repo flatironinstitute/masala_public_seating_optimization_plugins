@@ -1,6 +1,6 @@
 # Seating Optimization Masala Plugins
 
-![Masala logo](logos/MASALA_Logo_Seating_Optimization_sm.png)
+![Masala logo](logos/MASALA_Logo_Seating_Optimization_vsm.png)
 
 ## Version
 
@@ -8,7 +8,7 @@ The Seating Optimization Masala Plugins library is currently version 1.0.
 
 ## Description
 
-Plugins for the Masala software suite that allow Masala to optimize seating arrangements at events like weddings, using Masala classical or quantum optimizers.  This is useful first as a means of solving these hard problems, second as a means of demonstrating Masala's use for optimization problems very different from (but related to) the peptide and protein design problems for which Masala was developed, and third as a means of benchmarking existing and future Masala CFN optimizers.
+Plugins for the Masala software suite that allow Masala to optimize seating arrangements at events like weddings, using Masala classical or quantum optimizers.  This is useful in three ways.  First this repository provides means of solving these hard problems. Second, it serves to demonstrate Masala's use for optimization problems very different from (but related to) the peptide and protein design problems for which Masala was developed: the code patterns that run configure and run plugin optimizers may be emulated by those wishing to apply these tools to their own problems.  And third, this repository provides benchmarks to test existing and future Masala CFN optimizers.
 
 ## Dependencies
 

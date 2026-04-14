@@ -50,7 +50,7 @@ register_library() {
             "ever after: Wedding reception seating      ",
             "mapped to classical and quantum optimizers.",
             "Manuscript under review.    Preprint       ",
-            "available from arXiv:                      ",
+            "available from \033[4marXiv\033[24m:                      ",
             "https://arxiv.org/abs/2604.10497.          ",
             "                                           "
         },

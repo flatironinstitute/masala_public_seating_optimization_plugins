@@ -19,7 +19,7 @@
 CMAKE_MINIMUM_REQUIRED( VERSION 3.10 )
 
 # Set project attributes:
-PROJECT( MasalaSeatingOptimizationPlugins VERSION 0.1 DESCRIPTION "Seating optimization plugins and applications that use Masala optimizers." )
+PROJECT( MasalaSeatingOptimizationPlugins VERSION 1.0 DESCRIPTION "Seating optimization plugins and applications that use Masala optimizers." )
 
 # Default build is release mode.  To build in debug mode (recommeded for development),
 # change the nex tline to SET( MODE debug ).

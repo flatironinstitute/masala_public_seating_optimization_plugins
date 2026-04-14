@@ -2,7 +2,7 @@
 
 ## Description
 
-The Seating Optimization Masala Plugins library version 0.1 (alpha) contains classes for defining seating optimization problems that can be solved with Masala CFN solvers defined in other libraries.  Masala provides solvers that run classically (_i.e._ on CPU or GPU) or on current-generation quantum computers (_i.e._ on QPU)
+The Seating Optimization Masala Plugins library version 1.0 contains classes for defining seating optimization problems that can be solved with Masala CFN solvers defined in other libraries.  Masala provides solvers that run classically (_i.e._ on CPU or GPU) or on current-generation quantum computers (_i.e._ on QPU)
 
 ## Author
 

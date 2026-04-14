@@ -4,11 +4,15 @@
 
 ## Version
 
-The Seating Optimization Masala Plugins library is currently version 0.1 (alpha).
+The Seating Optimization Masala Plugins library is currently version 1.0.
 
 ## Description
 
-Plugins for the Masala software suite that allow Masala to optimize seating arrangements at events like weddings, using Masala classical or quantum optimizers. 
+Plugins for the Masala software suite that allow Masala to optimize seating arrangements at events like weddings, using Masala classical or quantum optimizers.  This is useful first as a means of solving these hard problems, second as a means of demonstrating Masala's use for optimization problems very different from (but related to) the peptide and protein design problems for which Masala was developed, and third as a means of benchmarking existing and future Masala CFN optimizers.
+
+## Dependencies
+
+The Seating Optimization Masala Plugins library must be linked against the Masala Core library, available from [https://github.com/flatironinstitute/masala_public](https://github.com/flatironinstitute/masala_public).  It can load plugin optimizers found in the Standard Masala Plugins library, available from https://github.com/flatironinstitute/masala_public_standard_plugins](https://github.com/flatironinstitute/masala_public_standard_plugins), or from the Quantum Computing Masala Plugins library, which will be released publicly in the near future.
 
 ## Authors
 
@@ -229,5 +233,5 @@ Once again, the short guest namestrings must have been defined previously in `Gu
 If you use this software, please cite:
 
 ```
-K.A. Nicholas and V.K. Mulligan.  (2026). "Entangled happily ever after: Wedding reception seating mapped to classical and quantum optimizers".  Manuscript under review.
+K.A. Nicholas and V.K. Mulligan.  (2026). "Entangled happily ever after: Wedding reception seating mapped to classical and quantum optimizers".  Manuscript under review.  Preprint available from arXiv: https://arxiv.org/abs/2604.10497.
 ```

@@ -49,7 +49,9 @@ register_library() {
             "V.K. Mulligan.  (2026).  Entangled happily ",
             "ever after: Wedding reception seating      ",
             "mapped to classical and quantum optimizers.",
-            "Manuscript under review.                   ",
+            "Manuscript under review.    Preprint       ",
+            "available from arXiv:                      ",
+            "https://arxiv.org/abs/2604.10497.          ",
             "                                           "
         },
         "seating_optimization_masala_plugins_citation_message"
